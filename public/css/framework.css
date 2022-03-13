@@ -343,7 +343,7 @@ template {
 }
 
 h1, .h1 {
-  color: #282360;
+  color: #222;
   margin: 0;
   padding: 0;
   font-family: "Asket";
@@ -352,7 +352,7 @@ h1, .h1 {
 }
 
 h2, .h2 {
-  color: #282360;
+  color: #222;
   margin: 0;
   padding: 0;
   font-family: "Asket";
@@ -361,7 +361,7 @@ h2, .h2 {
 }
 
 h3, .h3 {
-  color: #282360;
+  color: #222;
   margin: 0;
   padding: 0;
   font-family: "Asket";
@@ -370,7 +370,7 @@ h3, .h3 {
 }
 
 h4, .h4 {
-  color: #282360;
+  color: #222;
   margin: 0;
   padding: 0;
   font-family: "Asket";
@@ -379,7 +379,7 @@ h4, .h4 {
 }
 
 h5, .h5 {
-  color: #282360;
+  color: #222;
   margin: 0;
   padding: 0;
   font-family: "Asket";
@@ -388,7 +388,7 @@ h5, .h5 {
 }
 
 h6, .h6 {
-  color: #282360;
+  color: #222;
   margin: 0;
   padding: 0;
   font-family: "Asket";
@@ -501,35 +501,35 @@ h6, .h6 {
   }
 }
 .bg-default {
-  background-color: #282360;
+  background-color: #222;
 }
 
 .text-default {
-  color: #282360;
+  color: #222;
 }
 
 .text-default h1, .text-default .h1 {
-  color: #282360;
+  color: #222;
 }
 
 .text-default h2, .text-default .h2 {
-  color: #282360;
+  color: #222;
 }
 
 .text-default h3, .text-default .h3 {
-  color: #282360;
+  color: #222;
 }
 
 .text-default h4, .text-default .h4 {
-  color: #282360;
+  color: #222;
 }
 
 .text-default h5, .text-default .h5 {
-  color: #282360;
+  color: #222;
 }
 
 .text-default h6, .text-default .h6 {
-  color: #282360;
+  color: #222;
 }
 
 .bg-error {
@@ -696,8 +696,8 @@ body {
 }
 
 .btn-default {
-  background-color: #282360;
-  border: solid 1px #282360;
+  background-color: #222;
+  border: solid 1px #222;
   color: #FFF;
   font-weight: 400;
   padding: 0.5rem;
@@ -709,8 +709,8 @@ body {
   text-decoration: none;
 }
 .btn-default:hover {
-  background-color: #1c1943;
-  border-color: #1c1943;
+  background-color: #181818;
+  border-color: #181818;
   color: #FFF;
 }
 .btn-default:active {
@@ -810,6 +810,12 @@ body {
   top: 1px;
 }
 
+.btn-long {
+  display: block;
+  margin: 0;
+  width: 100%;
+}
+
 textarea,
 select,
 input:not([type=hidden]) {
@@ -823,8 +829,8 @@ input:not([type=hidden]) {
 textarea:focus,
 select:focus,
 input:not([type=hidden]):focus {
-  outline: 2px solid rgba(40, 35, 96, 0.7);
-  border-color: #282360;
+  outline: 2px solid rgba(34, 34, 34, 0.7);
+  border-color: #222;
 }
 textarea:focus + label, textarea:not(:placeholder-shown) + label,
 select:focus + label,
@@ -865,7 +871,7 @@ input:not([type=hidden]):not(:placeholder-shown) + label {
 }
 
 label {
-  color: #282360;
+  color: #222;
 }
 
 hr {
@@ -881,5 +887,86 @@ hr {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 5px;
+  padding: 10px 10%;
+  margin-bottom: 1rem;
 }
+
+.nav-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.hamburger input {
+  display: none;
+}
+.hamburger input:checked + label .nav-icon {
+  background-color: transparent;
+}
+.hamburger input:checked + label .nav-icon:before {
+  transform: rotate(135deg);
+}
+.hamburger input:checked + label .nav-icon:after {
+  top: 0.8rem;
+  transform: rotate(-135deg);
+}
+.hamburger label {
+  opacity: 1 !important;
+  height: 2rem;
+  display: block;
+}
+.hamburger .nav-icon {
+  position: relative;
+  display: block;
+  transition: all 0.2s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hamburger .nav-icon {
+    transition: none;
+  }
+}
+.hamburger .nav-icon, .hamburger .nav-icon:before, .hamburger .nav-icon:after {
+  width: 3rem;
+  height: 5px;
+  background-color: #222;
+}
+.hamburger .nav-icon:before, .hamburger .nav-icon:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  display: inline-block;
+  transition: all 0.2s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hamburger .nav-icon:before, .hamburger .nav-icon:after {
+    transition: none;
+  }
+}
+.hamburger .nav-icon:before {
+  top: 0.8rem;
+}
+.hamburger .nav-icon:after {
+  top: 1.6rem;
+}
+
+.hamburger.text-default .nav-icon, .hamburger.text-default .nav-icon:before, .hamburger.text-default .nav-icon:after, .text-default .hamburger .nav-icon, .text-default .hamburger .nav-icon:before, .text-default .hamburger .nav-icon:after {
+  background-color: #222;
+}
+
+.hamburger.text-error .nav-icon, .hamburger.text-error .nav-icon:before, .hamburger.text-error .nav-icon:after, .text-error .hamburger .nav-icon, .text-error .hamburger .nav-icon:before, .text-error .hamburger .nav-icon:after {
+  background-color: #E00;
+}
+
+.hamburger.text-success .nav-icon, .hamburger.text-success .nav-icon:before, .hamburger.text-success .nav-icon:after, .text-success .hamburger .nav-icon, .text-success .hamburger .nav-icon:before, .text-success .hamburger .nav-icon:after {
+  background-color: #060;
+}
+
+.hamburger.text-dark .nav-icon, .hamburger.text-dark .nav-icon:before, .hamburger.text-dark .nav-icon:after, .text-dark .hamburger .nav-icon, .text-dark .hamburger .nav-icon:before, .text-dark .hamburger .nav-icon:after {
+  background-color: #222;
+}
+
+.hamburger.text-light .nav-icon, .hamburger.text-light .nav-icon:before, .hamburger.text-light .nav-icon:after, .text-light .hamburger .nav-icon, .text-light .hamburger .nav-icon:before, .text-light .hamburger .nav-icon:after {
+  background-color: #FFF;
+}
+
+/*# sourceMappingURL=style.css.map */

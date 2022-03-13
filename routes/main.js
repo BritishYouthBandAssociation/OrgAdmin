@@ -6,8 +6,8 @@ const router = express.Router();
 
 // Set up default route to check server is running
 router.get('/', (req, res) => {
-	return res.render('index', {
-		title: 'Home'
+	return res.render('login', {
+		title: 'Please Log In'
 	});
 });
 
