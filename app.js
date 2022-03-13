@@ -58,6 +58,20 @@ function main() {
 		path.join(__dirname, 'public/assets/favicon.ico')));
 	app.use('/', express.static(path.join(__dirname, 'public')));
 
+	//prevent unauthorised access
+	app.use((req, res, next) => {
+		//allow css/js files
+		if(req.path.slice(req.path.length - 4) == ".css" || req.path.slice(req.path.length - 3) == ".js"){
+			return next();
+		}
+
+		if(!serverOptions.noAuthRequired.includes(req.path)){
+			return res.redirect('/');
+		}
+
+		next();
+	});
+
 	// Add external routers to express
 	for (const route of loadRoutes()) {
 		app.use(route[0], route[1]);
