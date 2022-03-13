@@ -61,12 +61,12 @@ function main() {
 	//prevent unauthorised access
 	app.use((req, res, next) => {
 		//allow css/js files
-		if(req.path.slice(req.path.length - 4) == ".css" || req.path.slice(req.path.length - 3) == ".js"){
+		if(req.path.slice(req.path.length - 4) === ".css" || req.path.slice(req.path.length - 3) === ".js"){
 			return next();
 		}
 
 		if(!serverOptions.noAuthRequired.includes(req.path)){
-			return res.redirect('/');
+			return res.redirect(`/?next=${req.path}`);
 		}
 
 		next();
