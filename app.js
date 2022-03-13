@@ -11,7 +11,10 @@ const serveFavicon = require('serve-favicon');
 const libPath = process.env.LIB_PATH ?? '../lib';
 
 // Import library functions
-const { helpers: { ConfigHelper } } = require(libPath);
+const { helpers: { ConfigHelper, HandlebarsHelper } } = require(libPath);
+
+//set global base dir
+global.__approot = __dirname;
 
 /**
  * loadRoutes() Loads all of the routes from /routers into a map
@@ -43,7 +46,8 @@ function main() {
 	app.engine(
 		'hbs',
 		engine({
-			extname: '.hbs'
+			extname: '.hbs',
+			helpers: HandlebarsHelper
 		})
 	);
 	app.set('view engine', 'hbs');
