@@ -4,7 +4,13 @@
 	<body>
 		<nav class="navbar bg-default text-light">
 			<div class="nav-content">
-				<h1>BYBA Admin</h1>
+				<div class="hamburger">
+					<div></div>
+					<div></div>
+					<div></div>
+				</div>
+
+				<h1>{{getConfigValue 'config/site' 'title' 'Org' }} Admin</h1>
 			</div>
 			<div class="nav-logo">
 				<img src="assets/logo.png" width="50" alt="BYBA" />
