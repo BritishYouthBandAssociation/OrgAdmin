@@ -11,7 +11,13 @@ const serveFavicon = require('serve-favicon');
 const libPath = process.env.LIB_PATH ?? '../lib';
 
 // Import library functions
-const { helpers: { ConfigHelper, HandlebarsHelper } } = require(libPath);
+const {
+	helpers: {
+		ConfigHelper,
+		HandlebarsHelper,
+		DatabaseConnectionPool
+	}
+} = require(libPath);
 
 //set global base dir
 global.__approot = __dirname;
@@ -73,6 +79,14 @@ function main() {
 			return res.redirect(`/?next=${req.path}`);
 		}
 
+		next();
+	});
+
+	//add global db pool
+	const dbConfig = ConfigHelper.importJSON(path.join(__dirname, 'config'), 'db');
+	const db = new DatabaseConnectionPool(dbConfig);
+	app.use((req, res, next) => {
+		req.db = db;
 		next();
 	});
 
