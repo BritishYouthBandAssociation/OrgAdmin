@@ -5,5 +5,7 @@
 	<meta http-equiv='X-UA-Compatible' content='IE=edge'>
 
 	<!-- Title -->
-	<title>{{ title }}</title>
+	<title>{{ title }} | {{getConfigValue 'config/site' 'title' 'Org'}}</title>
+
+	<link rel="stylesheet" href="{{getConfigValue 'config/site' 'frameworkURL' '/css/framework.css'}}" />
 </head>
