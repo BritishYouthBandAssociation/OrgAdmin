@@ -8,7 +8,8 @@ const path = require('path');
 const serveFavicon = require('serve-favicon');
 
 // Initialise library path
-const libPath = process.env.LIB_PATH ?? '../lib';
+const libPath = path.join(__dirname, process.env.LIB_PATH ?? '../lib');
+global.__lib = libPath;
 
 // Import library functions
 const {
@@ -41,7 +42,7 @@ function loadRoutes() {
 	return routes;
 }
 
-function main() {
+async function main() {
 	// Initialise express app
 	const app = express();
 
@@ -84,7 +85,7 @@ function main() {
 
 	//add global db pool
 	const dbConfig = ConfigHelper.importJSON(path.join(__dirname, 'config'), 'db');
-	const db = new DatabaseConnectionPool(dbConfig);
+	const db = await new DatabaseConnectionPool(dbConfig);
 	app.use((req, res, next) => {
 		req.db = db;
 		next();
