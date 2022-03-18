@@ -19,7 +19,8 @@ router.post('/', async (req, res) => {
 
 	if(user != null){
 		//successful login
-		res.redirect("test");
+		const next = req.query.next ?? "home";
+		return res.redirect(next);
 	}
 
 	return res.render('login', {
