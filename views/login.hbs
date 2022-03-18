@@ -2,6 +2,12 @@
 <p>Enter your credentials into the form below to log in</p>
 
 <form method="post">
+	{{#if error}}
+		<div class="bg-error alert">
+			{{error}}
+		</div>
+	{{/if}}
+
 	<div class="input">
 		<input type="email" name="email" id="email" placeholder="Email address" />
 		<label for="email">Email address</label>

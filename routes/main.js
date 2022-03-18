@@ -15,16 +15,27 @@ router.get('/', (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-	const user = await lib.repositories.UserRepository.getUserByLogin(req.db, req.body.email, req.body.password);
+	let fields = null;
+	try{
+		fields = lib.helpers.ValidationHelper.validate(req.body, ['email','password'], {'email':'email'}).fields;
+	} catch(ex){
+		console.log("Invalid fields!");
+		console.log(ex);
+	}
 
-	if(user != null){
-		//successful login
-		const next = req.query.next ?? "home";
-		return res.redirect(next);
+	if(fields != null){
+		const user = await lib.repositories.UserRepository.getUserByLogin(req.db, req.body.email, req.body.password);
+
+		if(user != null){
+			//successful login
+			const next = req.query.next ?? "home";
+			return res.redirect(next);
+		}
 	}
 
 	return res.render('login', {
-		title: 'Please Log In'
+		title: 'Please Log In',
+		error: 'Username or password incorrect. Please try again'
 	});
 });
 
