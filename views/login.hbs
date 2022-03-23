@@ -1,0 +1,22 @@
+<h2>Log In</h2>
+<p>Enter your credentials into the form below to log in</p>
+
+<form method="post">
+	{{#if error}}
+		<div class="bg-error alert">
+			{{error}}
+		</div>
+	{{/if}}
+
+	<div class="input">
+		<input type="email" name="email" id="email" placeholder="Email address" />
+		<label for="email">Email address</label>
+	</div>
+
+	<div class="input">
+		<input type="password" name="password" id="password" placeholder="Password" />
+		<label for="password">Password</label>
+	</div>
+
+	<button type="submit" class="btn-default btn-long">Log In</button>
+</form>

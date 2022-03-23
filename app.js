@@ -8,10 +8,17 @@ const path = require('path');
 const serveFavicon = require('serve-favicon');
 
 // Initialise library path
-const libPath = process.env.LIB_PATH ?? '../lib';
+const libPath = path.join(__dirname, process.env.LIB_PATH ?? '../lib');
+global.__lib = libPath;
 
 // Import library functions
-const { helpers: { ConfigHelper, HandlebarsHelper } } = require(libPath);
+const {
+	helpers: {
+		ConfigHelper,
+		HandlebarsHelper,
+		DatabaseConnectionPool
+	}
+} = require(libPath);
 
 //set global base dir
 global.__approot = __dirname;
@@ -35,7 +42,7 @@ function loadRoutes() {
 	return routes;
 }
 
-function main() {
+async function main() {
 	// Initialise express app
 	const app = express();
 
@@ -61,6 +68,28 @@ function main() {
 	app.use(serveFavicon(
 		path.join(__dirname, 'public/assets/favicon.ico')));
 	app.use('/', express.static(path.join(__dirname, 'public')));
+
+	//prevent unauthorised access
+	app.use((req, res, next) => {
+		//allow css/js files
+		if(req.path.slice(req.path.length - 4) === ".css" || req.path.slice(req.path.length - 3) === ".js"){
+			return next();
+		}
+
+		if(!serverOptions.noAuthRequired.includes(req.path)){
+			return res.redirect(`/?next=${req.path}`);
+		}
+
+		next();
+	});
+
+	//add global db pool
+	const dbConfig = ConfigHelper.importJSON(path.join(__dirname, 'config'), 'db');
+	const db = await new DatabaseConnectionPool(dbConfig);
+	app.use((req, res, next) => {
+		req.db = db;
+		next();
+	});
 
 	// Add external routers to express
 	for (const route of loadRoutes()) {

@@ -904,10 +904,11 @@ hr {
   background-color: transparent;
 }
 .hamburger input:checked + label .nav-icon:before {
+  top: 0;
   transform: rotate(135deg);
 }
 .hamburger input:checked + label .nav-icon:after {
-  top: 0.8rem;
+  top: 0;
   transform: rotate(-135deg);
 }
 .hamburger label {
@@ -917,7 +918,7 @@ hr {
 }
 .hamburger .nav-icon {
   position: relative;
-  display: block;
+  margin-top: 0.8rem;
   transition: all 0.2s;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -929,6 +930,7 @@ hr {
   width: 3rem;
   height: 5px;
   background-color: #282360;
+  display: inline-block;
 }
 .hamburger .nav-icon:before, .hamburger .nav-icon:after {
   content: "";
@@ -943,10 +945,10 @@ hr {
   }
 }
 .hamburger .nav-icon:before {
-  top: 0.8rem;
+  top: -0.8rem;
 }
 .hamburger .nav-icon:after {
-  top: 1.6rem;
+  top: 0.8rem;
 }
 
 .hamburger.text-default .nav-icon, .hamburger.text-default .nav-icon:before, .hamburger.text-default .nav-icon:after, .text-default .hamburger .nav-icon, .text-default .hamburger .nav-icon:before, .text-default .hamburger .nav-icon:after {

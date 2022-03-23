@@ -1,0 +1,8 @@
+{
+	"host": "localhost",
+	"user": "",
+	"password": "",
+	"database": "",
+	"waitForConnections": true,
+	"connectionLimit": 10
+}
