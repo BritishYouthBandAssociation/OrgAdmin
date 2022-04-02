@@ -970,3 +970,8 @@ hr {
 .hamburger.text-light .nav-icon, .hamburger.text-light .nav-icon:before, .hamburger.text-light .nav-icon:after, .text-light .hamburger .nav-icon, .text-light .hamburger .nav-icon:before, .text-light .hamburger .nav-icon:after {
   background-color: #FFF;
 }
+
+.alert {
+  padding: 1rem;
+  text-align: center;
+}

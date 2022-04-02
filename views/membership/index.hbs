@@ -1,1 +1,12 @@
-<p>Hi</p>
+<h2>Membership List</h2>
+
+{{#each membership}}
+	<div class="card">
+		<div class="card-header">
+			{{number}}: {{name}}
+		</div>
+		<div class="card-body">
+			<p>Membership Type: {{type.name}}</p>
+		</div>
+	</div>
+{{/each}}
