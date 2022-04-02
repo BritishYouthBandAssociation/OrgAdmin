@@ -2,10 +2,14 @@
 
 // Import modules
 const express = require('express');
-const { engine } = require('express-handlebars');
+const {
+	engine
+} = require('express-handlebars');
 const fs = require('fs');
 const path = require('path');
 const serveFavicon = require('serve-favicon');
+const session = require('express-session');
+const dbSession = require('express-mysql-session')(session);
 
 // Initialise library path
 const libPath = path.join(__dirname, process.env.LIB_PATH ?? '../lib');
@@ -17,7 +21,8 @@ const {
 		ConfigHelper,
 		HandlebarsHelper,
 		DatabaseConnectionPool
-	}
+	},
+	repositories
 } = require(libPath);
 
 //set global base dir
@@ -36,7 +41,7 @@ function loadRoutes() {
 
 	for (const file of routeFiles) {
 		const route = require(path.join(__dirname, 'routes', file));
-		routes.push([ route.root, route.router ]);
+		routes.push([route.root, route.router]);
 	}
 
 	return routes;
@@ -62,32 +67,47 @@ async function main() {
 
 	// Set up parsers to allow access to POST bodies
 	app.use(express.json());
-	app.use(express.urlencoded({ extended: true }));
+	app.use(express.urlencoded({
+		extended: true
+	}));
 
 	// Set up routes for static files
 	app.use(serveFavicon(
 		path.join(__dirname, 'public/assets/favicon.ico')));
 	app.use('/', express.static(path.join(__dirname, 'public')));
 
-	//prevent unauthorised access
-	app.use((req, res, next) => {
-		//allow css/js files
-		if(req.path.slice(req.path.length - 4) === ".css" || req.path.slice(req.path.length - 3) === ".js"){
-			return next();
-		}
-
-		if(!serverOptions.noAuthRequired.includes(req.path)){
-			return res.redirect(`/?next=${req.path}`);
-		}
-
-		next();
-	});
-
 	//add global db pool
 	const dbConfig = ConfigHelper.importJSON(path.join(__dirname, 'config'), 'db');
 	const db = await new DatabaseConnectionPool(dbConfig);
 	app.use((req, res, next) => {
 		req.db = db;
+		next();
+	});
+
+	//... and use it for our session stuff too!
+	const sessionStore = new dbSession({}, db.pool);
+	app.use(session({
+		secret: 'bob',
+		saveUninitialized: false,
+		resave: false,
+		store: sessionStore,
+		cookie: {
+			maxAge: 3000,
+			sameSite: true
+		}
+	}));
+
+	//prevent unauthorised access
+	app.use((req, res, next) => {
+		//allow css/js files
+		if (req.path.slice(req.path.length - 4) === ".css" || req.path.slice(req.path.length - 3) === ".js") {
+			return next();
+		}
+
+		if (!serverOptions.noAuthRequired.includes(req.path)) {
+			return res.redirect(`/?next=${req.path}`);
+		}
+
 		next();
 	});
 
