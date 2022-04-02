@@ -46,9 +46,10 @@ router.post('/', async (req, res) => {
 	});
 });
 
-router.get('/test', (req, res) => {
+router.get('/home', (req, res) => {
 	return res.render('index', {
-		title: 'Uh oh'
+		title: 'Home',
+		name: req.session.user.firstName
 	});
 });
 
