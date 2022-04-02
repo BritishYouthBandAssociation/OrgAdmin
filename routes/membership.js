@@ -13,4 +13,4 @@ router.get('/', (req, res) => {
 module.exports = {
 	root: '/membership/',
 	router: router
-}
+};

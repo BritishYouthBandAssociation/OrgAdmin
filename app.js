@@ -74,7 +74,7 @@ async function main() {
 	// Set up routes for static files
 	app.use(serveFavicon(
 		path.join(__dirname, 'public/assets/favicon.ico')));
-	app.use('/', express.static(path.join(__dirname, 'public')));
+	app.use(express.static(path.join(__dirname, 'public')));
 
 	//add global db pool
 	const dbConfig = ConfigHelper.importJSON(path.join(__dirname, 'config'), 'db');
