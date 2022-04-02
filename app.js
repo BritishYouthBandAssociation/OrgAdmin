@@ -96,7 +96,8 @@ async function main() {
 			return next();
 		}
 
-		if (req.session.user === null && !serverOptions.noAuthRequired.includes(req.path)) {
+		//double equals to also check for undefined
+		if (req.session.user == null && !serverOptions.noAuthRequired.includes(req.path)) {
 			return res.redirect(`/?next=${req.path}`);
 		}
 
