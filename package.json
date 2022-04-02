@@ -6,8 +6,7 @@
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"lint": "eslint .",
-		"prepare": "husky install",
-		"pre-commit": ""
+		"prepare": "husky install"
 	},
 	"repository": {
 		"type": "git",

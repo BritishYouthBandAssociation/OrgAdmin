@@ -9,7 +9,7 @@ const lib = require(__lib);
 
 // Set up default route to check server is running
 router.get('/', (req, res) => {
-	if (req.session.user != null) {
+	if (req.session.user !== null) {
 		return res.redirect("home");
 	}
 
@@ -29,10 +29,10 @@ router.post('/', async (req, res) => {
 		console.log(ex);
 	}
 
-	if (fields != null) {
+	if (fields !== null) {
 		const user = await lib.repositories.UserRepository.getUserByLogin(req.db, req.body.email, req.body.password);
 
-		if (user != null) {
+		if (user !== null) {
 			//successful login
 			req.session.user = user;
 			const next = req.query.next ?? "home";
