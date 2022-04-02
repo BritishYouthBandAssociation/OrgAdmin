@@ -92,7 +92,7 @@ async function main() {
 		resave: false,
 		store: sessionStore,
 		cookie: {
-			maxAge: 3000,
+			maxAge: 300000,
 			sameSite: true
 		}
 	}));
@@ -104,7 +104,7 @@ async function main() {
 			return next();
 		}
 
-		if (!serverOptions.noAuthRequired.includes(req.path)) {
+		if (req.session.user == null && !serverOptions.noAuthRequired.includes(req.path)) {
 			return res.redirect(`/?next=${req.path}`);
 		}
 
