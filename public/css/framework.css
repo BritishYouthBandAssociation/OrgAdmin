@@ -436,6 +436,18 @@ h6, .h6 {
   display: flex;
 }
 
+.text-start {
+  text-align: start;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-end {
+  text-align: end;
+}
+
 @media (min-width: 576px) {
   .d-sm-none {
     display: none;
@@ -724,7 +736,7 @@ body {
 .row > * {
   box-sizing: border-box;
   flex-shrink: 0;
-  width: 100%;
+  /*width: 100%;*/
   max-width: 100%;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
@@ -732,250 +744,371 @@ body {
 
 .col {
   flex: 1 0 0%;
+  margin-bottom: 1rem;
+}
+
+.col-1 {
+  flex: 0 0 auto;
+  width: 8.33333333%;
+  margin-bottom: 1rem;
+}
+
+.col-2 {
+  flex: 0 0 auto;
+  width: 16.66666667%;
+  margin-bottom: 1rem;
+}
+
+.col-3 {
+  flex: 0 0 auto;
+  width: 25%;
+  margin-bottom: 1rem;
+}
+
+.col-4 {
+  flex: 0 0 auto;
+  width: 33.33333333%;
+  margin-bottom: 1rem;
+}
+
+.col-5 {
+  flex: 0 0 auto;
+  width: 41.66666667%;
+  margin-bottom: 1rem;
+}
+
+.col-6 {
+  flex: 0 0 auto;
+  width: 50%;
+  margin-bottom: 1rem;
+}
+
+.col-7 {
+  flex: 0 0 auto;
+  width: 58.33333333%;
+  margin-bottom: 1rem;
+}
+
+.col-8 {
+  flex: 0 0 auto;
+  width: 66.66666667%;
+  margin-bottom: 1rem;
+}
+
+.col-9 {
+  flex: 0 0 auto;
+  width: 75%;
+  margin-bottom: 1rem;
+}
+
+.col-10 {
+  flex: 0 0 auto;
+  width: 83.33333333%;
+  margin-bottom: 1rem;
+}
+
+.col-11 {
+  flex: 0 0 auto;
+  width: 91.66666667%;
+  margin-bottom: 1rem;
+}
+
+.col-12 {
+  flex: 0 0 auto;
+  width: 100%;
+  margin-bottom: 1rem;
 }
 
 @media (min-width: 576px) {
   .col-sm-1 {
     flex: 0 0 auto;
     width: 8.33333333%;
+    margin-bottom: 1rem;
   }
 
   .col-sm-2 {
     flex: 0 0 auto;
     width: 16.66666667%;
+    margin-bottom: 1rem;
   }
 
   .col-sm-3 {
     flex: 0 0 auto;
     width: 25%;
+    margin-bottom: 1rem;
   }
 
   .col-sm-4 {
     flex: 0 0 auto;
     width: 33.33333333%;
+    margin-bottom: 1rem;
   }
 
   .col-sm-5 {
     flex: 0 0 auto;
     width: 41.66666667%;
+    margin-bottom: 1rem;
   }
 
   .col-sm-6 {
     flex: 0 0 auto;
     width: 50%;
+    margin-bottom: 1rem;
   }
 
   .col-sm-7 {
     flex: 0 0 auto;
     width: 58.33333333%;
+    margin-bottom: 1rem;
   }
 
   .col-sm-8 {
     flex: 0 0 auto;
     width: 66.66666667%;
+    margin-bottom: 1rem;
   }
 
   .col-sm-9 {
     flex: 0 0 auto;
     width: 75%;
+    margin-bottom: 1rem;
   }
 
   .col-sm-10 {
     flex: 0 0 auto;
     width: 83.33333333%;
+    margin-bottom: 1rem;
   }
 
   .col-sm-11 {
     flex: 0 0 auto;
     width: 91.66666667%;
+    margin-bottom: 1rem;
   }
 
   .col-sm-12 {
     flex: 0 0 auto;
     width: 100%;
+    margin-bottom: 1rem;
   }
 }
 @media (min-width: 768px) {
   .col-md-1 {
     flex: 0 0 auto;
     width: 8.33333333%;
+    margin-bottom: 1rem;
   }
 
   .col-md-2 {
     flex: 0 0 auto;
     width: 16.66666667%;
+    margin-bottom: 1rem;
   }
 
   .col-md-3 {
     flex: 0 0 auto;
     width: 25%;
+    margin-bottom: 1rem;
   }
 
   .col-md-4 {
     flex: 0 0 auto;
     width: 33.33333333%;
+    margin-bottom: 1rem;
   }
 
   .col-md-5 {
     flex: 0 0 auto;
     width: 41.66666667%;
+    margin-bottom: 1rem;
   }
 
   .col-md-6 {
     flex: 0 0 auto;
     width: 50%;
+    margin-bottom: 1rem;
   }
 
   .col-md-7 {
     flex: 0 0 auto;
     width: 58.33333333%;
+    margin-bottom: 1rem;
   }
 
   .col-md-8 {
     flex: 0 0 auto;
     width: 66.66666667%;
+    margin-bottom: 1rem;
   }
 
   .col-md-9 {
     flex: 0 0 auto;
     width: 75%;
+    margin-bottom: 1rem;
   }
 
   .col-md-10 {
     flex: 0 0 auto;
     width: 83.33333333%;
+    margin-bottom: 1rem;
   }
 
   .col-md-11 {
     flex: 0 0 auto;
     width: 91.66666667%;
+    margin-bottom: 1rem;
   }
 
   .col-md-12 {
     flex: 0 0 auto;
     width: 100%;
+    margin-bottom: 1rem;
   }
 }
 @media (min-width: 992px) {
   .col-lg-1 {
     flex: 0 0 auto;
     width: 8.33333333%;
+    margin-bottom: 1rem;
   }
 
   .col-lg-2 {
     flex: 0 0 auto;
     width: 16.66666667%;
+    margin-bottom: 1rem;
   }
 
   .col-lg-3 {
     flex: 0 0 auto;
     width: 25%;
+    margin-bottom: 1rem;
   }
 
   .col-lg-4 {
     flex: 0 0 auto;
     width: 33.33333333%;
+    margin-bottom: 1rem;
   }
 
   .col-lg-5 {
     flex: 0 0 auto;
     width: 41.66666667%;
+    margin-bottom: 1rem;
   }
 
   .col-lg-6 {
     flex: 0 0 auto;
     width: 50%;
+    margin-bottom: 1rem;
   }
 
   .col-lg-7 {
     flex: 0 0 auto;
     width: 58.33333333%;
+    margin-bottom: 1rem;
   }
 
   .col-lg-8 {
     flex: 0 0 auto;
     width: 66.66666667%;
+    margin-bottom: 1rem;
   }
 
   .col-lg-9 {
     flex: 0 0 auto;
     width: 75%;
+    margin-bottom: 1rem;
   }
 
   .col-lg-10 {
     flex: 0 0 auto;
     width: 83.33333333%;
+    margin-bottom: 1rem;
   }
 
   .col-lg-11 {
     flex: 0 0 auto;
     width: 91.66666667%;
+    margin-bottom: 1rem;
   }
 
   .col-lg-12 {
     flex: 0 0 auto;
     width: 100%;
+    margin-bottom: 1rem;
   }
 }
 @media (min-width: 1200px) {
   .col-xl-1 {
     flex: 0 0 auto;
     width: 8.33333333%;
+    margin-bottom: 1rem;
   }
 
   .col-xl-2 {
     flex: 0 0 auto;
     width: 16.66666667%;
+    margin-bottom: 1rem;
   }
 
   .col-xl-3 {
     flex: 0 0 auto;
     width: 25%;
+    margin-bottom: 1rem;
   }
 
   .col-xl-4 {
     flex: 0 0 auto;
     width: 33.33333333%;
+    margin-bottom: 1rem;
   }
 
   .col-xl-5 {
     flex: 0 0 auto;
     width: 41.66666667%;
+    margin-bottom: 1rem;
   }
 
   .col-xl-6 {
     flex: 0 0 auto;
     width: 50%;
+    margin-bottom: 1rem;
   }
 
   .col-xl-7 {
     flex: 0 0 auto;
     width: 58.33333333%;
+    margin-bottom: 1rem;
   }
 
   .col-xl-8 {
     flex: 0 0 auto;
     width: 66.66666667%;
+    margin-bottom: 1rem;
   }
 
   .col-xl-9 {
     flex: 0 0 auto;
     width: 75%;
+    margin-bottom: 1rem;
   }
 
   .col-xl-10 {
     flex: 0 0 auto;
     width: 83.33333333%;
+    margin-bottom: 1rem;
   }
 
   .col-xl-11 {
     flex: 0 0 auto;
     width: 91.66666667%;
+    margin-bottom: 1rem;
   }
 
   .col-xl-12 {
     flex: 0 0 auto;
     width: 100%;
+    margin-bottom: 1rem;
   }
 }
 .btn-default {
@@ -1101,7 +1234,7 @@ body {
 
 textarea,
 select,
-input:not([type=hidden]) {
+input:not([type=hidden]):not([type=checkbox]):not([type=radio]) {
   display: block;
   width: 100%;
   padding: 1rem;
@@ -1111,15 +1244,15 @@ input:not([type=hidden]) {
 }
 textarea:focus,
 select:focus,
-input:not([type=hidden]):focus {
+input:not([type=hidden]):not([type=checkbox]):not([type=radio]):focus {
   outline: 2px solid rgba(40, 35, 96, 0.7);
   border-color: #282360;
 }
 textarea:focus + label, textarea:not(:placeholder-shown) + label,
 select:focus + label,
 select:not(:placeholder-shown) + label,
-input:not([type=hidden]):focus + label,
-input:not([type=hidden]):not(:placeholder-shown) + label {
+input:not([type=hidden]):not([type=checkbox]):not([type=radio]):focus + label,
+input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not(:placeholder-shown) + label {
   top: 0.25rem;
   font-size: 0.75rem;
   opacity: 0.85;
@@ -1127,7 +1260,7 @@ input:not([type=hidden]):not(:placeholder-shown) + label {
 
 .input {
   position: relative;
-  margin: 1rem;
+  margin: 0.5rem 0;
 }
 .input textarea,
 .input select,
@@ -1266,7 +1399,6 @@ hr {
   word-wrap: break-word;
   border: 1px solid #ccc;
   border-radius: 10px;
-  flex: 1 1 auto;
   padding: 1rem;
   box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
 }

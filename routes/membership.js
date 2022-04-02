@@ -7,6 +7,8 @@ const router = express.Router();
 router.get('/', (req, res) => {
 	return res.render('membership/index.hbs', {
 		title: "Membership",
+		seasons: [2022],
+		season: 2022,
 		membership: [
 			{
 				name: 'Revolution',
@@ -51,7 +53,28 @@ router.get('/', (req, res) => {
 					foreground: '#FFF'
 				}]
 			}
-		]
+		],
+		filters: [{
+			id: 1,
+			name: 'Band',
+			background: '#FF0',
+			foreground: '#000'
+		}, {
+			id: 2,
+			name: 'Individual',
+			background: '#00F',
+			foreground: '#FFF'
+		}, {
+			id: 3,
+			name: 'Northern',
+			background: '#0F0',
+			foreground: '#FFF'
+		}, {
+			id: 4,
+			name: 'Midlands',
+			background: '#F00',
+			foreground: '#FFF'
+		}]
 	});
 });
 

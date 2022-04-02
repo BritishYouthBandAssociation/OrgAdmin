@@ -1,19 +1,54 @@
 <h2>Membership List</h2>
 
-<div class="row text-center">
-	{{#each membership}}
-		<div class="col-12 col-md-6 col-lg-4">
-			<div class="card" data-type="{{type.id}}">
-				<div class="card-body">
-					<p class="h4">{{name}}</p>
-				</div>
-				
-				<div class="label-container">
-					{{#each labels}}
-						<span class="label" style="background-color: {{background}}; color: {{foreground}}" data-type="{{id}}">{{name}}</span>
+<div class="row">
+	<div class="col-12 col-md-4">
+		<div class="card">
+			<h2>Filters</h2>
+
+			<div class="input">
+				<select id="year">
+					{{#each seasons}}
+						<option value="{{this}}" {{#eq this ../season }} selected{{/eq}}>{{this}}</option>
 					{{/each}}
-				</div>
+				</select>
+				<label for="year">Season</label>
+			</div>
+
+			<div class="input">
+				<input id="search" placeholder="Search" />
+				<label for="search">Search</label>
+			</div>
+
+			<div class="checkbox-list">
+				<fieldset class="row">
+					<legend>Labels</legend>
+					{{#each filters}}
+						<div class="col-6 col-md-12">
+							<label for="filter_{{id}}"><input type="checkbox" id="filter_{{id}}" value="{{id}}" checked /> {{name}}</label>
+						</div>
+					{{/each}}
+				</fieldset>
 			</div>
 		</div>
-	{{/each}}
+	</div>
+
+	<div class="col-md-8">
+		<div class="row text-center">
+			{{#each membership}}
+				<div class="col-12 col-md-6">
+					<div class="card" data-type="{{type.id}}">
+						<div class="card-body">
+							<p class="h4">{{name}}</p>
+						</div>
+
+						<div class="label-container">
+							{{#each labels}}
+								<span class="label" style="background-color: {{background}}; color: {{foreground}}" data-type="{{id}}">{{name}}</span>
+							{{/each}}
+						</div>
+					</div>
+				</div>
+			{{/each}}
+		</div>
+	</div>
 </div>
