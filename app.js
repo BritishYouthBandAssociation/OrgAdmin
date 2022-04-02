@@ -21,8 +21,7 @@ const {
 		ConfigHelper,
 		HandlebarsHelper,
 		DatabaseConnectionPool
-	},
-	repositories
+	}
 } = require(libPath);
 
 //set global base dir
