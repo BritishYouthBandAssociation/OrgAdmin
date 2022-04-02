@@ -1,0 +1,9 @@
+{
+	"secret": "",
+	"saveUninitialized": false,
+	"resave": false,
+	"cookie": {
+		"maxAge": 300000,
+		"sameSite": true
+	}
+}
