@@ -97,7 +97,7 @@ async function main() {
 			return next();
 		}
 
-		if (req.session.user == null && !serverOptions.noAuthRequired.includes(req.path)) {
+		if (req.session.user === null && !serverOptions.noAuthRequired.includes(req.path)) {
 			return res.redirect(`/?next=${req.path}`);
 		}
 
