@@ -86,16 +86,9 @@ async function main() {
 
 	//... and use it for our session stuff too!
 	const sessionStore = new dbSession({}, db.pool);
-	app.use(session({
-		secret: 'bob',
-		saveUninitialized: false,
-		resave: false,
-		store: sessionStore,
-		cookie: {
-			maxAge: 300000,
-			sameSite: true
-		}
-	}));
+	const sessionConfig = ConfigHelper.importJSON(path.join(__dirname, 'config'), 'session');
+	sessionConfig.store = sessionStore;
+	app.use(session(sessionConfig));
 
 	//prevent unauthorised access
 	app.use((req, res, next) => {
