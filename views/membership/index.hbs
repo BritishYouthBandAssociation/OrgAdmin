@@ -1,12 +1,19 @@
 <h2>Membership List</h2>
 
-{{#each membership}}
-	<div class="card">
-		<div class="card-header">
-			{{number}}: {{name}}
+<div class="row text-center">
+	{{#each membership}}
+		<div class="col-12 col-md-6 col-lg-4">
+			<div class="card" data-type="{{type.id}}">
+				<div class="card-body">
+					<p class="h4">{{name}}</p>
+				</div>
+				
+				<div class="label-container">
+					{{#each labels}}
+						<span class="label" style="background-color: {{background}}; color: {{foreground}}" data-type="{{id}}">{{name}}</span>
+					{{/each}}
+				</div>
+			</div>
 		</div>
-		<div class="card-body">
-			<p>Membership Type: {{type.name}}</p>
-		</div>
-	</div>
-{{/each}}
+	{{/each}}
+</div>

@@ -11,29 +11,45 @@ router.get('/', (req, res) => {
 			{
 				name: 'Revolution',
 				number: 'GOL0001',
-				type: {
+				type: 1,
+				labels: [{
 					id: 1,
-					name: "Band"
-				},
-				labels: ['Northern']
+					name: 'Band',
+					background: '#FF0',
+					foreground: '#000'
+				}, {
+					id: 3,
+					name: 'Northern',
+					background: '#0F0',
+					foreground: '#FFF'
+				}]
 			},
 			{
 				name: 'Phantom Knights',
 				number: 'SIL0001',
-				type: {
+				type: 1,
+				labels: [{
 					id: 1,
-					name: "Band"
-				},
-				labels: ['Midlands']
+					name: 'Band',
+					background: '#FF0',
+					foreground: '#000'
+				}, {
+					id: 4,
+					name: 'Midlands',
+					background: '#F00',
+					foreground: '#FFF'
+				}]
 			},
 			{
 				name: 'Luke Taylor',
 				number: 'IND0001',
-				type: {
+				type: 2,
+				labels: [{
 					id: 2,
-					name: "Individual"
-				},
-				labels: []
+					name: 'Individual',
+					background: '#00F',
+					foreground: '#FFF'
+				}]
 			}
 		]
 	});
