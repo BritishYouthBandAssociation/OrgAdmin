@@ -9,59 +9,23 @@ const lib = require(__lib);
 
 router.get('/', async (req, res) => {
 	const membership = await lib.repositories.BandRepository.getBandsInMembershipForSeason(req.db, 2022);
-	console.log(membership);
+	const labels = [];
+
+	membership.forEach(m => {
+		m.labels.forEach(l => {
+			if(!labels.some(i => i.id == l.id)){
+				labels.push(l);
+			}
+		});
+	});
 
 	return res.render('membership/index.hbs', {
 		title: "Membership",
 		seasons: [2022],
 		season: 2022,
 		membership: membership,
-		/*membership: [
-			{
-				name: 'Revolution',
-				number: 'GOL0001',
-				type: 1,
-				labels: [{
-					id: 1,
-					name: 'Band',
-					background: '#FF0',
-					foreground: '#000'
-				}, {
-					id: 3,
-					name: 'Northern',
-					background: '#0F0',
-					foreground: '#FFF'
-				}]
-			},
-			{
-				name: 'Phantom Knights',
-				number: 'SIL0001',
-				type: 1,
-				labels: [{
-					id: 1,
-					name: 'Band',
-					background: '#FF0',
-					foreground: '#000'
-				}, {
-					id: 4,
-					name: 'Midlands',
-					background: '#F00',
-					foreground: '#FFF'
-				}]
-			},
-			{
-				name: 'Luke Taylor',
-				number: 'IND0001',
-				type: 2,
-				labels: [{
-					id: 2,
-					name: 'Individual',
-					background: '#00F',
-					foreground: '#FFF'
-				}]
-			}
-		],*/
-		filters: [{
+		filters: labels
+		/*filters: [{
 			id: 1,
 			name: 'Band',
 			background: '#FF0',
@@ -81,7 +45,7 @@ router.get('/', async (req, res) => {
 			name: 'Midlands',
 			background: '#F00',
 			foreground: '#FFF'
-		}]
+		}]*/
 	});
 });
 
