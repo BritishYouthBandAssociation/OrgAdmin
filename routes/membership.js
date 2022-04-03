@@ -1,15 +1,22 @@
 'use strict';
 
+/* global __lib */
+
 // Import modules
 const express = require('express');
 const router = express.Router();
+const lib = require(__lib);
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
+	const membership = await lib.repositories.BandRepository.getBandsInMembershipForSeason(req.db, 2022);
+	console.log(membership);
+
 	return res.render('membership/index.hbs', {
 		title: "Membership",
 		seasons: [2022],
 		season: 2022,
-		membership: [
+		membership: membership,
+		/*membership: [
 			{
 				name: 'Revolution',
 				number: 'GOL0001',
@@ -53,7 +60,7 @@ router.get('/', (req, res) => {
 					foreground: '#FFF'
 				}]
 			}
-		],
+		],*/
 		filters: [{
 			id: 1,
 			name: 'Band',
@@ -75,6 +82,19 @@ router.get('/', (req, res) => {
 			background: '#F00',
 			foreground: '#FFF'
 		}]
+	});
+});
+
+router.get('/band/:slug', async (req, res) => {
+	const band = await lib.repositories.BandRepository.getBandBySlug(req.db, req.params.slug);
+	
+	if(band === null){
+		return res.redirect('./');
+	}
+	
+	return res.render('membership/band', {
+		title: band.name,
+		name: band.name
 	});
 });
 
