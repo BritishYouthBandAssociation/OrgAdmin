@@ -8,7 +8,7 @@ const router = express.Router();
 const lib = require(__lib);
 
 router.get('/', async (req, res) => {
-	const membership = await lib.repositories.BandRepository.getBandsInMembershipForSeason(req.db, 2022);
+	const membership = await lib.repositories.MembershipRepository.getMembershipForSeason(req.db, 2022);
 	const labels = [];
 
 	membership.forEach(m => {
