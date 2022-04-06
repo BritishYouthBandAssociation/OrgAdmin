@@ -9,7 +9,8 @@ const lib = require(__lib);
 
 // Set up default route to check server is running
 router.get('/', (req, res) => {
-	if (req.session.user !== null) {
+	//single equals to include undefined
+	if (req.session.user != null) {
 		return res.redirect("home");
 	}
 

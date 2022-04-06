@@ -73,7 +73,7 @@ async function main() {
 	// Set up routes for static files
 	app.use(serveFavicon(
 		path.join(__dirname, 'public/assets/favicon.ico')));
-	app.use('/', express.static(path.join(__dirname, 'public')));
+	app.use(express.static(path.join(__dirname, 'public')));
 
 	//add global db pool
 	const dbConfig = ConfigHelper.importJSON(path.join(__dirname, 'config'), 'db');
@@ -96,7 +96,8 @@ async function main() {
 			return next();
 		}
 
-		if (req.session.user === null && !serverOptions.noAuthRequired.includes(req.path)) {
+		//double equals to also check for undefined
+		if (req.session.user == null && !serverOptions.noAuthRequired.includes(req.path)) {
 			return res.redirect(`/?next=${req.path}`);
 		}
 

@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html lang='en'>
-	{{> head title=title }}
-	<body>
-		<nav class="navbar bg-default text-light">
-			<div class="nav-content">
-				<div class="hamburger">
-					<input type="checkbox" id="mainNav" />
-					<label for="mainNav"><span class="nav-icon"></span></label>
-				</div>
+{{> head title=title }}
 
-				<h1>{{getConfigValue 'config/site' 'title' 'Org' }}</h1>
+<body>
+	<nav class="navbar bg-default text-light">
+		<div class="nav-content">
+			<div class="hamburger">
+				<input type="checkbox" id="mainNav" />
+				<label for="mainNav"><span class="nav-icon"></span></label>
 			</div>
-			<div class="nav-logo">
-				<img src="assets/logo.png" width="50" alt="BYBA" />
-			</div>
-		</nav>
 
-		<div class="container">
-			{{{ body }}}
+			<h1>{{getConfigValue 'config/site' 'title' 'Org' }}</h1>
 		</div>
-	</body>
+		<div class="nav-logo">
+			<img src="/assets/logo.png" width="50" alt="BYBA" />
+		</div>
+	</nav>
+
+	<div class="container">
+		{{{ body }}}
+	</div>
+</body>
+
 </html>
