@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
 
 	membership.forEach(m => {
 		m.labels.forEach(l => {
-			if(!labels.some(i => i.id == l.id)){
+			if(!labels.some(i => i.id === l.id)){
 				labels.push(l);
 			}
 		});
