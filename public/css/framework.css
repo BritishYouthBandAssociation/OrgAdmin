@@ -1715,12 +1715,12 @@ hr {
   height: 100%;
 }
 
-.card a {
+.card-action a {
   text-decoration: none;
   color: inherit;
 }
 
-.card a:after {
+.card-action a:after {
   position: absolute;
   top: 0;
   right: 0;

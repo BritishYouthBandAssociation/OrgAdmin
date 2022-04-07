@@ -9,10 +9,22 @@ const lib = require(__lib);
 
 router.get('/', async (req, res) => {
 	const orgs = await lib.repositories.OrganisationRepository.getAll(req.db);
-	console.log(orgs);
+
 	return res.render('organisation/index.hbs', {
 		title: 'Organisations',
 		organisations: orgs
+	});
+});
+
+router.get('/:orgID', async (req, res, next) => {
+	const org = await lib.repositories.OrganisationRepository.getOrganisationByID(req.db, req.params.orgID);
+	if(org == null){
+		return next();
+	}
+
+	return res.render('organisation/view.hbs', {
+		title: org.name,
+		organisation: org
 	});
 });
 
