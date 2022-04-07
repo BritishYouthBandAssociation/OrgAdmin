@@ -25,40 +25,6 @@ router.get('/', async (req, res) => {
 		season: 2022,
 		membership: membership,
 		filters: labels
-		/*filters: [{
-			id: 1,
-			name: 'Band',
-			background: '#FF0',
-			foreground: '#000'
-		}, {
-			id: 2,
-			name: 'Individual',
-			background: '#00F',
-			foreground: '#FFF'
-		}, {
-			id: 3,
-			name: 'Northern',
-			background: '#0F0',
-			foreground: '#FFF'
-		}, {
-			id: 4,
-			name: 'Midlands',
-			background: '#F00',
-			foreground: '#FFF'
-		}]*/
-	});
-});
-
-router.get('/band/:slug', async (req, res) => {
-	const band = await lib.repositories.BandRepository.getBandBySlug(req.db, req.params.slug);
-	
-	if(band === null){
-		return res.redirect('./');
-	}
-	
-	return res.render('membership/band', {
-		title: band.name,
-		name: band.name
 	});
 });
 
