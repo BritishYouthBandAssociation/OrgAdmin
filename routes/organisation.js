@@ -22,14 +22,14 @@ router.get('/:orgID', async (req, res, next) => {
 		return next();
 	}
 
+	const address = await lib.repositories.AddressRepository.getByID(req.db, org.addressID);
 	const types = await lib.repositories.OrganisationTypeRepository.getAll(req.db);
-	console.log(types);
 
 	return res.render('organisation/view.hbs', {
 		title: org.name,
 		organisation: org,
 		contacts: [],
-		address: null,
+		address: address,
 		types: types
 	});
 });
