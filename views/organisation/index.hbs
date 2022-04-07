@@ -1,7 +1,7 @@
 <div class="jumbotron text-center">
 	<h2>Organisations</h2>
 	<div class="input">
-		<input type="text" id="filter" placeholder="Search..."/>
+		<input type="text" id="filter" placeholder="Search..." />
 		<label for="filter">Search</label>
 	</div>
 </div>
@@ -11,6 +11,9 @@
 	<div class="col-12 col-md-6 col-lg-4">
 		<div class="card card-action">
 			<p class="h4"><a href="{{id}}">{{name}}</a></p>
+			<div class="label-container">
+				<span class="label bg-default text-light">{{type}}</span>
+			</div>
 		</div>
 	</div>
 	{{/each}}
