@@ -31,6 +31,16 @@
 				<label for="description">Description</label>
 			</div>
 
+			<div class="input">
+				<select id="type" name="type">
+					<option value="">-- Please Select --</option>
+					{{#each ../types}}
+					<option value="{{id}}"{{#eq id ../typeID}} selected{{/eq}}>{{name}}</option>
+					{{/each}}
+				</select>
+				<label for="type">Membership Type</label>
+			</div>
+
 			<button class="btn-default">Save</button>
 		</div>
 		{{/with}}
