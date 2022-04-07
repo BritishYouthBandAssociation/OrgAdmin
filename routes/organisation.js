@@ -24,7 +24,9 @@ router.get('/:orgID', async (req, res, next) => {
 
 	return res.render('organisation/view.hbs', {
 		title: org.name,
-		organisation: org
+		organisation: org,
+		contacts: [],
+		address: null
 	});
 });
 

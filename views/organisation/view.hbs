@@ -1,13 +1,20 @@
-{{#with organisation}}
-<h2>{{name}}</h2>
+<h2>{{organisation.name}}</h2>
 
 <div class="row">
 	<div class="col-12 col-lg-3">
+		<div class="card">
+			<h3 class="text-center">Address</h3>
+			{{#if address}}
+			{{else}}
+			<div class="alert bg-error text-light">No address set for this organisation</div>
+			{{/if}}
+		</div>
 	</div>
 
 	<div class="col-12 col-lg-6">
+		{{#with organisation}}
 		<div class="card">
-			<h3>Organisation Details</h3>
+			<h3 class="text-center">Organisation Details</h3>
 
 			<div class="input">
 				<input type="text" id="name" name="name" placeholder="Name" value="{{name}}"/>
@@ -26,9 +33,16 @@
 
 			<button class="btn-default">Save</button>
 		</div>
+		{{/with}}
 	</div>
 
 	<div class="col-12 col-lg-3">
+		<div class="card">
+			<h3 class="text-center">Contacts</h3>
+			{{#if contacts}}
+			{{else}}
+			<div class="alert bg-error text-light">No contacts set for this organisation</div>
+			{{/if}}
+		</div>
 	</div>
 </div>
-{{/with}}
