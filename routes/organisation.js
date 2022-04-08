@@ -30,8 +30,25 @@ router.get('/:orgID', async (req, res, next) => {
 		organisation: org,
 		contacts: [],
 		address: address,
-		types: types
+		types: types,
+		saved: req.query.saved ?? false
 	});
+});
+
+router.post('/:orgID', async (req, res, next) => {
+	const org = await lib.repositories.OrganisationRepository.getOrganisationByID(req.db, req.params.orgID);
+	if(org == null){
+		return next();
+	}
+
+	org.name = req.body.name;
+	org.slug = req.body.slug;
+	org.description = req.body.description;
+	org.typeID = req.body.type;
+
+	await lib.repositories.OrganisationRepository.update(req.db, org);
+
+	return res.redirect(org.id + "?saved=1");
 });
 
 module.exports = {
