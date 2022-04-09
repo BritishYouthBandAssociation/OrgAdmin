@@ -5,10 +5,16 @@
 // Import modules
 const express = require('express');
 const router = express.Router();
-const lib = require(__lib);
+const {
+	repositories: {
+		AddressRepository,
+		OrganisationRepository,
+		OrganisationTypeRepository
+	}
+} = require(__lib);
 
 router.get('/', async (req, res) => {
-	const orgs = await lib.repositories.OrganisationRepository.getAll(req.db);
+	const orgs = await OrganisationRepository.getAll(req.db);
 
 	return res.render('organisation/index.hbs', {
 		title: 'Organisations',
@@ -16,14 +22,23 @@ router.get('/', async (req, res) => {
 	});
 });
 
+router.get('/new', async (req, res) => {
+	const types = await OrganisationTypeRepository.getAll(req.db);
+
+	return res.render('organisation/add.hbs', {
+		title: "Add New Organisation",
+		types: types
+	});
+});
+
 router.get('/:orgID', async (req, res, next) => {
-	const org = await lib.repositories.OrganisationRepository.getOrganisationByID(req.db, req.params.orgID);
+	const org = await OrganisationRepository.getOrganisationByID(req.db, req.params.orgID);
 	if(org == null){
 		return next();
 	}
 
-	const address = await lib.repositories.AddressRepository.getByID(req.db, org.addressID);
-	const types = await lib.repositories.OrganisationTypeRepository.getAll(req.db);
+	const address = await AddressRepository.getByID(req.db, org.addressID);
+	const types = await OrganisationTypeRepository.getAll(req.db);
 
 	return res.render('organisation/view.hbs', {
 		title: org.name,
@@ -36,7 +51,7 @@ router.get('/:orgID', async (req, res, next) => {
 });
 
 router.post('/:orgID', async (req, res, next) => {
-	const org = await lib.repositories.OrganisationRepository.getOrganisationByID(req.db, req.params.orgID);
+	const org = await OrganisationRepository.getOrganisationByID(req.db, req.params.orgID);
 	if(org == null){
 		return next();
 	}
@@ -46,7 +61,7 @@ router.post('/:orgID', async (req, res, next) => {
 	org.description = req.body.description;
 	org.typeID = req.body.type;
 
-	await lib.repositories.OrganisationRepository.update(req.db, org);
+	await OrganisationRepository.update(req.db, org);
 
 	return res.redirect(org.id + "?saved=1");
 });
