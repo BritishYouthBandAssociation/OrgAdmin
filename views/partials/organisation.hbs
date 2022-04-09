@@ -1,0 +1,26 @@
+{{#with organisation}}
+<div class="input">
+	<input type="text" id="name" name="name" placeholder="Name" value="{{name}}" />
+	<label for="name">Name</label>
+</div>
+
+<div class="input">
+	<input type="text" id="slug" name="slug" placeholder="URL Slug" value="{{slug}}" />
+	<label for="slug">URL Slug</label>
+</div>
+
+<div class="input">
+	<textarea id="description" name="description" placeholder="description">{{description}}</textarea>
+	<label for="description">Description</label>
+</div>
+
+<div class="input">
+	<select id="type" name="type">
+		<option value="">-- Please Select --</option>
+		{{#each ../types}}
+		<option value="{{id}}" data-type="{{../typeID}}" {{#eq id ../typeID}} selected{{/eq}}>{{name}}</option>
+		{{/each}}
+	</select>
+	<label for="type">Membership Type</label>
+</div>
+{{/with}}

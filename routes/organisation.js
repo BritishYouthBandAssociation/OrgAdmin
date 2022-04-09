@@ -27,7 +27,8 @@ router.get('/new', async (req, res) => {
 
 	return res.render('organisation/add.hbs', {
 		title: "Add New Organisation",
-		types: types
+		types: types,
+		organisation: {}
 	});
 });
 
