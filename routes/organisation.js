@@ -92,6 +92,7 @@ router.get('/:orgID/contacts', async (req, res, next) => {
 		title: `${org.name} Contact Management`,
 		organisation: org,
 		contacts: contacts,
+		removed: req.query.removed ?? false,
 		canAdd: contacts.length < 2
 	});
 });
@@ -113,6 +114,22 @@ router.get('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
 		organisation: org,
 		contact: contact
 	});
+});
+
+router.post('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
+	const org = await OrganisationRepository.getByID(req.db, req.params.orgID);
+	if(org == null){
+		return next();
+	}
+
+	const contact = await OrganisationUserRepository.getByID(req.db, req.params.contactID);
+	if(contact == null || org.id != contact.organisationID){
+		return next();
+	}
+
+	await OrganisationUserRepository.remove(req.db, contact.id);
+
+	res.redirect("../../contacts?removed=1");
 });
 
 module.exports = {
