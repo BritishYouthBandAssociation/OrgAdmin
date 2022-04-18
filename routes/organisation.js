@@ -32,8 +32,15 @@ router.get('/new', async (req, res) => {
 	});
 });
 
+router.post('/new', async (req, res) => {
+	const addressID = await AddressRepository.add(req.db, req.body.lineOne, req.body.lineTwo, req.body.city, req.body.postcode);
+	const orgID = await OrganisationRepository.add(req.db, req.body.name, req.body.slug, req.body.description, addressID, req.body.type);
+
+	res.redirect(orgID);
+});
+
 router.get('/:orgID', async (req, res, next) => {
-	const org = await OrganisationRepository.getOrganisationByID(req.db, req.params.orgID);
+	const org = await OrganisationRepository.getByID(req.db, req.params.orgID);
 	if(org == null){
 		return next();
 	}
@@ -52,7 +59,7 @@ router.get('/:orgID', async (req, res, next) => {
 });
 
 router.post('/:orgID', async (req, res, next) => {
-	const org = await OrganisationRepository.getOrganisationByID(req.db, req.params.orgID);
+	const org = await OrganisationRepository.getByID(req.db, req.params.orgID);
 	if(org == null){
 		return next();
 	}
