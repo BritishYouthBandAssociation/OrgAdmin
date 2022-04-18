@@ -121,7 +121,8 @@ router.get('/:orgID/contacts/add/:email', async (req, res, next) => {
 	return res.render('organisation/add-contact.hbs', {
 		title: `Add ${org.name} Contact`,
 		organisation: org,
-		contact: contact
+		contact: contact,
+		exists: req.query.exists ?? false
 	});
 });
 
@@ -134,6 +135,19 @@ router.post('/:orgID/contacts/add/:email', async (req, res, next) => {
 	const contact = await UserRepository.getByEmail(req.db, req.params.email);
 	if (contact == null) {
 		return res.redirect(`/users/new?orgID=${req.params.orgID}&email=${req.params.email}`);
+	}
+
+	const orgContacts = await OrganisationUserRepository.getAllForOrganisation(req.db, org.id);
+	
+	let exists = false;
+	orgContacts.forEach(c => {
+		if(c.userID === contact.id){
+			exists = true;
+		}
+	});
+
+	if(exists){
+		return res.redirect("?exists=1");
 	}
 
 	await OrganisationUserRepository.add(req.db, org.id, contact.id);

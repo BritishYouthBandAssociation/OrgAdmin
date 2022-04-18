@@ -1,3 +1,8 @@
+{{#if exists}}
+	<div class="alert bg-error text-light mb-2">{{contact.firstName}} {{contact.surname}} has already been added to {{organisation.name}}!</div>
+
+	<a href="../../contacts">&lt; back to {{organisation.name}} contacts</a>
+{{else}}
 <form method="post" class="text-center">
 	<h2>Are You Sure?</h2>
 	<p>Are you sure you wish to add {{contact.firstName}} {{contact.surname}} as a contact for {{organisation.name}}?
@@ -27,3 +32,4 @@
 		<button class="btn-default">Yes, add this contact</button>
 	</div>
 </form>
+{{/if}}
