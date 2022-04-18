@@ -46,7 +46,7 @@ router.post('/new', async (req, res) => {
 //show org
 router.get('/:orgID', async (req, res, next) => {
 	const org = await OrganisationRepository.getByID(req.db, req.params.orgID);
-	if(org == null){
+	if (org == null) {
 		return next();
 	}
 
@@ -65,7 +65,7 @@ router.get('/:orgID', async (req, res, next) => {
 
 router.post('/:orgID', async (req, res, next) => {
 	const org = await OrganisationRepository.getByID(req.db, req.params.orgID);
-	if(org == null){
+	if (org == null) {
 		return next();
 	}
 
@@ -82,7 +82,7 @@ router.post('/:orgID', async (req, res, next) => {
 //org contacts
 router.get('/:orgID/contacts', async (req, res, next) => {
 	const org = await OrganisationRepository.getByID(req.db, req.params.orgID);
-	if(org == null){
+	if (org == null) {
 		return next();
 	}
 
@@ -97,15 +97,42 @@ router.get('/:orgID/contacts', async (req, res, next) => {
 	});
 });
 
+//add contact
+router.get('/:orgID/contacts/add', (req, res, next) => {
+	if (req.query.email == null) {
+		return next();
+	}
+
+	return res.redirect(`add/${req.query.email}`);
+});
+
+router.get('/:orgID/contacts/add/:email', async (req, res, next) => {
+	const org = await OrganisationRepository.getByID(req.db, req.params.orgID);
+	if (org == null) {
+		return next();
+	}
+
+	const contact = await UserRepository.getByEmail(req.db, req.params.email);
+	if (contact == null) {
+		return res.redirect(`/users/new?orgID=${req.params.orgID}&email=${req.params.email}`);
+	}
+
+	return res.render('organisation/add-contact.hbs', {
+		title: `Add ${org.name} Contact`,
+		organisation: org,
+		contact: contact
+	});
+});
+
 //remove contact
 router.get('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
 	const org = await OrganisationRepository.getByID(req.db, req.params.orgID);
-	if(org == null){
+	if (org == null) {
 		return next();
 	}
 
 	const contact = await OrganisationUserRepository.getByID(req.db, req.params.contactID);
-	if(contact == null || org.id != contact.organisationID){
+	if (contact == null || org.id !== contact.organisationID) {
 		return next();
 	}
 
@@ -118,12 +145,12 @@ router.get('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
 
 router.post('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
 	const org = await OrganisationRepository.getByID(req.db, req.params.orgID);
-	if(org == null){
+	if (org == null) {
 		return next();
 	}
 
 	const contact = await OrganisationUserRepository.getByID(req.db, req.params.contactID);
-	if(contact == null || org.id != contact.organisationID){
+	if (contact == null || org.id !== contact.organisationID) {
 		return next();
 	}
 
