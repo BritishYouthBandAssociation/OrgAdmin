@@ -4,6 +4,23 @@
 <p><a class="btn-default{{#unless canAdd}} disabled{{/unless}}" href="#">+ Add Contact</a></p>
 
 {{#if contacts}}
+<div class="row text-center">
+	{{#each contacts}}
+	<div class="col-12 col-md-6">
+		<div class="card">
+			<h3 class="mb-0">{{firstName}} {{surname}}</h3>
+			<p>{{email}}</p>
+			<i>Date added: {{date dateAdded}}</i>
+
+			<form method="post" action="contacts/remove">
+				<a class="btn-default">Edit Contact</a>
+				<button class="btn-error">Remove Contact</button>
+				<input type="hidden" name="id" value="{{id}}" />
+			</form>
+		</div>
+	</div>
+	{{/each}}
+</div>
 {{else}}
 <div class="alert bg-error text-light">No contacts set for this organisation</div>
 {{/if}}

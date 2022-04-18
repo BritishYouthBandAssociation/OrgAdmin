@@ -4,12 +4,14 @@
 
 // Import modules
 const express = require('express');
+const UserRepository = require('../../Library/Repositories/UserRepository');
 const router = express.Router();
 const {
 	repositories: {
 		AddressRepository,
 		OrganisationRepository,
-		OrganisationTypeRepository
+		OrganisationTypeRepository,
+		OrganisationUserRepository
 	}
 } = require(__lib);
 
@@ -84,11 +86,13 @@ router.get('/:orgID/contacts', async (req, res, next) => {
 		return next();
 	}
 
+	const contacts = await OrganisationUserRepository.getAllForOrganisation(req.db, org.id);
+
 	return res.render("organisation/contacts.hbs", {
 		title: `${org.name} Contact Management`,
 		organisation: org,
-		contacts: [],
-		canAdd: true
+		contacts: contacts,
+		canAdd: contacts.length < 2
 	});
 });
 
