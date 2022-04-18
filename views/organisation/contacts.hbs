@@ -11,12 +11,8 @@
 			<h3 class="mb-0">{{firstName}} {{surname}}</h3>
 			<p>{{email}}</p>
 			<i>Date added: {{date dateAdded}}</i>
-
-			<form method="post" action="contacts/remove">
-				<a class="btn-default">Edit Contact</a>
-				<button class="btn-error">Remove Contact</button>
-				<input type="hidden" name="id" value="{{id}}" />
-			</form>
+			<a href="/users/{{userID}}" class="btn-default">Edit Contact</a>
+			<a href="contacts/{{id}}/remove" class="btn-error">Remove Contact</a>
 		</div>
 	</div>
 	{{/each}}
