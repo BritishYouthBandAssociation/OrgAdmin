@@ -1,0 +1,9 @@
+<p><a href="./">&lt; back to {{organisation.name}}</a></p>
+
+<h2>{{organisation.name}} Contacts</h2>
+<p><a class="btn-default{{#unless canAdd}} disabled{{/unless}}" href="#">+ Add Contact</a></p>
+
+{{#if contacts}}
+{{else}}
+<div class="alert bg-error text-light">No contacts set for this organisation</div>
+{{/if}}

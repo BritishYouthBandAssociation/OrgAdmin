@@ -13,6 +13,7 @@ const {
 	}
 } = require(__lib);
 
+//list orgs
 router.get('/', async (req, res) => {
 	const orgs = await OrganisationRepository.getAll(req.db);
 
@@ -22,6 +23,7 @@ router.get('/', async (req, res) => {
 	});
 });
 
+//add org
 router.get('/new', async (req, res) => {
 	const types = await OrganisationTypeRepository.getAll(req.db);
 
@@ -39,6 +41,7 @@ router.post('/new', async (req, res) => {
 	res.redirect(orgID);
 });
 
+//show org
 router.get('/:orgID', async (req, res, next) => {
 	const org = await OrganisationRepository.getByID(req.db, req.params.orgID);
 	if(org == null){
@@ -72,6 +75,21 @@ router.post('/:orgID', async (req, res, next) => {
 	await OrganisationRepository.update(req.db, org);
 
 	return res.redirect(org.id + "?saved=1");
+});
+
+//org contacts
+router.get('/:orgID/contacts', async (req, res, next) => {
+	const org = await OrganisationRepository.getByID(req.db, req.params.orgID);
+	if(org == null){
+		return next();
+	}
+
+	return res.render("organisation/contacts.hbs", {
+		title: `${org.name} Contact Management`,
+		organisation: org,
+		contacts: [],
+		canAdd: true
+	});
 });
 
 module.exports = {
