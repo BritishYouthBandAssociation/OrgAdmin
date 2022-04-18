@@ -52,11 +52,12 @@ router.get('/:orgID', async (req, res, next) => {
 
 	const address = await AddressRepository.getByID(req.db, org.addressID);
 	const types = await OrganisationTypeRepository.getAll(req.db);
+	const contacts = await OrganisationUserRepository.getAllForOrganisation(req.db, org.id);
 
 	return res.render('organisation/view.hbs', {
 		title: org.name,
 		organisation: org,
-		contacts: [],
+		contacts: contacts,
 		address: address,
 		types: types,
 		saved: req.query.saved ?? false

@@ -32,9 +32,14 @@
 	</div>
 
 	<div class="col-12 col-lg-6">
-		<div class="card">
-			<h3 class="text-center">Contacts</h3>
+		<div class="card text-center">
+			<h3>Contacts</h3>
 			{{#if contacts}}
+				{{#each contacts}}
+					<div class="card">
+						<p>{{firstName}} {{surname}} - {{email}}</p>
+					</div>
+				{{/each}}
 			{{else}}
 			<div class="alert bg-error text-light">No contacts set for this organisation</div>
 			{{/if}}
