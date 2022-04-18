@@ -1,21 +1,21 @@
 {{#with organisation}}
 <div class="input">
-	<input type="text" id="name" name="name" placeholder="Name" value="{{name}}" />
+	<input type="text" id="name" name="name" placeholder="Name" value="{{name}}"{{#if required}} required{{/if}} />
 	<label for="name">Name</label>
 </div>
 
 <div class="input">
-	<input type="text" id="slug" name="slug" placeholder="URL Slug" value="{{slug}}" />
+	<input type="text" id="slug" name="slug" placeholder="URL Slug" value="{{slug}}"{{#if required}} required{{/if}} />
 	<label for="slug">URL Slug</label>
 </div>
 
 <div class="input">
-	<textarea id="description" name="description" placeholder="description">{{description}}</textarea>
+	<textarea id="description" name="description" placeholder="description"{{#if required}} required{{/if}}>{{description}}</textarea>
 	<label for="description">Description</label>
 </div>
 
 <div class="input">
-	<select id="type" name="type">
+	<select id="type" name="type"{{#if required}} required{{/if}}>
 		<option value="">-- Please Select --</option>
 		{{#each ../types}}
 		<option value="{{id}}" data-type="{{../typeID}}" {{#eq id ../typeID}} selected{{/eq}}>{{name}}</option>
