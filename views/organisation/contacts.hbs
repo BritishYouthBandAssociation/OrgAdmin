@@ -1,7 +1,7 @@
 <p><a href="./">&lt; back to {{organisation.name}}</a></p>
 
 <h2>{{organisation.name}} Contacts</h2>
-<p><a class="btn-default{{#unless canAdd}} disabled{{/unless}}" href="#">+ Add Contact</a></p>
+<p><a class="btn-default{{#unless canAdd}} disabled{{/unless}}" href="#add-contact">+ Add Contact</a></p>
 
 {{#if removed}}
 <div class="alert bg-success text-light mb-2">Contact successfully removed</div>
@@ -24,3 +24,21 @@
 {{else}}
 <div class="alert bg-error text-light">No contacts set for this organisation</div>
 {{/if}}
+
+<div id="add-contact" class="modal">
+	<div class="modal-content text-center">
+		<a href="#" class="close"></a>
+
+		<p>Please enter the email address of the contact you wish to add</p>
+
+		<form action="contacts/add">
+			<div class="input">
+				<input id="email" name="email" type="email" placeholder="Email" required />
+				<label for="email">Email</label>
+			</div>
+
+			<button class="btn-default">Add Contact</button>
+		</form>
+
+	</div>
+</div>
