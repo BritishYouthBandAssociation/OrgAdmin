@@ -92,6 +92,7 @@ router.get('/:orgID/contacts', async (req, res, next) => {
 		title: `${org.name} Contact Management`,
 		organisation: org,
 		contacts: contacts,
+		added: req.query.added ?? false,
 		removed: req.query.removed ?? false,
 		canAdd: contacts.length < 2
 	});
@@ -122,6 +123,21 @@ router.get('/:orgID/contacts/add/:email', async (req, res, next) => {
 		organisation: org,
 		contact: contact
 	});
+});
+
+router.post('/:orgID/contacts/add/:email', async (req, res, next) => {
+	const org = await OrganisationRepository.getByID(req.db, req.params.orgID);
+	if (org == null) {
+		return next();
+	}
+
+	const contact = await UserRepository.getByEmail(req.db, req.params.email);
+	if (contact == null) {
+		return res.redirect(`/users/new?orgID=${req.params.orgID}&email=${req.params.email}`);
+	}
+
+	await OrganisationUserRepository.add(req.db, org.id, contact.id);
+	res.redirect("../../contacts?added=1");
 });
 
 //remove contact

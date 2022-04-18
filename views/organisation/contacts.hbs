@@ -3,6 +3,10 @@
 <h2>{{organisation.name}} Contacts</h2>
 <p><a class="btn-default{{#unless canAdd}} disabled{{/unless}}" href="#add-contact">+ Add Contact</a></p>
 
+{{#if added}}
+<div class="alert bg-success text-light mb-2">Contact successfully added</div>
+{{/if}}
+
 {{#if removed}}
 <div class="alert bg-success text-light mb-2">Contact successfully removed</div>
 {{/if}}
