@@ -96,6 +96,25 @@ router.get('/:orgID/contacts', async (req, res, next) => {
 	});
 });
 
+//remove contact
+router.get('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
+	const org = await OrganisationRepository.getByID(req.db, req.params.orgID);
+	if(org == null){
+		return next();
+	}
+
+	const contact = await OrganisationUserRepository.getByID(req.db, req.params.contactID);
+	if(contact == null || org.id != contact.organisationID){
+		return next();
+	}
+
+	return res.render("organisation/remove-contact.hbs", {
+		title: `Remove ${org.name} Contact`,
+		organisation: org,
+		contact: contact
+	});
+});
+
 module.exports = {
 	root: '/organisation/',
 	router: router
