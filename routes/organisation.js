@@ -4,14 +4,14 @@
 
 // Import modules
 const express = require('express');
-const UserRepository = require('../../Library/Repositories/UserRepository');
 const router = express.Router();
 const {
 	repositories: {
 		AddressRepository,
 		OrganisationRepository,
 		OrganisationTypeRepository,
-		OrganisationUserRepository
+		OrganisationUserRepository,
+		UserRepository
 	}
 } = require(__lib);
 
