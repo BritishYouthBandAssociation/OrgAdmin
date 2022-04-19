@@ -8,7 +8,7 @@
 		<div class="row mb-3 row-cols-1 row-cols-md-2">
 			<div class="col mb-3">
 				<div class="form-group text-start">
-					<label for="year">Season</label>
+					<label class="form-label" for="year">Season</label>
 					<select id="year" class="form-control">
 						{{#each seasons}}
 						<option value="{{this}}" {{#eq this ../season }} selected{{/eq}}>{{this}}</option>
@@ -19,7 +19,7 @@
 
 			<div class="col mb-3">
 				<div class="form-group text-start">
-					<label for="search">Search</label>
+					<label class="form-label" for="search">Search</label>
 					<input id="search" class="form-control" placeholder="Search" />
 				</div>
 			</div>
@@ -28,7 +28,7 @@
 		<div class="row text-center justify-content-center row-cols-2 row-cols-md-4 row-cols-lg-6">
 		{{#each filters}}
 		<div class="col mb-3">
-			<label for="filter_{{id}}"><input type="checkbox" id="filter_{{id}}" value="{{id}}" checked />
+			<label class="form-label" for="filter_{{id}}"><input type="checkbox" id="filter_{{id}}" value="{{id}}" checked />
 				{{text}}</label>
 		</div>
 		{{/each}}
