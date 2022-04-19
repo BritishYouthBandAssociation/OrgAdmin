@@ -1,7 +1,7 @@
 <h2>{{organisation.name}}</h2>
 
 {{#if saved}}
-<div class="alert bg-success text-light text-center mb-2">Changes saved successfully!</div>
+<div class="alert alert-success text-center mb-2">Changes saved successfully!</div>
 {{/if}}
 
 <div class="card card-body mb-3">
@@ -25,7 +25,7 @@
 			<button type="button" class="btn btn-default" id="editAddress">Edit Address</button>
 			{{/with}}
 			{{else}}
-			<div class="alert bg-danger text-light">No address set for this organisation</div>
+			<div class="alert alert-danger text-light">No address set for this organisation</div>
 			<button type="button" class="btn btn-default" id="addAddress">Add Address</button>
 			{{/if}}
 		</div>
@@ -41,7 +41,7 @@
 					{{/each}}
 				</div>
 			{{else}}
-			<div class="alert bg-danger text-light">No contacts set for this organisation</div>
+			<div class="alert alert-danger">No contacts set for this organisation</div>
 			{{/if}}
 
 			<a href="contacts" class="btn btn-default">Manage Contacts</a>
