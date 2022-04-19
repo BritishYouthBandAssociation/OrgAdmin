@@ -15,14 +15,14 @@
 		</nav>
 
 		<nav class="collapse d-lg-flex flex-column flex-shrink-0 p-3 text-white bg-default sidebar" id="sidebar">
-			<a href="/" class="mb-3 text-white text-decoration-none">
+			<a href="/" class="text-white text-decoration-none">
 				<img src="/assets/logo.png" class="img-fluid d-block mx-auto" />
 				<h1 class="fs-4 text-center mt-2">{{getConfigValue 'config/site' 'title' 'Org' }}</h1>
 			</a>
 			<hr>
 			<ul class="nav nav-pills flex-column mb-auto">
 				<li class="nav-item">
-					<a href="/home" class="nav-link active" aria-current="page">
+					<a href="/home" class="nav-link text-white" aria-current="page">
 						Home
 					</a>
 				</li>
@@ -32,7 +32,7 @@
 					</a>
 				</li>
 				<li>
-					<a href="/membership/" class="nav-link text-white">
+					<a href="/membership/" class="nav-link active">
 						Membership
 					</a>
 				</li>
@@ -47,7 +47,7 @@
 			</ul>
 		</nav>
 
-		<div class="container">
+		<div class="container px-3">
 			{{{ body }}}
 		</div>
 
