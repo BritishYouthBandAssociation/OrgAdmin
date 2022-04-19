@@ -139,7 +139,7 @@ router.post('/:orgID/contacts/add/:email', async (req, res, next) => {
 	}
 
 	const orgContacts = await OrganisationUserRepository.getAllForOrganisation(req.db, org.id);
-	
+
 	let exists = false;
 	orgContacts.forEach(c => {
 		if(c.userID === contact.id){

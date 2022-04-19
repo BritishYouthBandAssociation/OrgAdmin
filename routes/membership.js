@@ -34,6 +34,12 @@ router.get('/', async (req, res) => {
 	});
 });
 
+router.get('/new', (req, res) => {
+	res.render('membership/add.hbs', {
+		title: "Add Membership"
+	});
+});
+
 router.get('/:id', async (req, res, next) => {
 	const membership = await MembershipRepository.getByID(req.db, req.params.id);
 	if(membership == null){
