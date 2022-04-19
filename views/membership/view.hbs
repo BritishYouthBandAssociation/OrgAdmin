@@ -1,41 +1,39 @@
-<p><a href="./">&lt; back to membership list</a></p>
-
 <h2>Membership {{membership.number}}</h2>
 <div class="label-container mb-2">
 	{{#each membership.labels}}
-	<span class="label" style="background-color: {{background}}; color: {{foreground}}"
+	<span class="badge" style="background-color: {{background}}; color: {{foreground}}"
 		data-type="{{id}}">{{text}}</span>
 	{{/each}}
 </div>
 
 <div class="row text-center">
 	<div class="col-12 col-lg-6">
-		<div class="card">
+		<div class="card card-body">
 			<h3>Membership Details</h3>
 
-			<p class="mb-0">Membership {{membership.number}}</p>
-			<p class="mb-0">Membership Type: {{membership.type}}</p>
-			<p class="mb-0">Season: {{membership.season}}</p>
-			<p class="mb-0">Cost: &pound;{{membership.cost}}</p>
+			<p>Membership {{membership.number}}</p>
+			<p>Membership Type: {{membership.type}}</p>
+			<p>Season: {{membership.season}}</p>
+			<p>Cost: &pound;{{membership.cost}}</p>
 			<p>Start Date: {{date membership.dateStarted}}</p>
 		</div>
 	</div>
 
 	<div class="col-12 col-lg-6">
-		<div class="card card-action">
+		<div class="card card-body">
 			{{#if membership.isOrganisation}}
 				<h3>Organisation Details</h3>
 
-				<p class="mb-0">{{entity.name}}</p>
+				<p>{{entity.name}}</p>
 				<p>Organisation Type: {{entity.type}}</p>
 
-				<a href="/organisation/{{entity.id}}" class="btn-default">View Details</a>
+				<a href="/organisation/{{entity.id}}" class="btn btn-primary stretched-link">View Details</a>
 
 			{{else}}
 				<h3>Individual Details</h3>
 
-				<p class="mb-0">{{entity.firstName}} {{entity.surname}}</p>
-				<p class="mb-0">{{entity.email}}</p>
+				<p>{{entity.firstName}} {{entity.surname}}</p>
+				<p>{{entity.email}}</p>
 			{{/if}}
 		</div>
 	</div>
