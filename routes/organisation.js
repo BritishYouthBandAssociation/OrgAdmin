@@ -77,7 +77,7 @@ router.post('/:orgID', async (req, res, next) => {
 
 	await OrganisationRepository.update(req.db, org);
 
-	return res.redirect(org.id + "?saved=1");
+	return res.redirect("?saved=1");
 });
 
 //org contacts
