@@ -102,6 +102,13 @@ async function main() {
 		next();
 	});
 
+	//init locals (for Handlebars)
+	app.use((req, res, next) => {
+		res.locals.page = req.path;
+
+		next();
+	});
+
 	// Add external routers to express
 	for (const route of loadRoutes()) {
 		app.use(route[0], route[1]);

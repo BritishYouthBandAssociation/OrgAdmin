@@ -22,17 +22,17 @@
 			<hr>
 			<ul class="nav nav-pills flex-column mb-auto">
 				<li class="nav-item">
-					<a href="/home" class="nav-link text-white" aria-current="page">
+					<a href="/home" class="nav-link {{#eq page "/home"}}active{{else}}text-white{{/eq}}" aria-current="page">
 						Home
 					</a>
 				</li>
 				<li>
-					<a href="/organisation/" class="nav-link text-white">
+					<a href="/organisation/" class="nav-link {{#eq page "/organisation/"}}active{{else}}text-white{{/eq}}">
 						Organisations
 					</a>
 				</li>
 				<li>
-					<a href="/membership/" class="nav-link active">
+					<a href="/membership/" class="nav-link {{#eq page "/membership/"}}active{{else}}text-white{{/eq}}">
 						Membership
 					</a>
 				</li>
