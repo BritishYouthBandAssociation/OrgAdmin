@@ -1,21 +1,21 @@
 <h2>Add Organisation</h2>
 
 <form method="post">
-	<div class="row">
-		<div class="col-12 col-lg-6">
-			<div class="card">
+	<div class="row row-cols-1 row-cols-lg-2">
+		<div class="col mb-3">
+			<div class="card card-body">
 				<h3>Organisation Details</h3>
 				{{> organisation types=types required=true}}
 			</div>
 		</div>
 
-		<div class="col-12 col-lg-6">
-			<div class="card">
+		<div class="col">
+			<div class="card card-body">
 				<h3>Address</h3>
 				{{> address prefix="" required=true}}
 			</div>
 		</div>
 	</div>
 
-	<button class="btn-default">Add Organisation</button>
+	<button class="btn btn-default">Add Organisation</button>
 </form>

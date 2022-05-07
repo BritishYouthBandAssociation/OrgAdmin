@@ -1,48 +1,51 @@
-<p><a href="./">&lt; back to {{organisation.name}}</a></p>
-
 <h2>{{organisation.name}} Contacts</h2>
-<p><a class="btn-default{{#unless canAdd}} disabled{{/unless}}" href="#add-contact">+ Add Contact</a></p>
+<p><a href="./">&lt; back to {{organisation.name}}</a></p>
+<button type="button" class="btn btn-default mb-3" data-bs-toggle="modal" data-bs-target="#add-contact"{{#unless canAdd}} disabled{{/unless}}>+ Add Contact</button>
 
 {{#if added}}
-<div class="alert bg-success text-light mb-2">Contact successfully added</div>
+<div class="alert alert-success text-light mb-3">Contact successfully added</div>
 {{/if}}
 
 {{#if removed}}
-<div class="alert bg-success text-light mb-2">Contact successfully removed</div>
+<div class="alert alert-success text-light mb-3">Contact successfully removed</div>
 {{/if}}
 
 {{#if contacts}}
-<div class="row text-center">
+<div class="row text-center row-cols-1 row-cols-md-2">
 	{{#each contacts}}
-	<div class="col-12 col-md-6">
-		<div class="card">
-			<h3 class="mb-0">{{firstName}} {{surname}}</h3>
+	<div class="col">
+		<div class="card card-body">
+			<h3>{{firstName}} {{surname}}</h3>
 			<p>{{email}}</p>
 			<i>Date added: {{date dateAdded}}</i>
-			<a href="/users/{{userID}}" class="btn-default">Edit Contact</a>
-			<a href="contacts/{{id}}/remove" class="btn-error">Remove Contact</a>
+			<a href="/users/{{userID}}" class="btn btn-default mb-3">Edit Contact</a>
+			<a href="contacts/{{id}}/remove" class="btn btn-danger">Remove Contact</a>
 		</div>
 	</div>
 	{{/each}}
 </div>
 {{else}}
-<div class="alert bg-error text-light">No contacts set for this organisation</div>
+<div class="alert alert-danger text-light">No contacts set for this organisation</div>
 {{/if}}
 
 <div id="add-contact" class="modal">
-	<div class="modal-content text-center">
-		<a href="#" class="close"></a>
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-body">
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 
-		<p>Please enter the email address of the contact you wish to add</p>
+				<p>Please enter the email address of the contact you wish to add</p>
 
-		<form action="contacts/add">
-			<div class="input">
-				<input id="email" name="email" type="email" placeholder="Email" required />
-				<label for="email">Email</label>
+				<form action="contacts/add">
+					<div class="form-group mb-3">
+						<label class="form-label" for="email">Email</label>
+						<input id="email" name="email" type="email" placeholder="Email" class="form-control" required />
+					</div>
+
+					<button class="btn btn-default">Add Contact</button>
+				</form>
+
 			</div>
-
-			<button class="btn-default">Add Contact</button>
-		</form>
-
+		</div>
 	</div>
 </div>

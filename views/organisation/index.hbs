@@ -1,21 +1,23 @@
-<div class="jumbotron text-center">
-	<h2>Organisations</h2>
+<h2>Organisations</h2>
 
-	<p class="mt-3 mb-3">Displaying all <b>{{organisations.length}}</b> Organisations on record <a href="new" class="btn-default">+ Add Organisation</a></p>
+<div class="p-5 my-4 bg-default text-light rounded-3 text-center">
+	<div class="container-fluid">
+		<p class="mt-3 mb-3">Displaying all <b>{{organisations.length}}</b> Organisations on record <a href="new" class="btn btn-light ms-3">+ Add Organisation</a></p>
 
-	<div class="input">
-		<input type="text" id="filter" placeholder="Search..." />
-		<label for="filter">Search</label>
+		<div class="form-group text-start">
+			<label class="form-label" for="filter">Search</label>
+			<input type="text" class="form-control" id="filter" placeholder="Search..." />
+		</div>
 	</div>
 </div>
 
-<div class="row text-center">
+<div class="row text-center row-cols-1 row-cols-md-2 row-cols-lg-3">
 	{{#each organisations}}
-	<div class="col-12 col-md-6 col-lg-4 mb-2">
-		<div class="card card-action">
-			<p class="h4"><a href="{{id}}">{{name}}</a></p>
+	<div class="col mb-3">
+		<div class="card card-body">
+			<p class="h4"><a class="text-reset text-decoration-none stretched-link" href="{{id}}">{{name}}</a></p>
 			<div class="label-container">
-				<span class="label bg-default text-light">{{type}}</span>
+				<span class="badge bg-default text-light">{{type}}</span>
 			</div>
 		</div>
 	</div>

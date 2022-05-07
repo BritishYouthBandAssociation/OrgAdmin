@@ -1,51 +1,50 @@
-<p><a href="./">&lt; back to organisation list</a></p>
-
 <h2>{{organisation.name}}</h2>
 
 {{#if saved}}
-<div class="alert bg-success text-light mb-2">Changes saved successfully!</div>
+<div class="alert alert-success text-center mb-2">Changes saved successfully!</div>
 {{/if}}
 
-<div class="card mb-2">
+<div class="card card-body mb-3">
 	<h3 class="text-center">Organisation Details</h3>
 	<form method="post">
 		{{> organisation organisation=organisation types=types required=required}}
-		<button class="btn-default">Save</button>
+		<button class="btn btn-default">Save</button>
 	</form>
 </div>
 
-<div class="row">
-	<div class="col-12 col-lg-6">
-		<div class="card">
+<div class="row row-cols-1 row-cols-2">
+	<div class="col">
+		<div class="card card-body">
 			<h3 class="text-center">Address</h3>
 			{{#if address}}
 			{{#with address}}
-			<p class="mb-2 mt-0">{{lineOne}}</p>
-			<p class="mb-2 mt-0">{{lineTwo}}</p>
-			<p class="mb-2 mt-0">{{city}}</p>
-			<p class="mb-2 mt-0">{{postcode}}</p>
-			<button type="button" class="btn-default" id="editAddress">Edit Address</button>
+			<p>{{lineOne}}</p>
+			<p>{{lineTwo}}</p>
+			<p>{{city}}</p>
+			<p>{{postcode}}</p>
+			<button type="button" class="btn btn-default" id="editAddress">Edit Address</button>
 			{{/with}}
 			{{else}}
-			<div class="alert bg-error text-light">No address set for this organisation</div>
-			<button type="button" class="btn-default" id="addAddress">Add Address</button>
+			<div class="alert alert-danger text-light">No address set for this organisation</div>
+			<button type="button" class="btn btn-default" id="addAddress">Add Address</button>
 			{{/if}}
 		</div>
 	</div>
 
-	<div class="col-12 col-lg-6">
-		<div class="card text-center">
+	<div class="col">
+		<div class="card card-body text-center">
 			<h3>Contacts</h3>
 			{{#if contacts}}
-				{{#each contacts}}
-					<div class="card">
-						<p>{{firstName}} {{surname}} - {{email}}</p>
-					</div>
-				{{/each}}
+				<div class="list-group mb-3">
+					{{#each contacts}}
+						<div class="list-group-item">{{firstName}} {{surname}} - {{email}}</div>
+					{{/each}}
+				</div>
 			{{else}}
-			<div class="alert bg-error text-light">No contacts set for this organisation</div>
+			<div class="alert alert-danger">No contacts set for this organisation</div>
 			{{/if}}
-			<a href="#" class="btn-default">Manage Contacts</a>
+
+			<a href="contacts" class="btn btn-default">Manage Contacts</a>
 		</div>
 	</div>
 </div>
