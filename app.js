@@ -2,9 +2,7 @@
 
 // Import modules
 const express = require('express');
-const {
-	engine
-} = require('express-handlebars');
+const { engine } = require('express-handlebars');
 const fs = require('fs');
 const path = require('path');
 const serveFavicon = require('serve-favicon');

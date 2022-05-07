@@ -31,7 +31,7 @@ router.post('/', async (req, res) => {
 	}
 
 	if (fields !== null) {
-		const user = await lib.repositories.UserRepository.getUserByLogin(req.db, req.body.email, req.body.password);
+		const user = await lib.repositories.UserRepository.getByLogin(req.db, req.body.email, req.body.password);
 
 		if (user !== null) {
 			//successful login

@@ -1,42 +1,18 @@
+<p><a href="./">&lt; back to organisation list</a></p>
+
 <h2>{{organisation.name}}</h2>
 
 {{#if saved}}
 <div class="alert bg-success text-light mb-2">Changes saved successfully!</div>
 {{/if}}
 
-{{#with organisation}}
 <div class="card mb-2">
 	<h3 class="text-center">Organisation Details</h3>
 	<form method="post">
-		<div class="input">
-			<input type="text" id="name" name="name" placeholder="Name" value="{{name}}" />
-			<label for="name">Name</label>
-		</div>
-
-		<div class="input">
-			<input type="text" id="slug" name="slug" placeholder="URL Slug" value="{{slug}}" />
-			<label for="slug">URL Slug</label>
-		</div>
-
-		<div class="input">
-			<textarea id="description" name="description" placeholder="description">{{description}}</textarea>
-			<label for="description">Description</label>
-		</div>
-
-		<div class="input">
-			<select id="type" name="type">
-				<option value="">-- Please Select --</option>
-				{{#each ../types}}
-				<option value="{{id}}" {{#eq id ../typeID}} selected{{/eq}}>{{name}}</option>
-				{{/each}}
-			</select>
-			<label for="type">Membership Type</label>
-		</div>
-
+		{{> organisation organisation=organisation types=types required=required}}
 		<button class="btn-default">Save</button>
 	</form>
 </div>
-{{/with}}
 
 <div class="row">
 	<div class="col-12 col-lg-6">
@@ -58,9 +34,14 @@
 	</div>
 
 	<div class="col-12 col-lg-6">
-		<div class="card">
-			<h3 class="text-center">Contacts</h3>
+		<div class="card text-center">
+			<h3>Contacts</h3>
 			{{#if contacts}}
+				{{#each contacts}}
+					<div class="card">
+						<p>{{firstName}} {{surname}} - {{email}}</p>
+					</div>
+				{{/each}}
 			{{else}}
 			<div class="alert bg-error text-light">No contacts set for this organisation</div>
 			{{/if}}
