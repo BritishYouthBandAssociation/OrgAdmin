@@ -57,6 +57,11 @@ router.get('/home', (req, res) => {
 	});
 });
 
+router.get('/logout', (req, res) => {
+	req.session.destroy();
+	return res.redirect("/");
+});
+
 module.exports = {
 	root: '/',
 	router: router
