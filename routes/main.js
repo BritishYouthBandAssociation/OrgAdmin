@@ -15,7 +15,8 @@ router.get('/', (req, res) => {
 	}
 
 	return res.render('login', {
-		title: 'Please Log In'
+		title: 'Please Log In',
+		layout: "no-nav.hbs"
 	});
 });
 
@@ -43,7 +44,9 @@ router.post('/', async (req, res) => {
 
 	return res.render('login', {
 		title: 'Please Log In',
-		error: 'Username or password incorrect. Please try again'
+		error: 'Username or password incorrect. Please try again',
+		email: req.body.email,
+		layout: "no-nav.hbs"
 	});
 });
 
