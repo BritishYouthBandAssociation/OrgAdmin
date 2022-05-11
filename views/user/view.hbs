@@ -1,6 +1,10 @@
 {{#with user}}
 <h2>{{firstName}} {{surname}}</h2>
 
+{{#if ../saved}}
+<div class="alert alert-success text-center">Changes saved successfully!</div>
+{{/if}}
+
 <div class="card card-body">
 	<h3 class="text-center">User Details</h3>
 

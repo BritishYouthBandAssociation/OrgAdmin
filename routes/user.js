@@ -28,7 +28,8 @@ router.get('/:id', async (req, res, next) => {
 
 	return res.render('user/view.hbs', {
 		title: `${user.firstName} ${user.surname}`,
-		user: user
+		user: user,
+		saved: req.query.saved ?? false
 	});
 });
 
@@ -46,7 +47,7 @@ router.post('/:id', async (req, res, next) => {
 
 	await UserRepository.update(req.db, user);
 
-	return res.redirect(req.params.id);
+	return res.redirect(`${req.params.id}?saved=1`);
 });
 
 module.exports = {
