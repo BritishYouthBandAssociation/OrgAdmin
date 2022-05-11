@@ -20,6 +20,12 @@ router.get('/', async (req, res) => {
 	});
 });
 
+router.get('/new', (req, res) => {
+	return res.render('user/add.hbs', {
+		title: 'Add New User'
+	});
+});
+
 router.post('/:id/password', async (req, res, next) => {
 	const user = await UserRepository.getByID(req.db, req.params.id);
 	if(user == null){
