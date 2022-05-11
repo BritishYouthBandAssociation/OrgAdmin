@@ -20,6 +20,18 @@ router.get('/', async (req, res) => {
 	});
 });
 
+router.get('/:id', async (req, res, next) => {
+	const user = await UserRepository.getByID(req.db, req.params.id);
+	if(user == null){
+		return next();
+	}
+
+	return res.render('user/view.hbs', {
+		title: `${user.firstName} ${user.surname}`,
+		user: user
+	});
+});
+
 module.exports = {
 	root: '/user/',
 	router: router
