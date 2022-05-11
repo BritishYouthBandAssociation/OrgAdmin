@@ -1,0 +1,51 @@
+{{#with user}}
+<div class="row row-cols-1 row-cols-md-2">
+	<div class="col mb-3">
+		<label for="firstName">First Name</label>
+		<input type="text" class="form-control" id="firstName" name="firstName" required value="{{firstName}}" />
+	</div>
+	<div class="col mb-3">
+		<label for="surname">Surname</label>
+		<input type="text" class="form-control" id="surname" name="surname" required value="{{surname}}" />
+	</div>
+</div>
+
+<label for="email">Email Address</label>
+<input type="email" class="form-control mb-3" id="email" name="email" required value="{{email}}" />
+
+<div class="row row-cols-1 row-cols-md-2 text-center">
+	<div class="col mb-3">
+		<p>Is Active?</p>
+		<div class="btn-group" role="group" aria-label="Is Active?">
+			<input type="radio" value="1" class="btn-check" name="isActive" id="isActive-y" autocomplete="off" {{#if
+				isActive}}checked{{/if}}>
+			<label class="btn btn-outline-success" for="isActive-y">Yes</label>
+
+			<input type="radio" value="0" class="btn-check" name="isActive" id="isActive-n" autocomplete="off" {{#unless
+				isActive}}checked{{/unless}}>
+			<label class="btn btn-outline-danger" for="isActive-n">No</label>
+		</div>
+	</div>
+
+	<div class="col mb-3">
+		<p>Is Admin?</p>
+		<div class="btn-group" role="group" aria-label="Is Admin?">
+			<input type="radio" value="1" class="btn-check" name="isAdmin" id="isAdmin-y" autocomplete="off" {{#if
+				isAdmin}}checked{{/if}}>
+			<label class="btn btn-outline-success" for="isAdmin-y">Yes</label>
+
+			<input type="radio" value="0" class="btn-check" name="isAdmin" id="isAdmin-n" autocomplete="off" {{#unless
+				isAdmin}}checked{{/unless}}>
+			<label class="btn btn-outline-danger" for="isAdmin-n">No</label>
+		</div>
+	</div>
+</div>
+{{/with}}
+
+{{#if password}}
+<label for="password">New Password</label>
+<input type="password" id="password" name="password" class="form-control mb-3" required />
+
+<label for="confirm">Confirm Password</label>
+<input type="password" id="confirm" name="confirm" class="form-control mb-3" required />
+{{/if}}
