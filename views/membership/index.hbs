@@ -26,13 +26,14 @@
 		</div>
 
 		<div class="row text-center justify-content-center row-cols-2 row-cols-md-4 row-cols-lg-6">
-		{{#each filters}}
-		<div class="col mb-3">
-			<label class="form-label" for="filter_{{id}}"><input type="checkbox" id="filter_{{id}}" value="{{id}}" checked />
-				{{text}}</label>
+			{{#each filters}}
+			<div class="col mb-3">
+				<label class="form-label" for="filter_{{id}}"><input type="checkbox" id="filter_{{id}}" value="{{id}}"
+						checked />
+					{{text}}</label>
+			</div>
+			{{/each}}
 		</div>
-		{{/each}}
-	</div>
 	</div>
 
 </div>
