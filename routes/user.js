@@ -20,6 +20,20 @@ router.get('/', async (req, res) => {
 	});
 });
 
+router.post('/:id/password', async (req, res, next) => {
+	const user = await UserRepository.getByID(req.db, req.params.id);
+	if(user == null){
+		return next();
+	}
+
+	if(req.body.password !== req.body.confirm){
+		return res.redirect(`../${req.params.id}?nomatch=1`);
+	}
+
+	await UserRepository.setPassword(req.db, req.params.id, req.body.password);
+	return res.redirect(`../${req.params.id}?saved=1`);
+});
+
 router.get('/:id', async (req, res, next) => {
 	const user = await UserRepository.getByID(req.db, req.params.id);
 	if(user == null){
@@ -29,7 +43,8 @@ router.get('/:id', async (req, res, next) => {
 	return res.render('user/view.hbs', {
 		title: `${user.firstName} ${user.surname}`,
 		user: user,
-		saved: req.query.saved ?? false
+		saved: req.query.saved ?? false,
+		nomatch: req.query.nomatch ?? false
 	});
 });
 

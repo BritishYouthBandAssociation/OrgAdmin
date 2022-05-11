@@ -5,7 +5,7 @@
 <div class="alert alert-success text-center">Changes saved successfully!</div>
 {{/if}}
 
-<div class="card card-body">
+<div class="card card-body mb-3">
 	<h3 class="text-center">User Details</h3>
 
 	<form method="post">
@@ -58,3 +58,21 @@
 	</form>
 </div>
 {{/with}}
+
+<div class="card card-body">
+	<h3 class="text-center">Change Password</h3>
+	{{#if nomatch}}
+		<div class="alert alert-danger text-center">Passwords must match</div>
+	{{/if}}
+	<form action="{{user.id}}/password" method="post">
+		<label for="password">New Password</label>
+		<input type="password" id="password" name="password" class="form-control mb-3" required />
+
+		<label for="confirm">Confirm Password</label>
+		<input type="password" id="confirm" name="confirm" class="form-control mb-3" required />
+
+		<div class="text-center">
+			<button class="btn btn-default">Update Password</button>
+		</div>
+	</form>
+</div>
