@@ -32,6 +32,23 @@ router.get('/:id', async (req, res, next) => {
 	});
 });
 
+router.post('/:id', async (req, res, next) => {
+	const user = await UserRepository.getByID(req.db, req.params.id);
+	if(user == null){
+		return next;
+	}
+
+	user.firstName = req.body.firstName;
+	user.surname = req.body.surname;
+	user.email = req.body.email;
+	user.isActive = req.body.isActive;
+	user.isAdmin = req.body.isAdmin;
+
+	await UserRepository.update(req.db, user);
+
+	return res.redirect(req.params.id);
+});
+
 module.exports = {
 	root: '/user/',
 	router: router
