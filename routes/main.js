@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
 	if (fields !== null) {
 		const user = await lib.repositories.UserRepository.getByLogin(req.db, req.body.email, req.body.password);
 
-		if (user !== null) {
+		if (user !== null && user.isActive && user.isAdmin) {
 			//successful login
 			req.session.user = user;
 			const next = req.query.next ?? "home";
