@@ -26,6 +26,33 @@ router.get('/new', (req, res) => {
 	});
 });
 
+router.post('/new', async (req, res) => {
+	req.body.isActive = parseInt(req.body.isActive);
+	req.body.isAdmin = parseInt(req.body.isAdmin);
+
+	const match = await UserRepository.getByEmail(req.db, req.body.email);
+	let err = "";
+	if(match != null){
+		err = 'A user with that email address already exists';
+	}
+
+	if(req.body.password !== req.body.confirm){
+		err = 'Passwords do not match';
+	}
+
+	if(err !== ""){
+		return res.render('user/add.hbs', {
+			title: "Add New User",
+			error: err,
+			details: req.body
+		});
+	}
+
+	const userID = await UserRepository.add(req.db, req.body.email, req.body.password, req.body.firstName, req.body.surname, req.body.isActive, req.body.isAdmin);
+
+	return res.redirect(userID);
+});
+
 router.post('/:id/password', async (req, res, next) => {
 	const user = await UserRepository.getByID(req.db, req.params.id);
 	if(user == null){
