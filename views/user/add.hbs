@@ -1,0 +1,15 @@
+<h2>Add New User</h2>
+
+<div class="card card-body">
+	{{#if error}}
+		<div class="alert alert-danger text-center">{{error}}</div>
+	{{/if}}
+
+	<form method="post">
+		{{> user user=details password=true}}
+
+		<div class="text-center">
+			<button class="btn btn-default">Save</button>
+		</div>
+	</form>
+</div>

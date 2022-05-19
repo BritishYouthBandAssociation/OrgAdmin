@@ -1,22 +1,29 @@
-<h2>Log In</h2>
-<p>Enter your credentials into the form below to log in</p>
+<img src="assets/logo.png" width="150" class="mx-auto d-block my-3"/>
 
-<form method="post">
-	{{#if error}}
+<div class="card card-body">
+
+	<h2>Log In</h2>
+	<p>Enter your credentials into the form below to log in</p>
+
+	<form method="post">
+		{{#if error}}
 		<div class="alert alert-danger">
 			{{error}}
 		</div>
-	{{/if}}
+		{{/if}}
 
-	<div class="input">
-		<input type="email" name="email" id="email" placeholder="Email address" required/>
-		<label class="form-label" for="email">Email address</label>
-	</div>
+		<div class="form-floating mb-3">
+			<input type="email" name="email" id="email" placeholder="Email address" class="form-control"
+				value="{{email}}" required />
+			<label class="form-label" for="email">Email address</label>
+		</div>
 
-	<div class="input">
-		<input type="password" name="password" id="password" placeholder="Password" required/>
-		<label class="form-label" for="password">Password</label>
-	</div>
+		<div class="form-floating mb-3">
+			<input type="password" name="password" id="password" placeholder="Password" class="form-control" required />
+			<label class="form-label" for="password">Password</label>
+		</div>
 
-	<button type="submit" class="btn-default btn-long">Log In</button>
-</form>
+		<button type="submit" class="btn btn-default btn-lg">Log In</button>
+	</form>
+
+</div>

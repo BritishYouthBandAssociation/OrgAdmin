@@ -15,7 +15,8 @@ router.get('/', (req, res) => {
 	}
 
 	return res.render('login', {
-		title: 'Please Log In'
+		title: 'Please Log In',
+		layout: "no-nav.hbs"
 	});
 });
 
@@ -33,7 +34,7 @@ router.post('/', async (req, res) => {
 	if (fields !== null) {
 		const user = await lib.repositories.UserRepository.getByLogin(req.db, req.body.email, req.body.password);
 
-		if (user !== null) {
+		if (user !== null && user.isActive && user.isAdmin) {
 			//successful login
 			req.session.user = user;
 			const next = req.query.next ?? "home";
@@ -43,7 +44,9 @@ router.post('/', async (req, res) => {
 
 	return res.render('login', {
 		title: 'Please Log In',
-		error: 'Username or password incorrect. Please try again'
+		error: 'Username or password incorrect. Please try again',
+		email: req.body.email,
+		layout: "no-nav.hbs"
 	});
 });
 
@@ -52,6 +55,11 @@ router.get('/home', (req, res) => {
 		title: 'Home',
 		name: req.session.user.firstName
 	});
+});
+
+router.get('/logout', (req, res) => {
+	req.session.destroy();
+	return res.redirect("/");
 });
 
 module.exports = {

@@ -1,0 +1,29 @@
+<h2>Users</h2>
+
+<div class="p-5 my-4 bg-default text-light rounded-3 text-center">
+	<div class="container-fluid">
+		<p class="mt-3 mb-3">Displaying all <b>{{users.length}}</b> matching Users on record <a
+				class="btn btn-light ms-3" href="new">+ Add User</a></p>
+
+		<div class="form-group text-start">
+			<label class="form-label" for="filter">Search</label>
+			<input type="text" class="form-control" id="filter" placeholder="Search..." />
+		</div>
+	</div>
+</div>
+
+<div class="row text-center">
+	{{#each users}}
+	<div class="col-12 col-md-6 col-lg-4">
+		<div class="card card-action">
+			<div class="card-body">
+				<p class="h4"><a href="{{id}}" class="stretched-link text-reset text-decoration-none">{{firstName}} {{surname}}</a></p>
+				<p>{{email}}</p>
+				{{#if isAdmin}}
+					<span class="badge bg-default">Admin</span>
+				{{/if}}
+			</div>
+		</div>
+	</div>
+	{{/each}}
+</div>
