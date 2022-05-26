@@ -12,11 +12,22 @@ const {
 } = require(__lib);
 
 router.get('/', async (req, res) => {
+	const active = [];
+	const inactive = [];
 	const users = await UserRepository.getAll(req.db);
+
+	users.forEach(u => {
+		if(u.isActive){
+			active.push(u);
+		} else {
+			inactive.push(u);
+		}
+	});
 
 	return res.render('user/index.hbs', {
 		title: 'Users',
-		users: users
+		active: active,
+		inactive: inactive
 	});
 });
 
