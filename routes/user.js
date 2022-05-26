@@ -4,11 +4,22 @@ const express = require('express');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
-	const users = (await req.db.User.findAll()).map(u => u.dataValues);
+	const users = await req.db.User.findAll();
+	const active = [];
+	const inactive = [];
+
+	users.forEach(u => {
+		if (u.IsActive){
+			active.push(u);
+		} else {
+			inactive.push(u);
+		}
+	});
 
 	return res.render('user/index.hbs', {
 		title: 'Users',
-		users: users
+		active: active,
+		inactive: inactive
 	});
 });
 
