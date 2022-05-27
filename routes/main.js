@@ -32,11 +32,17 @@ router.post('/', async (req, res) => {
 	}
 
 	if (fields !== null) {
-		const user = await lib.repositories.UserRepository.getByLogin(req.db, req.body.email, req.body.password);
+		const user = await req.db.User.findOne({
+			where: {
+				Email: fields.get('email'),
+				IsActive: true,
+				IsAdmin: true
+			}
+		});
 
-		if (user !== null && user.isActive && user.isAdmin) {
+		if (user !== null && await user.validPassword(fields.get('password'))) {
 			//successful login
-			req.session.user = user;
+			req.session.user = user.dataValues;
 			const next = req.query.next ?? "home";
 			return res.redirect(next);
 		}
@@ -45,7 +51,7 @@ router.post('/', async (req, res) => {
 	return res.render('login', {
 		title: 'Please Log In',
 		error: 'Username or password incorrect. Please try again',
-		email: req.body.email,
+		email: fields.get('email'),
 		layout: "no-nav.hbs"
 	});
 });
@@ -53,7 +59,7 @@ router.post('/', async (req, res) => {
 router.get('/home', (req, res) => {
 	return res.render('index', {
 		title: 'Home',
-		name: req.session.user.firstName
+		name: req.session.user.FirstName
 	});
 });
 
