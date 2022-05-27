@@ -1,8 +1,23 @@
 {
-	"host": "localhost",
-	"user": "",
-	"password": "",
-	"database": "",
-	"waitForConnections": true,
-	"connectionLimit": 10
+	"development": {
+		"username": "root",
+		"password": null,
+		"database": "database_development",
+		"host": "127.0.0.1",
+		"dialect": "mariadb"
+	},
+	"test": {
+		"username": "root",
+		"password": null,
+		"database": "database_test",
+		"host": "127.0.0.1",
+		"dialect": "mariadb"
+	},
+	"production": {
+		"username": "root",
+		"password": null,
+		"database": "database_production",
+		"host": "127.0.0.1",
+		"dialect": "mariadb"
+	}
 }
