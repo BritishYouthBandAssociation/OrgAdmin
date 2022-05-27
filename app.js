@@ -51,9 +51,6 @@ async function main() {
 	// Initialise express app
 	const app = express();
 
-	// Initialise and sync db models
-	await db.sequelize.sync();
-
 	// Import configuration
 	const serverOptions = ConfigHelper.importJSON(path.join(__dirname, 'config'), 'server');
 
