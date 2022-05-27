@@ -20,7 +20,8 @@
 	"devDependencies": {
 		"@byba/eslint-config": "^1.3.0",
 		"eslint": "^8.10.0",
-		"husky": "^7.0.4"
+		"husky": "^7.0.4",
+		"lint-staged": "^12.4.2"
 	},
 	"dependencies": {
 		"body-parser": "^1.19.2",
@@ -35,5 +36,8 @@
 		"mysql2": "^2.3.3",
 		"prompt-sync": "^4.2.0",
 		"serve-favicon": "^2.5.0"
+	},
+	"lint-staged": {
+		"*.js": "eslint --cache --fix"
 	}
 }
