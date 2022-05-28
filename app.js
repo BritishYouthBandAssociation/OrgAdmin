@@ -59,7 +59,11 @@ async function main() {
 		'hbs',
 		engine({
 			extname: '.hbs',
-			helpers: HandlebarsHelper
+			helpers: HandlebarsHelper,
+			runtimeOptions: {
+				allowProtoPropertiesByDefault: true,
+				allowProtoMethodsByDefault: true
+			}
 		})
 	);
 	app.set('view engine', 'hbs');
