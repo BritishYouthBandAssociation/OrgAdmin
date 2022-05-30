@@ -1,17 +1,8 @@
 'use strict';
 
-/* global __lib */
-
 // Import modules
 const express = require('express');
 const router = express.Router();
-const {
-	repositories: {
-		OrganisationRepository,
-		UserRepository,
-		MembershipRepository
-	}
-} = require(__lib);
 
 router.get('/', async (req, res) => {
 	const memberships = await req.db.Membership.findAll({

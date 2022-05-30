@@ -1,7 +1,5 @@
 'use strict';
 
-/* global __lib */
-
 // Import modules
 const express = require('express');
 const router = express.Router();
