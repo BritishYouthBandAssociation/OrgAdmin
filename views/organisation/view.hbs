@@ -1,4 +1,4 @@
-<h2>{{organisation.name}}</h2>
+<h2>{{organisation.Name}}</h2>
 
 {{#if saved}}
 <div class="alert alert-success text-center mb-2">Changes saved successfully!</div>
@@ -16,12 +16,12 @@
 	<div class="col">
 		<div class="card card-body">
 			<h3 class="text-center">Address</h3>
-			{{#if address}}
-			{{#with address}}
-			<p>{{lineOne}}</p>
-			<p>{{lineTwo}}</p>
-			<p>{{city}}</p>
-			<p>{{postcode}}</p>
+			{{#if organisation.Address}}
+			{{#with organisation.Address}}
+			<p>{{Line1}}</p>
+			<p>{{Line2}}</p>
+			<p>{{City}}</p>
+			<p>{{Postcode}}</p>
 			<button type="button" class="btn btn-default" id="editAddress">Edit Address</button>
 			{{/with}}
 			{{else}}
@@ -34,10 +34,12 @@
 	<div class="col">
 		<div class="card card-body text-center">
 			<h3>Contacts</h3>
-			{{#if contacts}}
+			{{#if organisation.OrganisationUsers}}
 				<div class="list-group mb-3">
-					{{#each contacts}}
-						<div class="list-group-item">{{firstName}} {{surname}} - {{email}}</div>
+					{{#each organisation.OrganisationUsers}}
+					{{#with User}}
+						<div class="list-group-item">{{FirstName}} {{Surname}} - {{Email}}</div>
+					{{/with}}
 					{{/each}}
 				</div>
 			{{else}}

@@ -1,5 +1,5 @@
-<h2>{{organisation.name}} Contacts</h2>
-<p><a href="./">&lt; back to {{organisation.name}}</a></p>
+<h2>{{organisation.Name}} Contacts</h2>
+<p><a href="./">&lt; back to {{organisation.Name}}</a></p>
 <button type="button" class="btn btn-default mb-3" data-bs-toggle="modal" data-bs-target="#add-contact"{{#unless canAdd}} disabled{{/unless}}>+ Add Contact</button>
 
 {{#if added}}
@@ -13,15 +13,17 @@
 {{#if contacts}}
 <div class="row text-center row-cols-1 row-cols-md-2">
 	{{#each contacts}}
+	{{# with User }}
 	<div class="col">
 		<div class="card card-body">
-			<h3>{{firstName}} {{surname}}</h3>
-			<p>{{email}}</p>
-			<i>Date added: {{date dateAdded}}</i>
-			<a href="/user/{{userID}}" class="btn btn-default mb-3">Edit Contact</a>
-			<a href="contacts/{{id}}/remove" class="btn btn-danger">Remove Contact</a>
+			<h3>{{FirstName}} {{Surname}}</h3>
+			<p>{{Email}}</p>
+			<i>Date added: {{date ../DateFrom}}</i>
+			<a href="/user/{{id}}" class="btn btn-default mb-3">Edit Contact</a>
+			<a href="contacts/{{../id}}/remove" class="btn btn-danger">Remove Contact</a>
 		</div>
 	</div>
+	{{/with}}
 	{{/each}}
 </div>
 {{else}}
