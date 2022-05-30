@@ -14,22 +14,33 @@ const {
 } = require(__lib);
 
 router.get('/', async (req, res) => {
-	const membership = await MembershipRepository.getAllForSeason(req.db, 2022);
-	const labels = [];
-
-	membership.forEach(m => {
-		m.labels.forEach(l => {
-			if(!labels.some(i => i.id === l.id)){
-				labels.push(l);
+	const memberships = await req.db.Membership.findAll({
+		where: { Season: 2022 },
+		include: [
+			req.db.Label,
+			req.db.MembershipType,
+			{
+				model: req.db.IndividualMembership,
+				include: [ req.db.User ]
+			},
+			{
+				model: req.db.OrganisationMembership,
+				include: [ req.db.Organisation ]
 			}
-		});
+		]
+	});
+
+	const labels = await req.db.Label.findAll({
+		where: { '$Memberships.Season$': 2022 },
+		include: [ req.db.Membership ],
+		order: [ [ 'Name', 'ASC' ] ]
 	});
 
 	return res.render('membership/index.hbs', {
 		title: "Membership",
 		seasons: [2022],
 		season: 2022,
-		membership: membership,
+		membership: memberships,
 		filters: labels
 	});
 });
@@ -41,22 +52,32 @@ router.get('/new', (req, res) => {
 });
 
 router.get('/:id', async (req, res, next) => {
-	const membership = await MembershipRepository.getByID(req.db, req.params.id);
-	if(membership == null){
+	const membership = await req.db.Membership.findByPk(req.params.id, {
+		include: [
+			req.db.Label,
+			req.db.MembershipType,
+			{
+				model: req.db.IndividualMembership,
+				include: [ req.db.User ]
+			},
+			{
+				model: req.db.OrganisationMembership,
+				include: {
+					model: req.db.Organisation,
+					include: [ req.db.OrganisationType ]
+				}
+			}
+		]
+	});
+
+	if (membership == null){
 		return next();
 	}
 
-	let entity = null;
-	if(membership.isOrganisation){
-		entity = await OrganisationRepository.getByID(req.db, membership.entityID);
-	} else {
-		entity = await UserRepository.getByID(req.db, membership.entityID);
-	}
-
 	return res.render("membership/view.hbs", {
-		title: `Membership ${membership.number}`,
+		title: `Membership ${membership.Number}`,
 		membership: membership,
-		entity: entity
+		entity: membership.Entity
 	});
 });
 
