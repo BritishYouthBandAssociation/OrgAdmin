@@ -1,8 +1,12 @@
 node_modules/
 
+# Eslint cache file
+.eslintcache
+
 # Temporary files VI creates when editing a file
 *.swp
 
 # Ignore all non-sample config files
 config/*.json
 !config/*sample*
+

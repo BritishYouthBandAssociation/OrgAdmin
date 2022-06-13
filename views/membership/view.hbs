@@ -11,30 +11,30 @@
 		<div class="card card-body">
 			<h3>Membership Details</h3>
 
-			<p>Membership {{membership.number}}</p>
-			<p>Membership Type: {{membership.type}}</p>
-			<p>Season: {{membership.season}}</p>
-			<p>Cost: &pound;{{membership.cost}}</p>
-			<p>Start Date: {{date membership.dateStarted}}</p>
+			<p>Membership Number: {{membership.Number}}</p>
+			<p>Membership Type: {{membership.MembershipType.Name}}</p>
+			<p>Season: {{membership.Season}}</p>
+			<p>Cost: &pound;{{membership.Cost}}</p>
+			<p>Start Date: {{date membership.DateStarted}}</p>
 		</div>
 	</div>
 
 	<div class="col-12 col-lg-6">
 		<div class="card card-body">
-			{{#if membership.isOrganisation}}
+			{{#eq entity.constructor.name Organisation}}
 				<h3>Organisation Details</h3>
 
-				<p>{{entity.name}}</p>
-				<p>Organisation Type: {{entity.type}}</p>
+				<p>Organisation Name: {{entity.Name}}</p>
+				<p>Organisation Type: {{entity.OrganisationType.Name}}</p>
 
 				<a href="/organisation/{{entity.id}}/" class="btn btn-default stretched-link">View Details</a>
 
 			{{else}}
 				<h3>Individual Details</h3>
 
-				<p>{{entity.firstName}} {{entity.surname}}</p>
-				<p>{{entity.email}}</p>
-			{{/if}}
+				<p>{{entity.FullName}}</p>
+				<p>{{entity.Email}}</p>
+			{{/eq}}
 		</div>
 	</div>
 </div>

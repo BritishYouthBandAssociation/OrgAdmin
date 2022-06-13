@@ -7,7 +7,11 @@ const fs = require('fs');
 const path = require('path');
 const serveFavicon = require('serve-favicon');
 const session = require('express-session');
-const dbSession = require('express-mysql-session')(session);
+const SequelizeStore = require('connect-session-sequelize')(session.Store);
+
+// Get database models and connection
+const dbPath = path.join(__dirname, process.env.LIB_PATH ?? '../db', 'models');
+const db = require(dbPath)(path.join(__dirname, 'config/db'));
 
 // Initialise library path
 const libPath = path.join(__dirname, process.env.LIB_PATH ?? '../lib');
@@ -17,8 +21,7 @@ global.__lib = libPath;
 const {
 	helpers: {
 		ConfigHelper,
-		HandlebarsHelper,
-		DatabaseConnectionPool
+		HandlebarsHelper
 	}
 } = require(libPath);
 
@@ -56,7 +59,11 @@ async function main() {
 		'hbs',
 		engine({
 			extname: '.hbs',
-			helpers: HandlebarsHelper
+			helpers: HandlebarsHelper,
+			runtimeOptions: {
+				allowProtoPropertiesByDefault: true,
+				allowProtoMethodsByDefault: true
+			}
 		})
 	);
 	app.set('view engine', 'hbs');
@@ -73,18 +80,19 @@ async function main() {
 		path.join(__dirname, 'public/assets/favicon.ico')));
 	app.use(express.static(path.join(__dirname, 'public')));
 
-	//add global db pool
-	const dbConfig = ConfigHelper.importJSON(path.join(__dirname, 'config'), 'db');
-	const db = await new DatabaseConnectionPool(dbConfig);
+	//add global db
 	app.use((req, res, next) => {
 		req.db = db;
 		next();
 	});
 
 	//... and use it for our session stuff too!
-	const sessionStore = new dbSession({}, db.pool);
+	const sessionStore = new SequelizeStore({ db: db.sequelize });
+	await sessionStore.sync();
+
 	const sessionConfig = ConfigHelper.importJSON(path.join(__dirname, 'config'), 'session');
 	sessionConfig.store = sessionStore;
+
 	app.use(session(sessionConfig));
 
 	//prevent unauthorised access

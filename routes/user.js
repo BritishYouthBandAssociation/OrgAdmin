@@ -1,18 +1,10 @@
 'use strict';
 
-/* global __lib */
-
 const express = require('express');
 const router = express.Router();
 
-const {
-	repositories: {
-		UserRepository
-	}
-} = require(__lib);
-
 router.get('/', async (req, res) => {
-	const users = await UserRepository.getAll(req.db);
+	const users = (await req.db.User.findAll()).map(u => u.dataValues);
 
 	return res.render('user/index.hbs', {
 		title: 'Users',
@@ -30,17 +22,22 @@ router.post('/new', async (req, res) => {
 	req.body.isActive = parseInt(req.body.isActive);
 	req.body.isAdmin = parseInt(req.body.isAdmin);
 
-	const match = await UserRepository.getByEmail(req.db, req.body.email);
+	const match = await req.db.User.count({
+		where: {
+			email: req.body.email
+		}
+	});
+
 	let err = "";
-	if(match != null){
+	if (match > 0){
 		err = 'A user with that email address already exists';
 	}
 
-	if(req.body.password !== req.body.confirm){
+	if (req.body.password !== req.body.confirm){
 		err = 'Passwords do not match';
 	}
 
-	if(err !== ""){
+	if (err !== ""){
 		return res.render('user/add.hbs', {
 			title: "Add New User",
 			error: err,
@@ -48,52 +45,70 @@ router.post('/new', async (req, res) => {
 		});
 	}
 
-	const userID = await UserRepository.add(req.db, req.body.email, req.body.password, req.body.firstName, req.body.surname, req.body.isActive, req.body.isAdmin);
+	const user = await req.db.User.create({
+		Email: req.body.email,
+		Password: req.body.password,
+		FirstName: req.body.firstName,
+		Surname: req.body.surname,
+		IsActive: req.body.isActive,
+		IsAdmin: req.body.isAdmin
+	});
 
-	return res.redirect(userID);
+	return res.redirect(user.id);
 });
 
 router.post('/:id/password', async (req, res, next) => {
-	const user = await UserRepository.getByID(req.db, req.params.id);
-	if(user == null){
+	const user = await req.db.User.findByPk(req.params.id);
+
+	if (user == null){
 		return next();
 	}
 
-	if(req.body.password !== req.body.confirm){
+	if (req.body.password !== req.body.confirm){
 		return res.redirect(`../${req.params.id}?nomatch=1`);
 	}
 
-	await UserRepository.setPassword(req.db, req.params.id, req.body.password);
+	await req.db.User.update({
+		Password: req.body.password
+	}, {
+		where: { id: req.params.id }
+	});
+
 	return res.redirect(`../${req.params.id}?saved=1`);
 });
 
 router.get('/:id', async (req, res, next) => {
-	const user = await UserRepository.getByID(req.db, req.params.id);
-	if(user == null){
+	const user = await req.db.User.findByPk(req.params.id);
+
+	if (user == null){
 		return next();
 	}
 
 	return res.render('user/view.hbs', {
-		title: `${user.firstName} ${user.surname}`,
-		user: user,
+		title: `${user.FirstName} ${user.Surname}`,
+		user: user.dataValues,
 		saved: req.query.saved ?? false,
 		nomatch: req.query.nomatch ?? false
 	});
 });
 
 router.post('/:id', async (req, res, next) => {
-	const user = await UserRepository.getByID(req.db, req.params.id);
-	if(user == null){
+	const user = await req.db.User.findByPk(req.params.id);
+
+	if (user == null){
 		return next;
 	}
 
-	user.firstName = req.body.firstName;
-	user.surname = req.body.surname;
-	user.email = req.body.email;
-	user.isActive = req.body.isActive;
-	user.isAdmin = req.body.isAdmin;
-
-	await UserRepository.update(req.db, user);
+	await req.db.User.update({
+		Email: req.body.email,
+		Password: req.body.password,
+		FirstName: req.body.firstName,
+		Surname: req.body.surname,
+		IsActive: req.body.isActive,
+		IsAdmin: req.body.isAdmin
+	}, {
+		where: { id: req.params.id }
+	});
 
 	return res.redirect(`${req.params.id}?saved=1`);
 });

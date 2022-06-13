@@ -11,7 +11,7 @@
 					<label class="form-label" for="year">Season</label>
 					<select id="year" class="form-control">
 						{{#each seasons}}
-						<option value="{{this}}" {{#eq this ../season }} selected{{/eq}}>{{this}}</option>
+						<option value="{{this}}" {{#eq this ../Season }} selected{{/eq}}>{{this}}</option>
 						{{/each}}
 					</select>
 				</div>
@@ -28,9 +28,10 @@
 		<div class="row text-center justify-content-center row-cols-2 row-cols-md-4 row-cols-lg-6">
 			{{#each filters}}
 			<div class="col mb-3">
-				<label class="form-label" for="filter_{{id}}"><input type="checkbox" id="filter_{{id}}" value="{{id}}"
-						checked />
-					{{text}}</label>
+				<label class="form-label" for="filter_{{id}}">
+					<input type="checkbox" id="filter_{{id}}" value="{{id}}" checked />
+					{{Name}}
+				</label>
 			</div>
 			{{/each}}
 		</div>
@@ -41,15 +42,15 @@
 <div class="row text-center">
 	{{#each membership}}
 	<div class="col-12 col-md-6 col-lg-4">
-		<div class="card card-action" data-type="{{type.id}}">
+		<div class="card card-action" data-type="{{MembershipType.id}}">
 			<div class="card-body">
-				<p class="h4"><a href="{{id}}" class="stretched-link text-reset text-decoration-none">{{name}}</a></p>
+				<p class="h4"><a href="{{id}}" class="stretched-link text-reset text-decoration-none">{{Name}}</a></p>
 			</div>
 
 			<div class="card-footer label-container">
-				{{#each labels}}
-				<span class="badge" style="background-color: {{background}}; color: {{foreground}}"
-					data-type="{{id}}">{{text}}</span>
+				{{#each Labels}}
+				<span class="badge" style="background-color: {{BackgroundColour}}; color: {{ForegroundColour}}"
+					data-type="{{id}}">{{Name}}</span>
 				{{/each}}
 			</div>
 		</div>

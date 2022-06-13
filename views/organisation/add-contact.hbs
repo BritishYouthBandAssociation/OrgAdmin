@@ -1,27 +1,29 @@
 {{#if exists}}
-	<div class="alert alert-danger my-3">{{contact.firstName}} {{contact.surname}} has already been added to {{organisation.name}}!</div>
+	<div class="alert alert-danger my-3">{{contact.FirstName}} {{contact.Surname}} has already been added to {{organisation.name}}!</div>
 
 	<a href="../../contacts">&lt; back to {{organisation.name}} contacts</a>
 {{else}}
 <form method="post" class="text-center card card-body text-dark bg-warning my-3">
 	<h2>Are You Sure?</h2>
-	<p>Are you sure you wish to add {{contact.firstName}} {{contact.surname}} as a contact for {{organisation.name}}?
+	<p>Are you sure you wish to add {{contact.FirstName}} {{contact.Surname}} as a contact for {{organisation.Name}}?
 	</p>
 
 	<div class="row d-none d-md-flex">
 		<div class="col-6">
 			<div class="card card-body">
 				<h3>User</h3>
-				<p>{{contact.firstName}} {{contact.surname}}</p>
-				<p>{{contact.email}}</p>
+				<p>{{contact.FirstName}} {{contact.Surname}}</p>
+				<p>{{contact.Email}}</p>
 			</div>
 		</div>
 
 		<div class="col-6">
 			<div class="card card-body">
 				<h3>Organisation</h3>
-				<p>{{organisation.name}}</p>
-				<p>{{organisation.type}}</p>
+				{{#with organisation}}
+				<p>{{Name}}</p>
+				<p>{{OrganisationType.Name}}</p>
+				{{/with}}
 			</div>
 		</div>
 	</div>

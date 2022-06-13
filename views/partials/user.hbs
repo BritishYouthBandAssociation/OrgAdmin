@@ -1,16 +1,16 @@
 <div class="row row-cols-1 row-cols-md-2">
 	<div class="col mb-3">
 		<label for="firstName">First Name</label>
-		<input type="text" class="form-control" id="firstName" name="firstName" required value="{{user.firstName}}" />
+		<input type="text" class="form-control" id="firstName" name="firstName" required value="{{user.FirstName}}" />
 	</div>
 	<div class="col mb-3">
 		<label for="surname">Surname</label>
-		<input type="text" class="form-control" id="surname" name="surname" required value="{{user.surname}}" />
+		<input type="text" class="form-control" id="surname" name="surname" required value="{{user.Surname}}" />
 	</div>
 </div>
 
 <label for="email">Email Address</label>
-<input type="email" class="form-control mb-3" id="email" name="email" required value="{{user.email}}" />
+<input type="email" class="form-control mb-3" id="email" name="email" required value="{{user.Email}}" />
 
 {{#if password}}
 <label for="password">Password</label>
@@ -25,11 +25,11 @@
 		<p>Is Active?</p>
 		<div class="btn-group" role="group" aria-label="Is Active?">
 			<input type="radio" value="1" class="btn-check" name="isActive" id="isActive-y" autocomplete="off" {{#if
-				user.isActive}}checked{{/if}}>
+				user.IsActive}}checked{{/if}}>
 			<label class="btn btn-outline-success" for="isActive-y">Yes</label>
 
 			<input type="radio" value="0" class="btn-check" name="isActive" id="isActive-n" autocomplete="off" {{#unless
-				user.isActive}}checked{{/unless}}>
+				user.IsActive}}checked{{/unless}}>
 			<label class="btn btn-outline-danger" for="isActive-n">No</label>
 		</div>
 	</div>
@@ -38,11 +38,11 @@
 		<p>Is Admin?</p>
 		<div class="btn-group" role="group" aria-label="Is Admin?">
 			<input type="radio" value="1" class="btn-check" name="isAdmin" id="isAdmin-y" autocomplete="off" {{#if
-				user.isAdmin}}checked{{/if}}>
+				user.IsAdmin}}checked{{/if}}>
 			<label class="btn btn-outline-success" for="isAdmin-y">Yes</label>
 
 			<input type="radio" value="0" class="btn-check" name="isAdmin" id="isAdmin-n" autocomplete="off" {{#unless
-				user.isAdmin}}checked{{/unless}}>
+				user.IsAdmin}}checked{{/unless}}>
 			<label class="btn btn-outline-danger" for="isAdmin-n">No</label>
 		</div>
 	</div>
