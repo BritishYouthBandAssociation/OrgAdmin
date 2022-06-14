@@ -9,10 +9,6 @@ const serveFavicon = require('serve-favicon');
 const session = require('express-session');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
 
-// Get database models and connection
-const dbPath = path.join(__dirname, process.env.LIB_PATH ?? '../db', 'models');
-const db = require(dbPath)(path.join(__dirname, 'config/db'));
-
 // Initialise library path
 const libPath = path.join(__dirname, process.env.LIB_PATH ?? '../lib');
 global.__lib = libPath;
@@ -81,6 +77,8 @@ async function main() {
 	app.use(express.static(path.join(__dirname, 'public')));
 
 	//add global db
+	const dbPath = path.join(libPath, 'models');
+	const db = await require(dbPath)(path.join(__dirname, 'config/db'));
 	app.use((req, res, next) => {
 		req.db = db;
 		next();
