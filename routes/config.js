@@ -67,7 +67,7 @@ router.post('/organisation-type', async (req, res) => {
 			});
 		} else {
 			//update
-			await req.db.MembershipType.update({
+			await req.db.OrganisationType.update({
 				Name: req.body.type[i],
 				IsActive: req.body.isActive[i]
 			}, {
