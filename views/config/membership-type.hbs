@@ -1,0 +1,63 @@
+<h2>Membership Types</h2>
+
+<form id="app">
+	<button type="button" class="btn btn-success btn-lg" @click="addType">+ Add</button>
+
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Membership Type</th>
+				<th>Cost</th>
+				<th>Is Active?</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr v-for="(type, index) in types" :key="type.MembershipTypeID">
+				<td>
+					<input type="text" class="form-control" name="type[]" v-model="type.Name" required/>
+					<input type="hidden" name="id[]" :value="type.MembershipTypeID" />
+				</td>
+				<td>
+					<div class="input-group">
+						<span class="input-group-text">&pound;</span>
+						<input type="number" class="form-control" name="cost[]" step="0.01" v-model="type.Cost" min="0" required/>
+					</div>
+				</td>
+				<td>
+					<div class="btn-group" role="group" aria-label="Is Active?">
+						<input type="radio" value="1" class="btn-check" :name="'isActive[' + index + ']'" :id="'isActive-' + index + '-y'" autocomplete="off" :checked="type.IsActive" />
+						<label class="btn btn-outline-success" :for="'isActive-' + index + '-y'">Yes</label>
+
+						<input type="radio" value="0" class="btn-check" :name="'isActive[' + index + ']'" :id="'isActive-' + index + '-n'"
+							autocomplete="off" :checked="!type.IsActive">
+						<label class="btn btn-outline-danger" :for="'isActive-' + index + '-n'">No</label>
+					</div>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<button class="btn btn-default btn-lg">Save</button>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script>
+	let id = 0;
+
+	const app = new Vue({
+		el: '#app',
+		data: {
+			types: {{ json types }}
+		},
+	methods: {
+		addType: function() {
+			this.types.push({
+				Name: "",
+				MembershipTypeID: --id,
+				Cost: 0,
+				IsActive: true
+			});
+		}
+	}
+	})
+</script>
