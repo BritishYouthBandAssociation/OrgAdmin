@@ -11,12 +11,29 @@ router.get('/', (req, res) => {
 
 router.get('/membership-type', async (req, res) => {
 	const types = await req.db.MembershipType.findAll();
-	console.log(types);
 
 	return res.render('config/membership-type.hbs', {
 		title: 'Membership Types',
-		types: types
+		types: types,
+		saved: req.query.saved ?? false
 	});
+});
+
+router.post('/membership-type', async (req, res) => {
+	for (let i = 0; i < req.body.type.length; i++){
+		if (req.body.id[i] < 0){
+			//insert
+			await req.db.MembershipType.create({
+				Name: req.body.type[i],
+				IsActive: req.body.isActive[i],
+				Cost: req.body.cost[i]
+			});
+		} else {
+			//update
+		}
+	}
+
+	return res.redirect("?saved=1");
 });
 
 module.exports = {
