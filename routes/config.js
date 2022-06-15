@@ -26,6 +26,7 @@ router.post('/membership-type', async (req, res) => {
 			await req.db.MembershipType.create({
 				Name: req.body.type[i],
 				IsActive: req.body.isActive[i],
+				IsOrganisation: req.body.isOrganisation[i],
 				Cost: req.body.cost[i]
 			});
 		} else {
@@ -33,6 +34,7 @@ router.post('/membership-type', async (req, res) => {
 			await req.db.MembershipType.update({
 				Name: req.body.type[i],
 				IsActive: req.body.isActive[i],
+				IsOrganisation: req.body.isOrganisation[i],
 				Cost: req.body.cost[i]
 			}, {
 				where: {
