@@ -1,7 +1,7 @@
-<h2>Membership Types</h2>
+<h2>Organisation Types</h2>
 
 {{#if saved}}
-<div class="alert alert-success text-center">Membership Types saved successfully</div>
+<div class="alert alert-success text-center">Organisation Types saved successfully</div>
 {{/if}}
 
 <form id="app" method="post">
@@ -13,33 +13,9 @@
 
 			<div class="card card-body">
 				<div class="form-group mb-3">
-					<label :for="'name-' + index">Membership Type</label>
+					<label :for="'name-' + index">Organisation Type</label>
 					<input type="text" class="form-control" name="type[]" :id="'name-' + index" v-model="type.Name"
 						required />
-				</div>
-
-				<div class="form-group mb-3">
-					<label :for="'cost-' + index">Cost</label>
-					<div class="input-group">
-						<span class="input-group-text">&pound;</span>
-						<input type="text" class="form-control" name="cost[]" :id="'cost-' + index" v-model="type.Cost"
-							required />
-					</div>
-				</div>
-
-				<div class="row row-cols-2 align-items-center mb-3">
-					<div class="col">Is Organisation?</div>
-					<div class="col">
-						<div class="btn-group" role="group" aria-label="Is Organisation?">
-							<input type="radio" value="1" class="btn-check" :name="'isOrganisation[' + index + ']'"
-								:id="'isOrganisation-' + index + '-y'" autocomplete="off" :checked="type.IsOrganisation" />
-							<label class="btn btn-outline-success" :for="'isOrganisation-' + index + '-y'">Yes</label>
-
-							<input type="radio" value="0" class="btn-check" :name="'isOrganisation[' + index + ']'"
-								:id="'isOrganisation-' + index + '-n'" autocomplete="off" :checked="!type.IsOrganisation">
-							<label class="btn btn-outline-danger" :for="'isOrganisation-' + index + '-n'">No</label>
-						</div>
-					</div>
 				</div>
 
 				<div class="row row-cols-2 align-items-center mb-3">
