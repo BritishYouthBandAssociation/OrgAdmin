@@ -30,6 +30,15 @@ router.post('/membership-type', async (req, res) => {
 			});
 		} else {
 			//update
+			await req.db.MembershipType.update({
+				Name: req.body.type[i],
+				IsActive: req.body.isActive[i],
+				Cost: req.body.cost[i]
+			}, {
+				where: {
+					id: req.body.id[i]
+				}
+			});
 		}
 	}
 
