@@ -1,41 +1,64 @@
 <h2>Membership Types</h2>
 
-<form id="app">
-	<button type="button" class="btn btn-success btn-lg" @click="addType">+ Add</button>
+{{#if saved}}
+<div class="alert alert-success text-center">Membership Types saved successfully</div>
+{{/if}}
 
-	<table class="table">
-		<thead>
-			<tr>
-				<th>Membership Type</th>
-				<th>Cost</th>
-				<th>Is Active?</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr v-for="(type, index) in types" :key="type.MembershipTypeID">
-				<td>
-					<input type="text" class="form-control" name="type[]" v-model="type.Name" required/>
-					<input type="hidden" name="id[]" :value="type.MembershipTypeID" />
-				</td>
-				<td>
+<form id="app" method="post">
+	<button type="button" class="btn btn-success btn-lg mb-3" @click="addType">+ Add</button>
+
+	<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3">
+		<div class="col mb-3" v-for="(type, index) in types" :key="type.MembershipTypeID">
+			<input type="hidden" name="id[]" :value="type.id" />
+
+			<div class="card card-body">
+				<div class="form-group mb-3">
+					<label :for="'name-' + index">Membership Type</label>
+					<input type="text" class="form-control" name="type[]" :id="'name-' + index" v-model="type.Name"
+						required />
+				</div>
+
+				<div class="form-group mb-3">
+					<label :for="'cost-' + index">Cost</label>
 					<div class="input-group">
 						<span class="input-group-text">&pound;</span>
-						<input type="number" class="form-control" name="cost[]" step="0.01" v-model="type.Cost" min="0" required/>
+						<input type="text" class="form-control" name="cost[]" :id="'cost-' + index" v-model="type.Cost"
+							required />
 					</div>
-				</td>
-				<td>
-					<div class="btn-group" role="group" aria-label="Is Active?">
-						<input type="radio" value="1" class="btn-check" :name="'isActive[' + index + ']'" :id="'isActive-' + index + '-y'" autocomplete="off" :checked="type.IsActive" />
-						<label class="btn btn-outline-success" :for="'isActive-' + index + '-y'">Yes</label>
+				</div>
 
-						<input type="radio" value="0" class="btn-check" :name="'isActive[' + index + ']'" :id="'isActive-' + index + '-n'"
-							autocomplete="off" :checked="!type.IsActive">
-						<label class="btn btn-outline-danger" :for="'isActive-' + index + '-n'">No</label>
+				<div class="row row-cols-2 align-items-center mb-3">
+					<div class="col">Is Organisation?</div>
+					<div class="col">
+						<div class="btn-group" role="group" aria-label="Is Organisation?">
+							<input type="radio" value="1" class="btn-check" :name="'isOrganisation[' + index + ']'"
+								:id="'isOrganisation-' + index + '-y'" autocomplete="off" :checked="type.IsOrganisation" />
+							<label class="btn btn-outline-success" :for="'isOrganisation-' + index + '-y'">Yes</label>
+
+							<input type="radio" value="0" class="btn-check" :name="'isOrganisation[' + index + ']'"
+								:id="'isOrganisation-' + index + '-n'" autocomplete="off" :checked="!type.IsOrganisation">
+							<label class="btn btn-outline-danger" :for="'isOrganisation-' + index + '-n'">No</label>
+						</div>
 					</div>
-				</td>
-			</tr>
-		</tbody>
-	</table>
+				</div>
+
+				<div class="row row-cols-2 align-items-center mb-3">
+					<div class="col">Is Active?</div>
+					<div class="col">
+						<div class="btn-group" role="group" aria-label="Is Active?">
+							<input type="radio" value="1" class="btn-check" :name="'isActive[' + index + ']'"
+								:id="'isActive-' + index + '-y'" autocomplete="off" :checked="type.IsActive" />
+							<label class="btn btn-outline-success" :for="'isActive-' + index + '-y'">Yes</label>
+
+							<input type="radio" value="0" class="btn-check" :name="'isActive[' + index + ']'"
+								:id="'isActive-' + index + '-n'" autocomplete="off" :checked="!type.IsActive">
+							<label class="btn btn-outline-danger" :for="'isActive-' + index + '-n'">No</label>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 
 	<button class="btn btn-default btn-lg">Save</button>
 </form>
@@ -47,15 +70,16 @@
 	const app = new Vue({
 		el: '#app',
 		data: {
-			types: {{ json types }}
+			types: {{{ json types }}}
 		},
 	methods: {
 		addType: function() {
 			this.types.push({
 				Name: "",
-				MembershipTypeID: --id,
+				id: --id,
 				Cost: 0,
-				IsActive: true
+				IsActive: true,
+				IsOrganisation: true
 			});
 		}
 	}
