@@ -43,7 +43,7 @@ router.post('/new', async (req, res) => {
 		include: [ req.db.Address ]
 	});
 
-	res.redirect(org.id);
+	res.redirect(org.id + '/');
 });
 
 //show org
