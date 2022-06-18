@@ -96,6 +96,12 @@ router.post('/new', async (req, res) => {
 			MembershipId: membership.id
 		});
 
+		//oh and add a label for the type!
+		await req.db.MembershipLabel.create({
+			MembershipId: membership.id,
+			LabelId: type.LabelId
+		});
+
 		//display it
 		return res.redirect(membership.id);
 	}

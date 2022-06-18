@@ -16,8 +16,6 @@ router.get('/membership-type', async (req, res) => {
 		}]
 	});
 
-	console.log(types[0]);
-
 	return res.render('config/membership-type.hbs', {
 		title: 'Membership Types',
 		types: types,
