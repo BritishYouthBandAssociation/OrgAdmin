@@ -13,8 +13,15 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/new', (req, res) => {
+	const details = {
+		Email: req.query.email ?? "",
+		IsActive: true
+	};
+
 	return res.render('user/add.hbs', {
-		title: 'Add New User'
+		title: 'Add New User',
+		details: details,
+		orgID: req.query.orgID ?? null
 	});
 });
 
@@ -53,6 +60,10 @@ router.post('/new', async (req, res) => {
 		IsActive: req.body.isActive,
 		IsAdmin: req.body.isAdmin
 	});
+
+	if (req.query.orgID != null){
+		return res.redirect(`/organisation/${req.query.orgID}/contacts/add/${req.body.email}`);
+	}
 
 	return res.redirect(user.id);
 });
