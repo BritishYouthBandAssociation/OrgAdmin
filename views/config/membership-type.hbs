@@ -32,11 +32,13 @@
 					<div class="col">
 						<div class="btn-group" role="group" aria-label="Is Organisation?">
 							<input type="radio" value="1" class="btn-check" :name="'isOrganisation[' + index + ']'"
-								:id="'isOrganisation-' + index + '-y'" autocomplete="off" :checked="type.IsOrganisation" />
+								:id="'isOrganisation-' + index + '-y'" autocomplete="off"
+								:checked="type.IsOrganisation" />
 							<label class="btn btn-outline-success" :for="'isOrganisation-' + index + '-y'">Yes</label>
 
 							<input type="radio" value="0" class="btn-check" :name="'isOrganisation[' + index + ']'"
-								:id="'isOrganisation-' + index + '-n'" autocomplete="off" :checked="!type.IsOrganisation">
+								:id="'isOrganisation-' + index + '-n'" autocomplete="off"
+								:checked="!type.IsOrganisation">
 							<label class="btn btn-outline-danger" :for="'isOrganisation-' + index + '-n'">No</label>
 						</div>
 					</div>
@@ -56,14 +58,23 @@
 						</div>
 					</div>
 				</div>
+
+				<hr />
+				<input type="hidden" :name="'lbl[' + index + ']'" :value="type.Label.id" />
+
+				<colour-picker title="Label Background" v-model="type.Label.BackgroundColour" :name="'bg[' + index + ']'"></colour-picker>
+
+				<colour-picker title="Label Foreground" v-model="type.Label.ForegroundColour" :name="'fg[' + index + ']'"></colour-picker>
+
+				<span class="badge" v-bind:style="{backgroundColor: type.Label.BackgroundColour, color: type.Label.ForegroundColour}">Sample Label</span>
 			</div>
 		</div>
 	</div>
-
 	<button class="btn btn-default btn-lg">Save</button>
 </form>
 
 <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="/js/component/ColourPicker.js"></script>
 <script>
 	let id = 0;
 
@@ -72,6 +83,18 @@
 		data: {
 			types: {{{ json types }}}
 		},
+	mounted: function() {
+		this.types.forEach(t => {
+			if (t.Label === null) {
+				t.Label = {
+					id: --id,
+					Name: "",
+					BackgroundColour: "#000000",
+					ForegroundColour: "#FFFFFF"
+				}
+			}
+		})
+	},
 	methods: {
 		addType: function() {
 			this.types.push({
@@ -79,7 +102,13 @@
 				id: --id,
 				Cost: 0,
 				IsActive: true,
-				IsOrganisation: true
+				IsOrganisation: true,
+				Label: {
+					id: --id,
+					Name: "",
+					BackgroundColour: "000000",
+					ForegroundColour: "FFFFFF"
+				}
 			});
 		}
 	}

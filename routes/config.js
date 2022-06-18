@@ -10,7 +10,13 @@ router.get('/', (req, res) => {
 });
 
 router.get('/membership-type', async (req, res) => {
-	const types = await req.db.MembershipType.findAll();
+	const types = await req.db.MembershipType.findAll({
+		include: [{
+			model: req.db.Label
+		}]
+	});
+
+	console.log(types[0]);
 
 	return res.render('config/membership-type.hbs', {
 		title: 'Membership Types',
@@ -21,13 +27,38 @@ router.get('/membership-type', async (req, res) => {
 
 router.post('/membership-type', async (req, res) => {
 	for (let i = 0; i < req.body.type.length; i++){
+		let labelID = req.body.lbl[i];
+
+		if (labelID < 0){
+			//insert
+			const lbl = await req.db.Label.create({
+				Name: req.body.type[i],
+				BackgroundColour: req.body.bg[i],
+				ForegroundColour: req.body.fg[i]
+			});
+
+			labelID = lbl.id;
+		} else {
+			//update
+			await req.db.Label.update({
+				Name: req.body.type[i],
+				BackgroundColour: req.body.bg[i],
+				ForegoundColour: req.body.fg[i]
+			}, {
+				where: {
+					id: labelID
+				}
+			});
+		}
+
 		if (req.body.id[i] < 0){
 			//insert
 			await req.db.MembershipType.create({
 				Name: req.body.type[i],
 				IsActive: req.body.isActive[i],
 				IsOrganisation: req.body.isOrganisation[i],
-				Cost: req.body.cost[i]
+				Cost: req.body.cost[i],
+				LabelId: labelID
 			});
 		} else {
 			//update
@@ -35,7 +66,8 @@ router.post('/membership-type', async (req, res) => {
 				Name: req.body.type[i],
 				IsActive: req.body.isActive[i],
 				IsOrganisation: req.body.isOrganisation[i],
-				Cost: req.body.cost[i]
+				Cost: req.body.cost[i],
+				LabelId: labelID
 			}, {
 				where: {
 					id: req.body.id[i]
