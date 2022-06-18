@@ -65,6 +65,10 @@ router.post('/new', async (req, res) => {
 		return res.redirect(`/organisation/${req.query.orgID}/contacts/add/${req.body.email}`);
 	}
 
+	if (req.query.membership != null){
+		return res.redirect(`/membership/new?email=${req.body.email}&type=${req.query.membership}`);
+	}
+
 	return res.redirect(user.id);
 });
 

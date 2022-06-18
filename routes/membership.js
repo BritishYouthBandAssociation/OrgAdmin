@@ -45,7 +45,9 @@ router.get('/new', async (req, res) => {
 
 	res.render('membership/add.hbs', {
 		title: "Add Membership",
-		types: types
+		types: types,
+		type: req.query.type ?? -1,
+		email: req.query.email ?? ""
 	});
 });
 

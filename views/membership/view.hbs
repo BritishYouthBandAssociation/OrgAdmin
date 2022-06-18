@@ -21,7 +21,7 @@
 
 	<div class="col-12 col-lg-6">
 		<div class="card card-body">
-			{{#eq entity.constructor.name Organisation}}
+			{{#if membership.MembershipType.IsOrganisation}}
 				<h3>Organisation Details</h3>
 
 				<p>Organisation Name: {{entity.Name}}</p>
@@ -34,7 +34,7 @@
 
 				<p>{{entity.FullName}}</p>
 				<p>{{entity.Email}}</p>
-			{{/eq}}
+			{{/if}}
 		</div>
 	</div>
 </div>

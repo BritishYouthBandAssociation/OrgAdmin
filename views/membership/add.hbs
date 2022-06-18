@@ -15,7 +15,7 @@
 			<select name="type" id="type" class="form-control" required>
 				<option value="">-- Please Select --</option>
 				{{#each types}}
-				<option data-cost="{{Cost}}" value="{{id}}" data-cost="{{Cost}}" data-organisation="{{IsOrganisation}}">
+				<option data-cost="{{Cost}}" value="{{id}}" data-cost="{{Cost}}" data-organisation="{{IsOrganisation}}" {{#eq ../type id}}selected{{/eq}}>
 					{{Name}} ({{#if IsOrganisation}}Organisation{{else}}Individual{{/if}}) - £{{Cost}}</option>
 				{{/each}}
 			</select>
@@ -37,7 +37,7 @@
 		<h3>Individual Membership</h3>
 		<div class="form-group">
 			<label for="email">Please enter the email address of the individual registering for membership</label>
-			<input type="email" id="email" name="email" class="form-control" required />
+			<input type="email" id="email" name="email" class="form-control" value="{{email}}" required />
 		</div>
 	</div>
 
