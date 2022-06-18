@@ -36,10 +36,69 @@ router.get('/', async (req, res) => {
 	});
 });
 
-router.get('/new', (req, res) => {
-	res.render('membership/add.hbs', {
-		title: "Add Membership"
+router.get('/new', async (req, res) => {
+	const types = await req.db.MembershipType.findAll({
+		where: {
+			IsActive: true
+		}
 	});
+
+	res.render('membership/add.hbs', {
+		title: "Add Membership",
+		types: types
+	});
+});
+
+router.post('/new', async (req, res) => {
+	const type = await req.db.MembershipType.findOne({
+		where: {
+			id: req.body.type
+		}
+	});
+
+	if (type == null){
+		return res.redirect("");
+	}
+
+	if (type.IsOrganisation){
+		if (req.body.organisation === '-1'){
+			return res.redirect(`/organisation/new?membershipType=${req.body.type}`);
+		}
+
+		const exists = await req.db.Membership.findOne({
+			where: {
+				Season: req.body.season,
+			},
+			include: [{
+				model: req.db.OrganisationMembership,
+				where: {
+					OrganisationId: req.body.organisation
+				},
+				required: true
+			}]
+		});
+
+		if (exists != null){
+			//if this band already has a membership this season, display it
+			return res.redirect(exists.id);
+		}
+
+		//create the membership
+		const membership = await req.db.Membership.create({
+			Season: req.body.season,
+			Cost: type.Cost,
+			MembershipTypeId: req.body.type
+		});
+
+		//add the band to the membership
+		await req.db.OrganisationMembership.create({
+			OrganisationId: req.body.organisation,
+			MembershipId: membership.id
+		});
+
+		//display it
+		return res.redirect(membership.id);
+	}
 });
 
 router.get('/:id', async (req, res, next) => {

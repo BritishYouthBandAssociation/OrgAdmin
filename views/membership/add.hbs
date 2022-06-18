@@ -1,13 +1,37 @@
-<p><a href="./">&lt; back to membership list</a></p>
-
 <h2>Add Membership</h2>
 
 <form method="post">
-	<div class="input">
-		<select name="type" required>
-			<option value="">-- Please Select --</option>
-			<option data-cost="0" value="1">Bronze</option>
-		</select>
-		<label>Membership Type</label>
+	<div class="card card-body mb-3">
+		<h3>Membership Details</h3>
+		<div class="form-group mb-3">
+			<label for="season">Season</label>
+			<select name="season" id="season" class="form-control" required>
+				<option value="2022">2022</option>
+			</select>
+		</div>
+
+		<div class="form-group mb-3">
+			<label for="type">Membership Type</label>
+			<select name="type" id="type" class="form-control" required>
+				<option value="">-- Please Select --</option>
+				{{#each types}}
+				<option data-cost="{{Cost}}" value="{{id}}" data-cost="{{Cost}}" data-organisation="{{IsOrganisation}}">
+					{{Name}} ({{#if IsOrganisation}}Organisation{{else}}Individual{{/if}}) - £{{Cost}}</option>
+				{{/each}}
+			</select>
+		</div>
 	</div>
+
+	<div class="card card-body mb-3">
+		<h3>Organisation Membership</h3>
+		<div class="form-group">
+			<label for="organisation">Please select the organisation that this membership is for</label>
+			<select name="organisation" id="organisation" class="form-control" required>
+				<option value="">-- Please Select --</option>
+				<option value="-1">(New organisation)</option>
+			</select>
+		</div>
+	</div>
+
+	<button class="btn btn-default btn-lg">Continue</button>
 </form>
