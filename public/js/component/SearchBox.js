@@ -2,11 +2,9 @@
 /*global Vue*/
 
 Vue.component('search-box', {
-	props: ['placeholder', 'title', 'name', 'url', 'textProp', 'valueProp'],
+	props: ['placeholder', 'title', 'name', 'url', 'text', 'value', 'textProp', 'valueProp'],
 	data: function() {
 		return {
-			text: '',
-			value: '',
 			results: [],
 			noneFound: false
 		};

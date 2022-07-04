@@ -15,7 +15,7 @@
 			<select name="type" id="type" class="form-control" required v-model="type" v-on:change="changeType">
 				<option value="">-- Please Select --</option>
 				{{#each types}}
-				<option data-cost="{{Cost}}" value="{{id}}" data-cost="{{Cost}}" data-organisation="{{IsOrganisation}}"
+				<option data-cost="{{Cost}}" value="{{id}}" data-organisation="{{IsOrganisation}}"
 					{{#eq ../type id}}selected{{/eq}}>
 					{{Name}} ({{#if IsOrganisation}}Organisation{{else}}Individual{{/if}}) - £{{Cost}}</option>
 				{{/each}}
@@ -26,7 +26,7 @@
 	<div class="card card-body mb-3" v-if="type != '' && isOrg">
 		<h3>Organisation Membership</h3>
 		<search-box name="organisation" title="Please select the organisation that this membership is for"
-			url="/_api/organisation/search" text-prop="Name" value-prop="id"></search-box>
+			url="/_api/organisation/search" text-prop="Name" value-prop="id" text="{{member.Name}}" value="{{member.id}}"></search-box>
 
 		<label for="organisation-not-found">
 			<input type="checkbox" name="notFound" value="true">The organisation was not found
@@ -51,8 +51,8 @@
 	const app = new Vue({
 		el: '#app',
 		data: {
-			type: "",
-			isOrg: false
+			type: {{type}},
+			isOrg: {{#eq member null}}false{{else}}true{{/eq}}
 		},
 		methods: {
 			changeType: function (e) {

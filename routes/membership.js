@@ -43,11 +43,17 @@ router.get('/new', async (req, res) => {
 		}
 	});
 
+	let member = null;
+	if (req.query.org != null){
+		member = await req.db.Organisation.findByPk(req.query.org);
+	}
+
 	res.render('membership/add.hbs', {
 		title: "Add Membership",
 		types: types,
-		type: req.query.type ?? -1,
-		email: req.query.email ?? ""
+		type: req.query.type ?? "",
+		email: req.query.email ?? "",
+		member: member
 	});
 });
 
@@ -61,6 +67,15 @@ router.post('/new', async (req, res) => {
 	if (type == null){
 		return res.redirect("");
 	}
+
+	const count = await req.db.Membership.count({
+		where: {
+			Season: req.body.season,
+			MembershipTypeId: req.body.type
+		}
+	});
+
+	const number = type.Name.substring(0, Math.min(3, type.Name.length)).toUpperCase() + String(count + 1).padStart(3, '0');
 
 	if (type.IsOrganisation){
 		if (req.body.notFound === 'true'){
@@ -89,7 +104,8 @@ router.post('/new', async (req, res) => {
 		const membership = await req.db.Membership.create({
 			Season: req.body.season,
 			Cost: type.Cost,
-			MembershipTypeId: req.body.type
+			MembershipTypeId: req.body.type,
+			Number: number
 		});
 
 		//add the band to the membership
@@ -142,7 +158,8 @@ router.post('/new', async (req, res) => {
 	const membership = await req.db.Membership.create({
 		Season: req.body.season,
 		Cost: type.Cost,
-		MembershipTypeId: req.body.type
+		MembershipTypeId: req.body.type,
+		Number: number
 	});
 
 	//add the individual to the membership

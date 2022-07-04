@@ -44,7 +44,7 @@ router.post('/new', async (req, res) => {
 	});
 
 	if (req.query.membershipType != null){
-		return res.redirect(`/membership/new?org=${org.id}&type=${req.query.membership}`);
+		return res.redirect(`/membership/new?org=${org.id}&type=${req.query.membershipType}`);
 	}
 
 	res.redirect(org.id + '/');
