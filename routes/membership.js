@@ -63,7 +63,7 @@ router.post('/new', async (req, res) => {
 	}
 
 	if (type.IsOrganisation){
-		if (req.body.organisation === '-1'){
+		if (req.body.notFound === 'true'){
 			return res.redirect(`/organisation/new?membershipType=${req.body.type}`);
 		}
 

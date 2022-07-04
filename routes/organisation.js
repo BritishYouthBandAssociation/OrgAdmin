@@ -43,6 +43,10 @@ router.post('/new', async (req, res) => {
 		include: [ req.db.Address ]
 	});
 
+	if (req.query.membershipType != null){
+		return res.redirect(`/membership/new?org=${org.id}&type=${req.query.membership}`);
+	}
+
 	res.redirect(org.id + '/');
 });
 
