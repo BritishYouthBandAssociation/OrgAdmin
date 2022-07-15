@@ -71,7 +71,8 @@ router.post('/:id/password', async (req, res, next) => {
 	await req.db.User.update({
 		Password: req.body.password
 	}, {
-		where: { id: req.params.id }
+		where: { id: req.params.id },
+		individualHooks: true
 	});
 
 	return res.redirect(`../${req.params.id}?saved=1`);
