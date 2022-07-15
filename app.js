@@ -113,6 +113,26 @@ async function main() {
 					id: req.session.user.id
 				}
 			});
+
+			req.session.user.bands = await req.db.Organisation.findAll({
+				include: [{
+					model: req.db.OrganisationUser,
+					where: {
+						UserId: req.session.user.id
+					},
+					attributes: []
+				}]
+			});
+
+			if (!req.session.user.bands.some(b => b.id === req.session.band?.id)){
+				req.session.band = null;
+			}
+
+			if (req.session.band === null){
+				if (req.session.user.bands.length > 0){
+					req.session.band = req.session.user.bands[0];
+				}
+			}
 		}
 
 		next();
@@ -121,6 +141,7 @@ async function main() {
 	//init locals (for Handlebars)
 	app.use((req, res, next) => {
 		res.locals.page = req.path;
+		res.locals.session = req.session;
 
 		next();
 	});

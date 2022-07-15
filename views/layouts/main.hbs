@@ -19,25 +19,37 @@
 				<img src="/assets/logo.png" class="img-fluid d-block mx-auto" />
 				<h1 class="fs-4 text-center mt-2">{{getConfigValue 'config/site' 'title' 'Org' }}</h1>
 			</a>
+			{{#gt session.user.bands.length 0}}
+				<p class="mb-0 text-center">Logged in on behalf of <b>{{session.band.Name}}</b></p>
+				{{#gt session.user.bands.length 1}}
+					<p class="mb-0 text-center"><a href="#" class="text-light">Change Band</a></p>
+				{{/gt}}
+			{{else}}
+			<p class="mb-0 text-center">Your account is not currently connected to a band</p>
+			{{/gt}}
 			<hr>
 			<ul class="nav nav-pills flex-column mb-auto">
 				<li class="nav-item">
-					<a href="/home" class="nav-link {{#startsWith page "/home"}}active{{else}}text-white{{/startsWith}}" aria-current="page">
+					<a href="/home" class="nav-link {{#startsWith page "
+						/home"}}active{{else}}text-white{{/startsWith}}" aria-current="page">
 						Home
 					</a>
 				</li>
 				<li>
-					<a href="/user/" class="nav-link {{#startsWith page "/user/"}}active{{else}}text-white{{/startsWith}}">
+					<a href="/user/" class="nav-link {{#startsWith page "
+						/user/"}}active{{else}}text-white{{/startsWith}}">
 						Users
 					</a>
 				</li>
 				<li>
-					<a href="/organisation/" class="nav-link {{#startsWith page "/organisation/"}}active{{else}}text-white{{/startsWith}}">
+					<a href="/organisation/" class="nav-link {{#startsWith page "
+						/organisation/"}}active{{else}}text-white{{/startsWith}}">
 						Organisations
 					</a>
 				</li>
 				<li>
-					<a href="/membership/" class="nav-link {{#startsWith page "/membership/"}}active{{else}}text-white{{/startsWith}}">
+					<a href="/membership/" class="nav-link {{#startsWith page "
+						/membership/"}}active{{else}}text-white{{/startsWith}}">
 						Membership
 					</a>
 				</li>
