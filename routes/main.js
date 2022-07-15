@@ -35,8 +35,7 @@ router.post('/', async (req, res) => {
 		const user = await req.db.User.findOne({
 			where: {
 				Email: fields.get('email'),
-				IsActive: true,
-				IsAdmin: true
+				IsActive: true
 			}
 		});
 
