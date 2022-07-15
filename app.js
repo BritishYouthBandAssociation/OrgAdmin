@@ -9,10 +9,6 @@ const serveFavicon = require('serve-favicon');
 const session = require('express-session');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
 
-// Get database models and connection
-const dbPath = path.join(__dirname, process.env.LIB_PATH ?? '../db', 'models');
-const db = require(dbPath)(path.join(__dirname, 'config/db'));
-
 // Initialise library path
 const libPath = path.join(__dirname, process.env.LIB_PATH ?? '../lib');
 global.__lib = libPath;
@@ -80,6 +76,10 @@ async function main() {
 		path.join(__dirname, 'public/assets/favicon.ico')));
 	app.use(express.static(path.join(__dirname, 'public')));
 
+	// Get database models and connection
+	const dbPath = path.join(__dirname, process.env.LIB_PATH ?? '../db', 'models');
+	const db = await require(dbPath)(path.join(__dirname, 'config/db'));
+
 	//add global db
 	app.use((req, res, next) => {
 		req.db = db;
@@ -96,7 +96,7 @@ async function main() {
 	app.use(session(sessionConfig));
 
 	//prevent unauthorised access
-	app.use((req, res, next) => {
+	app.use(async (req, res, next) => {
 		//allow css/js files
 		if (req.path.slice(req.path.length - 4) === ".css" || req.path.slice(req.path.length - 3) === ".js") {
 			return next();
@@ -106,6 +106,12 @@ async function main() {
 		if (req.session.user == null && !serverOptions.noAuthRequired.includes(req.path)) {
 			return res.redirect(`/?next=${req.path}`);
 		}
+
+		req.session.user = await req.db.User.findOne({
+			where: {
+				id: req.session.user.id
+			}
+		});
 
 		next();
 	});
