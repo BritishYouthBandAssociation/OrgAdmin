@@ -68,15 +68,6 @@ router.post('/new', async (req, res) => {
 		return res.redirect("");
 	}
 
-	const count = await req.db.Membership.count({
-		where: {
-			Season: req.body.season,
-			MembershipTypeId: req.body.type
-		}
-	});
-
-	const number = type.Name.substring(0, Math.min(3, type.Name.length)).toUpperCase() + String(count + 1).padStart(3, '0');
-
 	if (type.IsOrganisation){
 		if (req.body.notFound === 'true'){
 			return res.redirect(`/organisation/new?membershipType=${req.body.type}`);
@@ -104,8 +95,7 @@ router.post('/new', async (req, res) => {
 		const membership = await req.db.Membership.create({
 			Season: req.body.season,
 			Cost: type.Cost,
-			MembershipTypeId: req.body.type,
-			Number: number
+			MembershipTypeId: req.body.type
 		});
 
 		//add the band to the membership
@@ -158,8 +148,7 @@ router.post('/new', async (req, res) => {
 	const membership = await req.db.Membership.create({
 		Season: req.body.season,
 		Cost: type.Cost,
-		MembershipTypeId: req.body.type,
-		Number: number
+		MembershipTypeId: req.body.type
 	});
 
 	//add the individual to the membership

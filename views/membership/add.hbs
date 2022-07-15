@@ -51,7 +51,7 @@
 	const app = new Vue({
 		el: '#app',
 		data: {
-			type: {{type}},
+			type: {{#if type}}{{type}}{{else}}""{{/if}},
 			isOrg: {{#eq member null}}false{{else}}true{{/eq}}
 		},
 		methods: {
