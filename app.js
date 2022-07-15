@@ -103,15 +103,17 @@ async function main() {
 		}
 
 		//double equals to also check for undefined
-		if (req.session.user == null && !serverOptions.noAuthRequired.includes(req.path)) {
-			return res.redirect(`/?next=${req.path}`);
-		}
-
-		req.session.user = await req.db.User.findOne({
-			where: {
-				id: req.session.user.id
+		if (req.session.user == null) {
+			if (!serverOptions.noAuthRequired.includes(req.path)) {
+				return res.redirect(`/?next=${req.path}`);
 			}
-		});
+		} else {
+			req.session.user = await req.db.User.findOne({
+				where: {
+					id: req.session.user.id
+				}
+			});
+		}
 
 		next();
 	});
