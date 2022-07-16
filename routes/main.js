@@ -78,9 +78,14 @@ router.post('/change-band', (req, res, next) => {
 		req.session.band = band[0];
 	}
 
-	console.log(req.session.band);
-
 	return res.redirect(req.get('Referrer'));
+});
+
+router.all('/no-access', (req, res) => {
+	return res.render('no-access.hbs', {
+		title: 'No Access',
+		previousPage: req.query.page ?? ""
+	});
 });
 
 module.exports = {

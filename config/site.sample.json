@@ -1,4 +1,6 @@
 {
 	"title": "Website Name",
-	"frameworkURL": null
+	"frameworkURL": null,
+	"adminName": "Admin Team",
+	"adminEmail": "webmaster@example.com"
 }
