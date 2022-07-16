@@ -67,6 +67,22 @@ router.get('/logout', (req, res) => {
 	return res.redirect("/");
 });
 
+router.post('/change-band', (req, res, next) => {
+	if (req.body.changeBand == null){
+		return next();
+	}
+
+	const band = req.session.user.bands.filter(b => b.id == req.body.changeBand);
+
+	if (band.length > 0){
+		req.session.band = band[0];
+	}
+
+	console.log(req.session.band);
+
+	return res.redirect(req.get('Referrer'));
+});
+
 module.exports = {
 	root: '/',
 	router: router
