@@ -6,6 +6,10 @@ const router = express.Router();
 
 //list orgs
 router.get('/', async (req, res) => {
+	if (!req.session.user.IsAdmin) {
+		return res.redirect("/no-access");
+	}
+
 	const orgs = await req.db.Organisation.findAll({
 		include: [ req.db.OrganisationType ]
 	});
@@ -18,6 +22,10 @@ router.get('/', async (req, res) => {
 
 //add org
 router.get('/new', async (req, res) => {
+	if (!req.session.user.IsAdmin) {
+		return res.redirect("/no-access");
+	}
+
 	const types = await req.db.OrganisationType.findAll();
 
 	return res.render('organisation/add.hbs', {
@@ -28,6 +36,10 @@ router.get('/new', async (req, res) => {
 });
 
 router.post('/new', async (req, res) => {
+	if (!req.session.user.IsAdmin) {
+		return res.redirect("/no-access");
+	}
+
 	const org = await req.db.Organisation.create({
 		Name: req.body.name,
 		Slug: req.body.slug,
@@ -48,6 +60,10 @@ router.post('/new', async (req, res) => {
 
 //show org
 router.get('/:orgID', async (req, res, next) => {
+	if (req.params.orgID != req.session.band?.id){
+		return res.redirect("/no-access");
+	}
+
 	const [ org, types ] = await Promise.all([
 		req.db.Organisation.findByPk(req.params.orgID, {
 			include: [
@@ -75,6 +91,10 @@ router.get('/:orgID', async (req, res, next) => {
 });
 
 router.post('/:orgID', async (req, res, next) => {
+	if (req.params.orgID != req.session.band?.id){
+		return res.redirect("/no-access");
+	}
+
 	const org = await req.db.Organisation.findByPk(req.params.orgID);
 
 	if (org == null) {
@@ -108,6 +128,10 @@ router.post('/:orgID', async (req, res, next) => {
 
 //org contacts
 router.get('/:orgID/contacts', async (req, res, next) => {
+	if (req.params.orgID != req.session.band?.id){
+		return res.redirect("/no-access");
+	}
+
 	const org = await req.db.Organisation.findByPk(req.params.orgID, {
 		include: [{
 			model: req.db.OrganisationUser,
@@ -133,6 +157,10 @@ router.get('/:orgID/contacts', async (req, res, next) => {
 
 //add contact
 router.get('/:orgID/contacts/add', (req, res, next) => {
+	if (req.params.orgID != req.session.band?.id){
+		return res.redirect("/no-access");
+	}
+
 	if (req.query.email == null) {
 		return next();
 	}
@@ -141,6 +169,10 @@ router.get('/:orgID/contacts/add', (req, res, next) => {
 });
 
 router.get('/:orgID/contacts/add/:email', async (req, res, next) => {
+	if (req.params.orgID != req.session.band?.id){
+		return res.redirect("/no-access");
+	}
+
 	const org = await req.db.Organisation.findByPk(req.params.orgID, {
 		include: [ req.db.OrganisationType ]
 	});
@@ -162,6 +194,10 @@ router.get('/:orgID/contacts/add/:email', async (req, res, next) => {
 });
 
 router.post('/:orgID/contacts/add/:email', async (req, res, next) => {
+	if (req.params.orgID != req.session.band?.id){
+		return res.redirect("/no-access");
+	}
+
 	const org = await req.db.Organisation.findByPk(req.params.orgID);
 	if (org == null) {
 		return next();
@@ -193,6 +229,10 @@ router.post('/:orgID/contacts/add/:email', async (req, res, next) => {
 
 //remove contact
 router.get('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
+	if (req.params.orgID != req.session.band?.id){
+		return res.redirect("/no-access");
+	}
+
 	const contact = await req.db.OrganisationUser.findByPk(req.params.contactID, {
 		include: [ req.db.Organisation, req.db.User ]
 	});
@@ -209,6 +249,10 @@ router.get('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
 });
 
 router.post('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
+	if (req.params.orgID != req.session.band?.id){
+		return res.redirect("/no-access");
+	}
+
 	const contact = await req.db.OrganisationUser.findByPk(req.params.contactID, {
 		include: [ req.db.Organisation, req.db.User ]
 	});

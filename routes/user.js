@@ -4,6 +4,10 @@ const express = require('express');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
+	if (!req.session.user.IsAdmin){
+		return res.redirect("/no-access");
+	}
+
 	const users = (await req.db.User.findAll()).map(u => u.dataValues);
 
 	return res.render('user/index.hbs', {
@@ -13,12 +17,20 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/new', (req, res) => {
+	if (!req.session.user.IsAdmin){
+		return res.redirect("/no-access");
+	}
+
 	return res.render('user/add.hbs', {
 		title: 'Add New User'
 	});
 });
 
 router.post('/new', async (req, res) => {
+	if (!req.session.user.IsAdmin){
+		return res.redirect("/no-access");
+	}
+
 	req.body.isActive = parseInt(req.body.isActive);
 	req.body.isAdmin = parseInt(req.body.isAdmin);
 
@@ -58,6 +70,10 @@ router.post('/new', async (req, res) => {
 });
 
 router.post('/:id/password', async (req, res, next) => {
+	if (!req.session.user.IsAdmin && req.session.user.id != req.params.id){
+		return res.redirect("/no-access");
+	}
+
 	const user = await req.db.User.findByPk(req.params.id);
 
 	if (user == null){
@@ -79,6 +95,10 @@ router.post('/:id/password', async (req, res, next) => {
 });
 
 router.get('/:id', async (req, res, next) => {
+	if (!req.session.user.IsAdmin && req.session.user.id != req.params.id){
+		return res.redirect("/no-access");
+	}
+
 	const user = await req.db.User.findByPk(req.params.id);
 
 	if (user == null){
@@ -94,6 +114,10 @@ router.get('/:id', async (req, res, next) => {
 });
 
 router.post('/:id', async (req, res, next) => {
+	if (!req.session.user.IsAdmin && req.session.user.id != req.params.id){
+		return res.redirect("/no-access");
+	}
+
 	const user = await req.db.User.findByPk(req.params.id);
 
 	if (user == null){

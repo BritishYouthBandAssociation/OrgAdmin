@@ -78,7 +78,7 @@ router.post('/change-band', (req, res, next) => {
 		req.session.band = band[0];
 	}
 
-	return res.redirect(req.get('Referrer'));
+	return res.redirect('back');
 });
 
 router.all('/no-access', (req, res) => {
