@@ -30,6 +30,7 @@
 			{{/gt}}
 			<hr>
 			<ul class="nav nav-pills flex-column mb-auto">
+				{{#if session.user.IsAdmin}}
 				<li class="nav-item">
 					<a href="/home" class="nav-link {{#startsWith page "
 						/home"}}active{{else}}text-white{{/startsWith}}" aria-current="page">
@@ -54,6 +55,28 @@
 						Membership
 					</a>
 				</li>
+			{{else}}
+				<li class="nav-item">
+					<a href="/home" class="nav-link {{#startsWith page "
+						/home"}}active{{else}}text-white{{/startsWith}}" aria-current="page">
+						Home
+					</a>
+				</li>
+				<li class="nav-item">
+					<a href="/user/{{session.user.id}}" class="nav-link {{#startsWith page "
+						/user"}}active{{else}}text-white{{/startsWith}}">
+						My Details
+					</a>
+				</li>
+				{{#if session.band}}
+				<li class="nav-item">
+					<a href="/organisation/{{session.band.id}}" class="nav-link {{#startsWith page "
+						/organisation"}}active{{else}}text-white{{/startsWith}}">
+						{{session.band.Name}} Details
+					</a>
+				</li>
+				{{/if}}
+			{{/if}}
 			</ul>
 			<hr>
 			<ul class="nav nav-pills flex-column">

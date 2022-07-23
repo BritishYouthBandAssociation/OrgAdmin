@@ -121,7 +121,10 @@ async function main() {
 						UserId: req.session.user.id
 					},
 					attributes: []
-				}]
+				}],
+				where: {
+					OrganisationTypeId: 1 //we only want associated bands here
+				}
 			});
 
 			if (!req.session.user.bands.some(b => b.id === req.session.band?.id)){
