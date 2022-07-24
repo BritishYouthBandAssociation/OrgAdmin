@@ -19,7 +19,7 @@
 			<h3>{{FirstName}} {{Surname}}</h3>
 			<p>{{Email}}</p>
 			<i>Date added: {{date ../DateFrom}}</i>
-			<a href="/user/{{id}}" class="btn btn-default mb-3">Edit Contact</a>
+			<{{#unless ../../session.user.IsAdmin}}{{#isnt ../../session.user.id id}}button disabled{{else}}a{{/isnt}}{{else}}a{{/unless}} href="/user/{{id}}" class="btn btn-default mb-3" >Edit Contact</{{#unless ../../session.user.IsAdmin}}{{#isnt ../../session.user.id id}}button{{else}}a{{/isnt}}{{else}}a{{/unless}}>
 			<a href="contacts/{{../id}}/remove" class="btn btn-danger">Remove Contact</a>
 		</div>
 	</div>
