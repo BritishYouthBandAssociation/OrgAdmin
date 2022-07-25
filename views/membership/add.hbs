@@ -1,13 +1,63 @@
-<p><a href="./">&lt; back to membership list</a></p>
-
 <h2>Add Membership</h2>
 
-<form method="post">
-	<div class="input">
-		<select name="type" required>
-			<option value="">-- Please Select --</option>
-			<option data-cost="0" value="1">Bronze</option>
-		</select>
-		<label>Membership Type</label>
+<form method="post" id="app">
+	<div class="card card-body mb-3">
+		<h3>Membership Details</h3>
+		<div class="form-group mb-3">
+			<label for="season">Season</label>
+			<select name="season" id="season" class="form-control" required>
+				<option value="2022">2022</option>
+			</select>
+		</div>
+
+		<div class="form-group mb-3">
+			<label for="type">Membership Type</label>
+			<select name="type" id="type" class="form-control" required v-model="type" v-on:change="changeType">
+				<option value="">-- Please Select --</option>
+				{{#each types}}
+				<option data-cost="{{Cost}}" value="{{id}}" data-organisation="{{IsOrganisation}}"
+					{{#eq ../type id}}selected{{/eq}}>
+					{{Name}} ({{#if IsOrganisation}}Organisation{{else}}Individual{{/if}}) - £{{Cost}}</option>
+				{{/each}}
+			</select>
+		</div>
 	</div>
+
+	<div class="card card-body mb-3" v-if="type != '' && isOrg">
+		<h3>Organisation Membership</h3>
+		<search-box name="organisation" title="Please select the organisation that this membership is for"
+			url="/_api/organisation/search" text-prop="Name" value-prop="id" text="{{member.Name}}" value="{{member.id}}"></search-box>
+
+		<label for="organisation-not-found">
+			<input type="checkbox" name="notFound" value="true">The organisation was not found
+		</label>
+	</div>
+
+	<div class="card card-body mb-3" v-if="type != '' && !isOrg">
+		<h3>Individual Membership</h3>
+		<div class="form-group">
+			<label for="email">Please enter the email address of the individual registering for membership</label>
+			<input type="email" id="email" name="email" class="form-control" value="{{email}}" required />
+		</div>
+	</div>
+
+	<button class="btn btn-default btn-lg">Continue</button>
 </form>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="/js/component/SearchBox.js"></script>
+
+<script>
+	const app = new Vue({
+		el: '#app',
+		data: {
+			type: {{#if type}}{{type}}{{else}}""{{/if}},
+			isOrg: {{#eq member null}}false{{else}}true{{/eq}}
+		},
+		methods: {
+			changeType: function (e) {
+				this.isOrg = (e.target.options[e.target.selectedIndex].dataset.organisation.toLowerCase() === 'true');
+			}
+		}
+	})
+</script>
