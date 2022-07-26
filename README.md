@@ -35,7 +35,7 @@ This repository contains the code for the Organisation Admin website.
 ### Prerequisites
 - Node.JS
 - NPM
-- gulp-cli (to install this run `npm install -g gulp-cli` as a priviledged user)
+- gulp-cli (to install this run `npm install -g gulp-cli` as a privileged user)
 
 ### Instructions
 1. Clone this new repository to your development environment
