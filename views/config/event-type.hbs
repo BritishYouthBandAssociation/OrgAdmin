@@ -1,0 +1,60 @@
+<h2>Event Types</h2>
+
+{{#if saved}}
+<div class="alert alert-success text-center">Event Types saved successfully</div>
+{{/if}}
+
+<form id="app" method="post">
+	<button type="button" class="btn btn-success btn-lg mb-3" @click="addType">+ Add</button>
+
+	<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3">
+		<div class="col mb-3" v-for="(type, index) in types" :key="type.id">
+			<input type="hidden" name="id[]" :value="type.id" />
+
+			<div class="card card-body">
+				<div class="form-group mb-3">
+					<label :for="'name-' + index">Event Type</label>
+					<input type="text" class="form-control" name="type[]" :id="'name-' + index" v-model="type.Name" required />
+				</div>
+
+				<div class="row row-cols-2 align-items-center mb-3">
+					<div class="col">Is Active?</div>
+					<div class="col">
+						<div class="btn-group" role="group" aria-label="Is Active?">
+							<input type="radio" value="1" class="btn-check" :name="'isActive[' + index + ']'"
+								:id="'isActive-' + index + '-y'" autocomplete="off" :checked="type.IsActive" />
+							<label class="btn btn-outline-success" :for="'isActive-' + index + '-y'">Yes</label>
+
+							<input type="radio" value="0" class="btn-check" :name="'isActive[' + index + ']'"
+								:id="'isActive-' + index + '-n'" autocomplete="off" :checked="!type.IsActive">
+							<label class="btn btn-outline-danger" :for="'isActive-' + index + '-n'">No</label>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<button class="btn btn-default btn-lg">Save</button>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script>
+	let id = 0;
+
+	const app = new Vue({
+		el: '#app',
+		data: {
+			types: {{{ json types }}}
+		},
+	methods: {
+		addType: function() {
+			this.types.push({
+				id: --id,
+				Name: "",
+				IsActive: true,
+			});
+		}
+	}
+	})
+</script>

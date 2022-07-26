@@ -1,0 +1,36 @@
+<h2>Add Event</h2>
+
+<form method='post'>
+	<div class='mb-3'>
+		<div class='card card-body'>
+			<h3>Event Details</h3>
+			<div class='row row-cols-1 row-cols-lg-2 form'>
+				<div class='col form-group mb-3'>
+					<label class='form-label' for='name'>Name</label>
+					<input type='text' class='form-control' id='name' name='name' placeholder='Name' required \>
+				</div>
+				<div class='col form-group text-start mb-3'>
+					<label class='form-label' for='type'>Event Type</label>
+					<select id='type' class='form-control' name='type'>
+						<option disabled selected value> -- select a type -- </option>
+						{{#each types}}
+							<option value='{{this.id}}'>{{this.Name}}</option>
+						{{/each}}
+					</select>
+				</div>
+			</div>
+			<div class='row row-cols-1 row-cols-lg-2 form mb-3'>
+				<div class='col form-group mb-3'>
+					<label class='form-label' for='start'>Start</label>
+					<input type='datetime-local' class='form-control' id='start' name='start' required \>
+				</div>
+				<div class='col form-group mb-3'>
+					<label class='form-label' for='end'>End Time</label>
+					<input type='datetime-local' class='form-control' id='end' name='end' required \>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<button class='btn btn-default'>Add Event</button>
+</form>
