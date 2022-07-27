@@ -98,7 +98,6 @@ router.post('/new', async (req, res) => {
 		//create the membership
 		const membership = await req.db.Membership.create({
 			Season: req.body.season,
-			Cost: type.Cost,
 			MembershipTypeId: req.body.type
 		});
 
@@ -106,12 +105,6 @@ router.post('/new', async (req, res) => {
 		await req.db.OrganisationMembership.create({
 			OrganisationId: req.body.organisation,
 			MembershipId: membership.id
-		});
-
-		//oh and add a label for the type!
-		await req.db.MembershipLabel.create({
-			MembershipId: membership.id,
-			LabelId: type.LabelId
 		});
 
 		//display it
@@ -151,7 +144,6 @@ router.post('/new', async (req, res) => {
 	//create the membership
 	const membership = await req.db.Membership.create({
 		Season: req.body.season,
-		Cost: type.Cost,
 		MembershipTypeId: req.body.type
 	});
 
@@ -159,12 +151,6 @@ router.post('/new', async (req, res) => {
 	await req.db.IndividualMembership.create({
 		UserId: exists.id,
 		MembershipId: membership.id
-	});
-
-	//oh and add a label for the type!
-	await req.db.MembershipLabel.create({
-		MembershipId: membership.id,
-		LabelId: type.LabelId
 	});
 
 	//display it
