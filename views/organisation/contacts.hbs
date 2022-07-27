@@ -3,11 +3,11 @@
 <button type="button" class="btn btn-default mb-3" data-bs-toggle="modal" data-bs-target="#add-contact"{{#unless canAdd}} disabled{{/unless}}>+ Add Contact</button>
 
 {{#if added}}
-<div class="alert alert-success text-light mb-3">Contact successfully added</div>
+<div class="alert alert-success text-center mb-3">Contact successfully added</div>
 {{/if}}
 
 {{#if removed}}
-<div class="alert alert-success text-light mb-3">Contact successfully removed</div>
+<div class="alert alert-success text-center mb-3">Contact successfully removed</div>
 {{/if}}
 
 {{#if contacts}}
@@ -27,7 +27,7 @@
 	{{/each}}
 </div>
 {{else}}
-<div class="alert alert-danger text-light">No contacts set for this organisation</div>
+<div class="alert alert-danger text-center">No contacts set for this organisation</div>
 {{/if}}
 
 <div id="add-contact" class="modal">

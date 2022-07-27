@@ -16,7 +16,7 @@
 
 		<nav class="collapse d-lg-flex flex-column flex-shrink-0 p-3 text-white bg-default sidebar" id="sidebar">
 			<a href="/" class="text-white text-decoration-none">
-				<img src="/assets/logo.png" class="img-fluid d-block mx-auto" />
+				<img src="/assets/logo.png" class="mx-auto" height=150 width=150 />
 				<h1 class="fs-4 text-center mt-2">{{getConfigValue 'config/site' 'title' 'Org' }}</h1>
 			</a>
 			{{#gt session.user.bands.length 0}}
@@ -55,7 +55,22 @@
 						Membership
 					</a>
 				</li>
-			{{else}}
+				<li {{#startsWith page "/config/"}}class="bg-white border"{{/startsWith}}>
+					<a href="/config/" class="nav-link {{#startsWith page "/config/"}}active{{else}}text-white{{/startsWith}}">
+						Configuration
+					</a>
+					{{#startsWith page "/config"}}
+						<ul class="nav nav-pills flex-column">
+							<li class="nav-item ps-4 {{#eq page "/config/membership-type"}}bg-default{{/eq}}">
+								<a href="/config/membership-type" class="nav-link {{#eq page "/config/membership-type"}}text-white{{else}}text-dark{{/eq}}">&gt; Membership Types</a>
+							</li>
+							<li class="nav-item ps-4 {{#eq page "/config/organisation-type"}}bg-default{{/eq}}">
+								<a href="/config/organisation-type" class="nav-link {{#eq page "/config/organisation-type"}}text-white{{else}}text-dark{{/eq}}">&gt; Organisation Types</a>
+							</li>
+						</ul>
+					{{/startsWith}}
+				</li>
+        {{else}}
 				<li class="nav-item">
 					<a href="/home" class="nav-link {{#startsWith page "
 						/home"}}active{{else}}text-white{{/startsWith}}" aria-current="page">

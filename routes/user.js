@@ -4,25 +4,47 @@ const express = require('express');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
+
 	if (!req.session.user.IsAdmin){
 		return res.redirect("/no-access");
 	}
 
-	const users = (await req.db.User.findAll()).map(u => u.dataValues);
+	const users = await req.db.User.findAll();
+	const active = [];
+	const inactive = [];
+
+	users.forEach(u => {
+		if (u.IsActive){
+			active.push(u);
+		} else {
+			inactive.push(u);
+		}
+	});
+
 
 	return res.render('user/index.hbs', {
 		title: 'Users',
-		users: users
+		active: active,
+		inactive: inactive
 	});
 });
 
 router.get('/new', (req, res) => {
+
 	if (!req.session.user.IsAdmin){
 		return res.redirect("/no-access");
 	}
 
+	const details = {
+		Email: req.query.email ?? "",
+		IsActive: true
+	};
+
+
 	return res.render('user/add.hbs', {
-		title: 'Add New User'
+		title: 'Add New User',
+		details: details,
+		orgID: req.query.orgID ?? null
 	});
 });
 
@@ -65,6 +87,14 @@ router.post('/new', async (req, res) => {
 		IsActive: req.body.isActive,
 		IsAdmin: req.body.isAdmin
 	});
+
+	if (req.query.orgID != null){
+		return res.redirect(`/organisation/${req.query.orgID}/contacts/add/${req.body.email}`);
+	}
+
+	if (req.query.membership != null){
+		return res.redirect(`/membership/new?email=${req.body.email}&type=${req.query.membership}`);
+	}
 
 	return res.redirect(user.id);
 });

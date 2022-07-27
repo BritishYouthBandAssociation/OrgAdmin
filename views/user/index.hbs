@@ -13,9 +13,28 @@
 </div>
 
 <div class="row text-center">
-	{{#each users}}
+	{{#each active}}
 	<div class="col-12 col-md-6 col-lg-4">
-		<div class="card card-action">
+		<div class="card card-action h-100 mb-3">
+			<div class="card-body">
+				<p class="h4"><a href="{{id}}" class="stretched-link text-reset text-decoration-none">{{FirstName}} {{Surname}}</a></p>
+				<p>{{Email}}</p>
+				{{#if IsAdmin}}
+					<span class="badge bg-default">Admin</span>
+				{{/if}}
+			</div>
+		</div>
+	</div>
+	{{/each}}
+</div>
+
+<hr class="my-3" />
+
+<h2>Inactive Users</h2>
+<div class="row text-center">
+	{{#each inactive}}
+	<div class="col-12 col-md-6 col-lg-4">
+		<div class="card card-action h-100 mb-3">
 			<div class="card-body">
 				<p class="h4"><a href="{{id}}" class="stretched-link text-reset text-decoration-none">{{FirstName}} {{Surname}}</a></p>
 				<p>{{Email}}</p>

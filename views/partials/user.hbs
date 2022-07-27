@@ -20,7 +20,8 @@
 <input type="password" id="confirm" name="confirm" class="form-control mb-3" required />
 {{/if}}
 
-{{#if session.user.IsAdmin}}
+
+{{#if accountControls}}
 <div class="row row-cols-1 row-cols-md-2 text-center">
 	<div class="col mb-3">
 		<p>Is Active?</p>
