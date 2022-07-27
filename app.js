@@ -81,8 +81,6 @@ async function main() {
 	const db = await require(dbPath)(path.join(__dirname, 'config/db'));
 
 	//add global db
-	const dbPath = path.join(libPath, 'models');
-	const db = await require(dbPath)(path.join(__dirname, 'config/db'));
 	app.use((req, res, next) => {
 		req.db = db;
 		next();
