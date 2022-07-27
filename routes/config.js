@@ -4,8 +4,11 @@ const express = require('express');
 const router = express.Router();
 
 router.get('/', (req, res) => {
+	const sections = ['Membership Type', 'Organisation Type', 'Event Type', 'Payment Type'];
+
 	return res.render('config/index.hbs', {
-		title: 'Configuration'
+		title: 'Configuration',
+		sections: sections
 	});
 });
 
@@ -132,6 +135,38 @@ router.post('/event-type', async (req, res) => {
 
 		return req.db.EventType.update({
 			Name: req.body.type[i],
+			IsActive: req.body.isActive[i]
+		}, {
+			where: {
+				id: req.body.id[i]
+			}
+		});
+	}));
+
+	return res.redirect("?saved=1");
+});
+
+router.get('/payment-type', async (req, res) => {
+	const types = await req.db.PaymentType.findAll();
+
+	return res.render('config/payment-type.hbs', {
+		title: 'Payment Types',
+		types: types,
+		saved: req.query.saved ?? false
+	});
+});
+
+router.post('/payment-type', async (req, res) => {
+	await Promise.all(req.body.type.map((type, i) => {
+		if (req.body.id[i] < 0) {
+			return req.db.PaymentType.create({
+				Description: req.body.type[i],
+				IsActive: req.body.isActive[i]
+			});
+		}
+
+		return req.db.PaymentType.update({
+			Description: req.body.type[i],
 			IsActive: req.body.isActive[i]
 		}, {
 			where: {

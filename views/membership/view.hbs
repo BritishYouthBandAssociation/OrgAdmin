@@ -33,7 +33,9 @@
 					<label for="paymentType">Payment Type</label>
 					<select class="form-control" name="paymentType" id="paymentType" required>
 						<option value="">-- Please Select --</option>
-						<option value="1">Test</option>
+						{{#each paymentTypes}}
+							<option value="{{id}}">{{Description}}</option>
+						{{/each}}
 					</select>
 				</div>
 				<button id="btnFee" type="button" class="btn btn-success" disabled>Mark fee as paid</button>
