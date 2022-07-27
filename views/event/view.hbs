@@ -1,0 +1,71 @@
+<h2>{{event.Name}}</h2>
+
+{{#if saved}}
+<div class='alert alert-success text-center'>Changes saved successfully!</div>
+{{/if}}
+
+<div class='card card-body mb-3'>
+	<h3 class='text-center'>Event Details</h3>
+
+	<form method='post'>
+		<div class='row row-cols-1 row-cols-lg-2 form'>
+			<div class='col form-group mb-3'>
+				<label class='form-label' for='name'>Name</label>
+				<input type='text' class='form-control' id='name' name='name' placeholder='Name' value='{{event.Name}}' required />
+			</div>
+			<div class='col form-group text-start mb-3'>
+				<label class='form-label' for='type'>Event Type</label>
+				<select id='type' class='form-control' name='type' required>
+					{{#each types}}
+						<option value='{{this.id}}' {{#eq ../event.EventType.id this.id}} selected {{/eq}}>{{this.Name}}</option>
+					{{/each}}
+				</select>
+			</div>
+		</div>
+		<div class='row row-cols-1 row-cols-lg-2 form mb-3'>
+			<div class='col form-group mb-3'>
+				<label class='form-label' for='start'>Start</label>
+				<input type='datetime-local' class='form-control' id='start' name='start' value='{{datetimeFieldValue event.Start}}' required \>
+			</div>
+			<div class='col form-group mb-3'>
+				<label class='form-label' for='end'>End Time</label>
+				<input type='datetime-local' class='form-control' id='end' name='end' value='{{datetimeFieldValue event.End}}' required \>
+			</div>
+		</div>
+
+		<div class="card card-body mb-3">
+			<h3>Address</h3>
+			{{> address prefix="" required=false data=event.Address }}
+		</div>
+
+		<div class='form-group mb-3'>
+			<label class='form-label' for='description'>Description</label>
+			<textarea type='text' class='form-control' id='description' name='description' placeholder='Description' value='{{event.Description}}' rows=5 ></textarea>
+		</div>
+
+		<div class='text-center'>
+			<button class='btn btn-default'>Save</button>
+		</div>
+	</form>
+</div>
+
+<div class='card card-body mb-3'>
+	<h3 class='text-center'>Registration Details</h3>
+
+	<form method='post' action='/event/{{event.id}}/registration'>
+		<div class='row row-cols-1 row-cols-lg-2 form'>
+			<div class='col form-group mb-3'>
+				<label class='form-label' for='name'>Event Registration Cutoff Date</label>
+				<input type='date' class='form-control' id='registration-cutoff' name='registration-cutoff' placeholder='Registration Cutoff' value='{{event.EntryCutoffDate}}' />
+			</div>
+			<div class='col form-group mb-3'>
+				<label class='form-label' for='name'>Free Event Registration Cutoff Date</label>
+				<input type='date' class='form-control' id='free-registration-cutoff' name='free-registration-cutoff' placeholder='Free Registration Cutoff' value='{{event.FreeEntryCutoffDate}}' />
+			</div>
+		</div>
+
+		<div class='text-center'>
+			<input type='submit' class='btn btn-default' value='Save'/>
+		</div>
+	</form>
+</div>

@@ -111,6 +111,38 @@ router.post('/organisation-type', async (req, res) => {
 	return res.redirect("?saved=1");
 });
 
+router.get('/event-type', async (req, res) => {
+	const types = await req.db.EventType.findAll();
+
+	return res.render('config/event-type.hbs', {
+		title: 'Event Types',
+		types: types,
+		saved: req.query.saved ?? false
+	});
+});
+
+router.post('/event-type', async (req, res) => {
+	await Promise.all(req.body.type.map((type, i) => {
+		if (req.body.id[i] < 0) {
+			return req.db.EventType.create({
+				Name: req.body.type[i],
+				IsActive: req.body.isActive[i]
+			});
+		}
+
+		return req.db.EventType.update({
+			Name: req.body.type[i],
+			IsActive: req.body.isActive[i]
+		}, {
+			where: {
+				id: req.body.id[i]
+			}
+		});
+	}));
+
+	return res.redirect("?saved=1");
+});
+
 module.exports = {
 	root: '/config/',
 	router: router

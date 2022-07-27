@@ -41,6 +41,11 @@
 						Membership
 					</a>
 				</li>
+				<li>
+					<a href="/event/" class="nav-link {{#startsWith page "/event/"}}active{{else}}text-white{{/startsWith}}">
+						Events
+					</a>
+				</li>
 				<li {{#startsWith page "/config/"}}class="bg-white border"{{/startsWith}}>
 					<a href="/config/" class="nav-link {{#startsWith page "/config/"}}active{{else}}text-white{{/startsWith}}">
 						Configuration
@@ -52,6 +57,9 @@
 							</li>
 							<li class="nav-item ps-4 {{#eq page "/config/organisation-type"}}bg-default{{/eq}}">
 								<a href="/config/organisation-type" class="nav-link {{#eq page "/config/organisation-type"}}text-white{{else}}text-dark{{/eq}}">&gt; Organisation Types</a>
+							</li>
+							<li class="nav-item ps-4 {{#eq page "/config/event-type"}}bg-default{{/eq}}">
+								<a href="/config/event-type" class="nav-link {{#eq page "/config/event-type"}}text-white{{else}}text-dark{{/eq}}">&gt; Event Types</a>
 							</li>
 						</ul>
 					{{/startsWith}}
