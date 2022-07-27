@@ -162,6 +162,7 @@ router.get('/:id', async (req, res, next) => {
 		include: [
 			req.db.Label,
 			req.db.MembershipType,
+			req.db.Fee,
 			{
 				model: req.db.IndividualMembership,
 				include: [req.db.User]

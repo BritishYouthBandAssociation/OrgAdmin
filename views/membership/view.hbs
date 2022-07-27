@@ -8,32 +8,99 @@
 
 <div class="row text-center">
 	<div class="col-12 col-lg-6">
-		<div class="card card-body">
+		<div class="card card-body mb-3">
 			<h3>Membership Details</h3>
 
 			<p>Membership Number: {{membership.Number}}</p>
 			<p>Membership Type: {{membership.MembershipType.Name}}</p>
 			<p>Season: {{membership.Season}}</p>
-			<p>Cost: &pound;{{membership.Cost}}</p>
+			<p>Cost: &pound;{{membership.Fee.Total}} {{#unless membership.Fee.IsPaid}}<span class="text-danger">Fee
+					Outstanding</span>{{else}}<span class="text-success">Fee Paid</span>{{/unless}}</p>
 			<p>Start Date: {{date membership.DateStarted}}</p>
+		</div>
+
+		<div class="card card-body">
+			<h3>Fee Details</h3>
+
+			{{#if membership.Fee.IsPaid}}
+			<p>This membership is fully paid, and no further action is required</p>
+			{{else}}
+			<p>The fee for this membership is outstanding.</p>
+
+			{{#if session.user.IsAdmin}}
+			<form method="post" action="/fee/{{membership.Fee.id}}" class="card card-body">
+				<div class="form-group mb-3">
+					<label for="paymentType">Payment Type</label>
+					<select class="form-control" name="paymentType" id="paymentType" required>
+						<option value="">-- Please Select --</option>
+						<option value="1">Test</option>
+					</select>
+				</div>
+				<button id="btnFee" type="button" class="btn btn-success" disabled>Mark fee as paid</button>
+			</form>
+
+			<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+			<script>
+				const btnFee = document.getElementById("btnFee");
+
+				document.getElementById('paymentType').addEventListener('change', function (e) {
+					btnFee.disabled = (this.value === "");
+				});
+
+				btnFee.addEventListener('click', function (e) {
+					Swal.fire({
+						icon: 'question',
+						title: 'ARE YOU SURE?',
+						text: 'Are you sure you wish to mark this fee as paid? Please only continue if you are sure that £{{membership.Fee.Total}} has been paid specifically for this fee.',
+						showCancelButton: true,
+						customClass: {
+							confirmButton: 'btn btn-lg btn-success mx-3',
+							cancelButton: 'btn btn-lg btn-danger mx-3'
+						},
+						buttonsStyling: false,
+						reverseButtons: true,
+						confirmButtonText: 'Yes, this fee has been paid'
+					}).then(res => {
+						if(res.isConfirmed){
+							this.form.submit();
+						}
+					})
+				});
+			</script>
+			{{else}}
+			<p>Please arrange for the sum of <b>&pound;{{membership.Fee.Total}}</b> to be paid at your earliest convenience</p>
+
+			<section class="text-start mb-3">
+				<p><b>By Bank Transfer</b></p>
+				<p>Name: <b>British Youth Band Association</b>
+				<p>Sort Code: <b>51-70-06</b></p>
+				<p>Account Number: <b>83704035</b></p>
+			</section>
+
+			<section class="text-start mb-3">
+				<p><b>By Cheque</b></p>
+				<p>Please make all cheques payable to the <b>British Youth Band Association</b>.</p>
+			</section>
+			{{/if}}
+			{{/if}}
 		</div>
 	</div>
 
 	<div class="col-12 col-lg-6">
 		<div class="card card-body">
 			{{#if membership.MembershipType.IsOrganisation}}
-				<h3>Organisation Details</h3>
+			<h3>Organisation Details</h3>
 
-				<p>Organisation Name: {{entity.Name}}</p>
-				<p>Organisation Type: {{entity.OrganisationType.Name}}</p>
+			<p>Organisation Name: {{entity.Name}}</p>
+			<p>Organisation Type: {{entity.OrganisationType.Name}}</p>
 
-				<a href="/organisation/{{entity.id}}/" class="btn btn-default stretched-link">View Details</a>
+			<a href="/organisation/{{entity.id}}/" class="btn btn-default stretched-link">View Details</a>
 
 			{{else}}
-				<h3>Individual Details</h3>
+			<h3>Individual Details</h3>
 
-				<p>{{entity.FullName}}</p>
-				<p>{{entity.Email}}</p>
+			<p>{{entity.FullName}}</p>
+			<p>{{entity.Email}}</p>
 			{{/if}}
 		</div>
 	</div>
