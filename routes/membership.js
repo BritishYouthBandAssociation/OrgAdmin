@@ -190,7 +190,7 @@ router.get('/:id', async (req, res, next) => {
 		]
 	});
 
-	if (membership == null) {
+	if (!membership) {
 		return next();
 	}
 

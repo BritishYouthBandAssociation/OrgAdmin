@@ -103,7 +103,7 @@ async function main() {
 		}
 
 		//double equals to also check for undefined
-		if (req.session.user == null) {
+		if (!req.session.user) {
 			if (!serverOptions.noAuthRequired.includes(req.path)) {
 				return res.redirect(`/?next=${req.path}`);
 			}
@@ -131,7 +131,7 @@ async function main() {
 				req.session.band = null;
 			}
 
-			if (req.session.band === null){
+			if (!req.session.band){
 				if (req.session.user.bands.length > 0){
 					req.session.band = req.session.user.bands[0];
 				}

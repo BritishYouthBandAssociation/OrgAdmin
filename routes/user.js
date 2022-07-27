@@ -4,7 +4,6 @@ const express = require('express');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
-
 	if (!req.session.user.IsAdmin){
 		return res.redirect("/no-access");
 	}
@@ -30,7 +29,6 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/new', (req, res) => {
-
 	if (!req.session.user.IsAdmin){
 		return res.redirect("/no-access");
 	}
@@ -100,7 +98,7 @@ router.post('/new', async (req, res) => {
 });
 
 router.post('/:id/password', async (req, res, next) => {
-	if (!req.session.user.IsAdmin && req.session.user.id != req.params.id){
+	if (!req.session.user.IsAdmin && req.session.user.id !== req.params.id){
 		return res.redirect("/no-access");
 	}
 
@@ -125,7 +123,7 @@ router.post('/:id/password', async (req, res, next) => {
 });
 
 router.get('/:id', async (req, res, next) => {
-	if (!req.session.user.IsAdmin && req.session.user.id != req.params.id){
+	if (!req.session.user.IsAdmin && req.session.user.id !== req.params.id){
 		return res.redirect("/no-access");
 	}
 

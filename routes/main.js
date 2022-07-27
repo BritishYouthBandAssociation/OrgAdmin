@@ -72,7 +72,7 @@ router.post('/change-band', (req, res, next) => {
 		return next();
 	}
 
-	const band = req.session.user.bands.filter(b => b.id == req.body.changeBand);
+	const band = req.session.user.bands.filter(b => b.id === req.body.changeBand);
 
 	if (band.length > 0){
 		req.session.band = band[0];
