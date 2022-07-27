@@ -143,7 +143,7 @@ async function main() {
 
 	//init locals (for Handlebars)
 	app.use((req, res, next) => {
-		res.locals.page = req.path;
+		res.locals.page = req.path.toLowerCase();
 		res.locals.session = req.session;
 
 		next();

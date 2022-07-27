@@ -48,7 +48,7 @@ router.get('/new', async (req, res) => {
 	});
 
 	let member = null;
-	if (req.query.org != null){
+	if (req.query.org != null) {
 		member = await req.db.Organisation.findByPk(req.query.org);
 	}
 
@@ -68,12 +68,12 @@ router.post('/new', async (req, res) => {
 		}
 	});
 
-	if (type == null){
+	if (type == null) {
 		return res.redirect("");
 	}
 
-	if (type.IsOrganisation){
-		if (req.body.notFound === 'true'){
+	if (type.IsOrganisation) {
+		if (req.body.notFound === 'true') {
 			return res.redirect(`/organisation/new?membershipType=${req.body.type}`);
 		}
 
@@ -90,7 +90,7 @@ router.post('/new', async (req, res) => {
 			}]
 		});
 
-		if (exists != null){
+		if (exists != null) {
 			//if this band already has a membership this season, display it
 			return res.redirect(exists.id);
 		}
@@ -118,7 +118,7 @@ router.post('/new', async (req, res) => {
 		}
 	});
 
-	if (!exists){
+	if (!exists) {
 		//if not a current user, make them create one first
 		return res.redirect(`/user/new?email=${req.body.email}&membership=${type.id}`);
 	}
@@ -137,7 +137,7 @@ router.post('/new', async (req, res) => {
 		}]
 	});
 
-	if (eMemb !== null){
+	if (eMemb !== null) {
 		return res.redirect(eMemb.id);
 	}
 
@@ -158,7 +158,7 @@ router.post('/new', async (req, res) => {
 });
 
 router.get('/:id', async (req, res, next) => {
-	const membership = await req.db.Membership.findByPk(req.params.id, {
+	const [membership, paymentTypes] = await Promise.all([req.db.Membership.findByPk(req.params.id, {
 		include: [
 			req.db.Label,
 			req.db.MembershipType,
@@ -175,7 +175,12 @@ router.get('/:id', async (req, res, next) => {
 				}
 			}
 		]
-	});
+	}),
+	req.db.PaymentType.findAll({
+		where: {
+			IsActive: true
+		}
+	})]);
 
 	if (!membership) {
 		return next();
@@ -194,7 +199,8 @@ router.get('/:id', async (req, res, next) => {
 	return res.render("membership/view.hbs", {
 		title: `Membership ${membership.Number}`,
 		membership: membership,
-		entity: membership.Entity
+		entity: membership.Entity,
+		paymentTypes: paymentTypes
 	});
 });
 
