@@ -35,8 +35,7 @@ router.post('/', async (req, res) => {
 		const user = await req.db.User.findOne({
 			where: {
 				Email: fields.get('email'),
-				IsActive: true,
-				IsAdmin: true
+				IsActive: true
 			}
 		});
 
@@ -66,6 +65,27 @@ router.get('/home', (req, res) => {
 router.get('/logout', (req, res) => {
 	req.session.destroy();
 	return res.redirect("/");
+});
+
+router.post('/change-band', (req, res, next) => {
+	if (req.body.changeBand == null){
+		return next();
+	}
+
+	const band = req.session.user.bands.filter(b => b.id === req.body.changeBand);
+
+	if (band.length > 0){
+		req.session.band = band[0];
+	}
+
+	return res.redirect('back');
+});
+
+router.all('/no-access', (req, res) => {
+	return res.render('no-access.hbs', {
+		title: 'No Access',
+		previousPage: req.query.page ?? ""
+	});
 });
 
 module.exports = {

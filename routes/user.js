@@ -4,6 +4,10 @@ const express = require('express');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
+	if (!req.session.user.IsAdmin){
+		return res.redirect("/no-access");
+	}
+
 	const users = await req.db.User.findAll();
 	const active = [];
 	const inactive = [];
@@ -16,6 +20,7 @@ router.get('/', async (req, res) => {
 		}
 	});
 
+
 	return res.render('user/index.hbs', {
 		title: 'Users',
 		active: active,
@@ -24,10 +29,15 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/new', (req, res) => {
+	if (!req.session.user.IsAdmin){
+		return res.redirect("/no-access");
+	}
+
 	const details = {
 		Email: req.query.email ?? "",
 		IsActive: true
 	};
+
 
 	return res.render('user/add.hbs', {
 		title: 'Add New User',
@@ -37,6 +47,10 @@ router.get('/new', (req, res) => {
 });
 
 router.post('/new', async (req, res) => {
+	if (!req.session.user.IsAdmin){
+		return res.redirect("/no-access");
+	}
+
 	req.body.isActive = parseInt(req.body.isActive);
 	req.body.isAdmin = parseInt(req.body.isAdmin);
 
@@ -84,6 +98,10 @@ router.post('/new', async (req, res) => {
 });
 
 router.post('/:id/password', async (req, res, next) => {
+	if (!req.session.user.IsAdmin && req.session.user.id !== req.params.id){
+		return res.redirect("/no-access");
+	}
+
 	const user = await req.db.User.findByPk(req.params.id);
 
 	if (user == null){
@@ -97,13 +115,18 @@ router.post('/:id/password', async (req, res, next) => {
 	await req.db.User.update({
 		Password: req.body.password
 	}, {
-		where: { id: req.params.id }
+		where: { id: req.params.id },
+		individualHooks: true
 	});
 
 	return res.redirect(`../${req.params.id}?saved=1`);
 });
 
 router.get('/:id', async (req, res, next) => {
+	if (!req.session.user.IsAdmin && req.session.user.id !== req.params.id){
+		return res.redirect("/no-access");
+	}
+
 	const user = await req.db.User.findByPk(req.params.id);
 
 	if (user == null){
@@ -119,6 +142,10 @@ router.get('/:id', async (req, res, next) => {
 });
 
 router.post('/:id', async (req, res, next) => {
+	if (!req.session.user.IsAdmin && req.session.user.id != req.params.id){
+		return res.redirect("/no-access");
+	}
+
 	const user = await req.db.User.findByPk(req.params.id);
 
 	if (user == null){

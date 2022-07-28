@@ -5,6 +5,10 @@ const express = require('express');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
+	if (!req.session.user.IsAdmin) {
+		return res.redirect("/no-access");
+	}
+
 	const memberships = await req.db.Membership.findAll({
 		where: { Season: 2022 },
 		include: [
@@ -12,19 +16,19 @@ router.get('/', async (req, res) => {
 			req.db.MembershipType,
 			{
 				model: req.db.IndividualMembership,
-				include: [ req.db.User ]
+				include: [req.db.User]
 			},
 			{
 				model: req.db.OrganisationMembership,
-				include: [ req.db.Organisation ]
+				include: [req.db.Organisation]
 			}
 		]
 	});
 
 	const labels = await req.db.Label.findAll({
 		where: { '$Memberships.Season$': 2022 },
-		include: [ req.db.Membership ],
-		order: [ [ 'Name', 'ASC' ] ]
+		include: [req.db.Membership],
+		order: [['Name', 'ASC']]
 	});
 
 	return res.render('membership/index.hbs', {
@@ -174,20 +178,30 @@ router.get('/:id', async (req, res, next) => {
 			req.db.MembershipType,
 			{
 				model: req.db.IndividualMembership,
-				include: [ req.db.User ]
+				include: [req.db.User]
 			},
 			{
 				model: req.db.OrganisationMembership,
 				include: {
 					model: req.db.Organisation,
-					include: [ req.db.OrganisationType ]
+					include: [req.db.OrganisationType]
 				}
 			}
 		]
 	});
 
-	if (membership == null){
+	if (!membership) {
 		return next();
+	}
+
+	if (!req.session.user.IsAdmin) {
+		if (membership.MembershipType.IsOrganisation) {
+			if (membership.Entity.id !== req.session.band?.id) {
+				return res.redirect("/no-access");
+			}
+		} else if (membership.Entity.Email !== req.session.user.Email) {
+			return res.redirect("/no-access");
+		}
 	}
 
 	return res.render("membership/view.hbs", {

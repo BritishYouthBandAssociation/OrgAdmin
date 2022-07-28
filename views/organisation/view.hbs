@@ -35,13 +35,15 @@
 		<div class="card card-body text-center">
 			<h3>Contacts</h3>
 			{{#if organisation.OrganisationUsers}}
-				<div class="list-group mb-3">
+			<div class="card mb-3">
+				<div class="list-group list-group-flush">
 					{{#each organisation.OrganisationUsers}}
 					{{#with User}}
 						<div class="list-group-item">{{FirstName}} {{Surname}} - {{Email}}</div>
 					{{/with}}
 					{{/each}}
 				</div>
+			</div>
 			{{else}}
 			<div class="alert alert-danger">No contacts set for this organisation</div>
 			{{/if}}

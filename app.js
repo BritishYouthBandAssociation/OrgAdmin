@@ -76,9 +76,11 @@ async function main() {
 		path.join(__dirname, 'public/assets/favicon.ico')));
 	app.use(express.static(path.join(__dirname, 'public')));
 
-	//add global db
-	const dbPath = path.join(libPath, 'models');
+	// Get database models and connection
+	const dbPath = path.join(__dirname, process.env.LIB_PATH ?? '../db', 'models');
 	const db = await require(dbPath)(path.join(__dirname, 'config/db'));
+
+	//add global db
 	app.use((req, res, next) => {
 		req.db = db;
 		next();
@@ -94,15 +96,46 @@ async function main() {
 	app.use(session(sessionConfig));
 
 	//prevent unauthorised access
-	app.use((req, res, next) => {
+	app.use(async (req, res, next) => {
 		//allow css/js files
 		if (req.path.slice(req.path.length - 4) === ".css" || req.path.slice(req.path.length - 3) === ".js") {
 			return next();
 		}
 
 		//double equals to also check for undefined
-		if (req.session.user == null && !serverOptions.noAuthRequired.includes(req.path)) {
-			return res.redirect(`/?next=${req.path}`);
+		if (!req.session.user) {
+			if (!serverOptions.noAuthRequired.includes(req.path)) {
+				return res.redirect(`/?next=${req.path}`);
+			}
+		} else {
+			req.session.user = await req.db.User.findOne({
+				where: {
+					id: req.session.user.id
+				}
+			});
+
+			req.session.user.bands = await req.db.Organisation.findAll({
+				include: [{
+					model: req.db.OrganisationUser,
+					where: {
+						UserId: req.session.user.id
+					},
+					attributes: []
+				}],
+				where: {
+					OrganisationTypeId: 1 //we only want associated bands here
+				}
+			});
+
+			if (!req.session.user.bands.some(b => b.id === req.session.band?.id)){
+				req.session.band = null;
+			}
+
+			if (!req.session.band){
+				if (req.session.user.bands.length > 0){
+					req.session.band = req.session.user.bands[0];
+				}
+			}
 		}
 
 		next();
@@ -111,6 +144,7 @@ async function main() {
 	//init locals (for Handlebars)
 	app.use((req, res, next) => {
 		res.locals.page = req.path;
+		res.locals.session = req.session;
 
 		next();
 	});
