@@ -64,7 +64,7 @@ router.post('/new', async (req, res) => {
 
 //show org
 router.get('/:orgID', async (req, res, next) => {
-	if (req.params.orgID != req.session.band?.id){
+	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
 		return res.redirect("/no-access");
 	}
 
@@ -95,7 +95,7 @@ router.get('/:orgID', async (req, res, next) => {
 });
 
 router.post('/:orgID', async (req, res, next) => {
-	if (req.params.orgID != req.session.band?.id){
+	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
 		return res.redirect("/no-access");
 	}
 
@@ -108,7 +108,7 @@ router.post('/:orgID', async (req, res, next) => {
 	try {
 		await req.db.sequelize.transaction(async (t) => {
 			await org.setOrganisationType(req.body.type , {
-				transcation: t
+				transaction: t
 			});
 
 			await req.db.Organisation.update({
@@ -132,7 +132,7 @@ router.post('/:orgID', async (req, res, next) => {
 
 //org contacts
 router.get('/:orgID/contacts', async (req, res, next) => {
-	if (req.params.orgID != req.session.band?.id){
+	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
 		return res.redirect("/no-access");
 	}
 
@@ -161,7 +161,7 @@ router.get('/:orgID/contacts', async (req, res, next) => {
 
 //add contact
 router.get('/:orgID/contacts/add', (req, res, next) => {
-	if (req.params.orgID != req.session.band?.id){
+	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
 		return res.redirect("/no-access");
 	}
 
@@ -173,7 +173,7 @@ router.get('/:orgID/contacts/add', (req, res, next) => {
 });
 
 router.get('/:orgID/contacts/add/:email', async (req, res, next) => {
-	if (req.params.orgID != req.session.band?.id){
+	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
 		return res.redirect("/no-access");
 	}
 
@@ -198,7 +198,7 @@ router.get('/:orgID/contacts/add/:email', async (req, res, next) => {
 });
 
 router.post('/:orgID/contacts/add/:email', async (req, res, next) => {
-	if (req.params.orgID != req.session.band?.id){
+	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
 		return res.redirect("/no-access");
 	}
 
@@ -233,7 +233,7 @@ router.post('/:orgID/contacts/add/:email', async (req, res, next) => {
 
 //remove contact
 router.get('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
-	if (req.params.orgID != req.session.band?.id){
+	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
 		return res.redirect("/no-access");
 	}
 
@@ -253,7 +253,7 @@ router.get('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
 });
 
 router.post('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
-	if (req.params.orgID != req.session.band?.id){
+	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
 		return res.redirect("/no-access");
 	}
 
