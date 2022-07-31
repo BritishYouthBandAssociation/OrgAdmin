@@ -10,7 +10,7 @@ const session = require('express-session');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
 
 // Initialise library path
-const libPath = path.join(__dirname, process.env.LIB_PATH ?? '../lib');
+const libPath = path.join(__dirname, process.env.LIB_PATH ?? '../Library');
 global.__lib = libPath;
 
 // Import library functions
@@ -77,7 +77,7 @@ async function main() {
 	app.use(express.static(path.join(__dirname, 'public')));
 
 	// Get database models and connection
-	const dbPath = path.join(__dirname, process.env.LIB_PATH ?? '../db', 'models');
+	const dbPath = path.join(libPath, 'models');
 	const db = await require(dbPath)(path.join(__dirname, 'config/db'));
 
 	//add global db
