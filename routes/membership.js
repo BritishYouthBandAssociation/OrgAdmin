@@ -200,7 +200,8 @@ router.get('/:id', async (req, res, next) => {
 		title: `Membership ${membership.Number}`,
 		membership: membership,
 		entity: membership.Entity,
-		paymentTypes: paymentTypes
+		paymentTypes: paymentTypes,
+		saved: req.query.saved ?? false
 	});
 });
 

@@ -1,10 +1,15 @@
-<h2>Membership {{membership.number}}</h2>
+<h2>Membership {{membership.Number}}</h2>
+
 <div class="label-container mb-2">
-	{{#each membership.labels}}
-	<span class="badge" style="background-color: {{background}}; color: {{foreground}}"
-		data-type="{{id}}">{{text}}</span>
+	{{#each membership.Labels}}
+	<span class="badge" style="background-color: {{BackgroundColour}}; color: {{ForegroundColour}}"
+		data-type="{{id}}">{{Name}}</span>
 	{{/each}}
 </div>
+
+{{#if saved}}
+	<div class="alert alert-success text-center">Membership saved successfully</div>
+{{/if}}
 
 <div class="row text-center">
 	<div class="col-12 col-lg-6">
