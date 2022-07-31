@@ -44,7 +44,7 @@ router.post('/membership-type', async (req, res) => {
 			await req.db.Label.update({
 				Name: req.body.type[i],
 				BackgroundColour: req.body.bg[i],
-				ForegoundColour: req.body.fg[i]
+				ForegroundColour: req.body.fg[i]
 			}, {
 				where: {
 					id: labelID
