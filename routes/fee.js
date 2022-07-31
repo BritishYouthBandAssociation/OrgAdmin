@@ -13,8 +13,10 @@ router.get('/', (req, res) => {
 	});
 });
 
+//this is only an api route for now?
 router.post('/:id', async (req, res, next) => {
 	const fee = await req.db.Fee.findByPk(req.params.id);
+	const redir = req.query.redirect ?? req.get('Referrer');
 
 	if (!fee) {
 		return next();
@@ -26,7 +28,7 @@ router.post('/:id', async (req, res, next) => {
 
 	if (!validationRes.isValid) {
 		console.error(validationRes.errors);
-		return res.redirect(req.params.id);
+		return res.redirect(`${redir}?error=1`);
 	}
 
 	const fields = validationRes.fields;
@@ -36,7 +38,7 @@ router.post('/:id', async (req, res, next) => {
 		IsPaid: true
 	});
 
-	return res.redirect(`${req.params.id}?saved=1`);
+	return res.redirect(`${redir}?saved=1`);
 });
 
 module.exports = {
