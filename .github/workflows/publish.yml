@@ -19,5 +19,5 @@ jobs:
             cd ${{ secrets.PUBLISH_DIR }}
             git pull origin main
             git status
-            npm install
+            yarn --frozen-lockfile
             pm2 restart "${{ secrets.APP_NAME }}"
