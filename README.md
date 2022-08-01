@@ -34,12 +34,12 @@ This repository contains the code for the Organisation Admin website.
 ## Setup
 ### Prerequisites
 - Node.JS
-- NPM
-- gulp-cli (to install this run `npm install -g gulp-cli` as a privileged user)
+- Yarn
+- gulp-cli (to install this run `yarn global add gulp-cli` as a privileged user)
 
 ### Instructions
 1. Clone this new repository to your development environment
-2. Using a command line, run `npm install` - this will install all of the dependencies for the site and the custom git hooks
+2. Using a command line, run `yarn` - this will install all of the dependencies for the site and the custom git hooks
 4. Using a command line, run `gulp`. This will:
    - Copy all sample configurations to their non-sample counterpart
    - Prompt you to edit the config values to suit your environment
