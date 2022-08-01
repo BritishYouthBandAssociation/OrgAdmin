@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 
-const lib = require(__lib);
+const {helpers: {ValidationHelper, SlugHelper: {formatSlug}}} = require(__lib);
 
 const validDate = (date) => {
 	date = date instanceof Date ? date : new Date(date);
@@ -46,7 +46,7 @@ router.get('/new', async (req, res) => {
 });
 
 router.post('/new', async (req, res) => {
-	const validationRes = lib.helpers.ValidationHelper.validate(req.body, [
+	const validationRes = ValidationHelper.validate(req.body, [
 		'name',
 		'type',
 		'start',
@@ -76,10 +76,15 @@ router.post('/new', async (req, res) => {
 		return res.redirect();
 	}
 
+	const startDate = new Date(fields.get('start'));
+
+	const slug = formatSlug(`${startDate.getFullYear()}-${fields.get('name')}`);
+
 	const event = await req.db.Event.create({
 		Name: fields.get('name'),
 		Start: fields.get('start'),
-		End: fields.get('end')
+		End: fields.get('end'),
+		Slug: slug
 	});
 
 	await event.setEventType(eventType);
@@ -123,11 +128,12 @@ router.post('/:id', async (req, res, next) => {
 		return next();
 	}
 
-	const validationRes = lib.helpers.ValidationHelper.validate(req.body, [
+	const validationRes = ValidationHelper.validate(req.body, [
 		'name',
 		'type',
 		'start',
-		'end'
+		'end',
+		'slug'
 	]);
 
 	if (!validationRes.isValid) {
@@ -149,6 +155,7 @@ router.post('/:id', async (req, res, next) => {
 		Type: fields.get('type'),
 		Start: fields.get('start'),
 		End: fields.get('end'),
+		Slug: formatSlug(fields.get('slug'))
 	});
 
 	if (addressProvided) {
@@ -177,7 +184,7 @@ router.post('/:id/registration', async (req, res, next) => {
 		return next();
 	}
 
-	const validationRes = lib.helpers.ValidationHelper.validate(req.body, [
+	const validationRes = ValidationHelper.validate(req.body, [
 		'registration-cutoff',
 		'free-registration-cutoff'
 	]);
