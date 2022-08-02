@@ -7,6 +7,14 @@ router.get('/organisation', async (req, res) => {
 	const where = {};
 	const include = new Set();
 
+	include.add({
+		model: req.db.OrganisationUser,
+		include: [{
+			model: req.db.User,
+			attributes: ['FirstName', 'Surname', 'Email']
+		}]
+	});
+
 	if (req.query.type != null) {
 		where.OrganisationTypeID = req.query.type;
 		include.add(req.db.OrganisationType);
