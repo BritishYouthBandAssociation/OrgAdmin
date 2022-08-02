@@ -65,9 +65,9 @@
 					</div>
 
 					<div class="list-group" v-if="!isLoading">
-						<label class="list-group-item">
-							<input type="checkbox" class="form-check-input me-1" />Revolution - Luke Taylor
-							&lt;luke.taylor@byba.online&gt;
+						<label class="list-group-item" v-for="result in results">
+							<input type="checkbox" class="form-check-input me-1" />${result.Organisation} - ${result.User}
+							&lt;${result.Email}&gt;
 						</label>
 					</div>
 				</div>
@@ -116,6 +116,7 @@
 	});
 
 	const app = new Vue({
+		delimiters: ['${', '}'],
 		el: '#app',
 		data: {
 			recipients: [],
@@ -127,6 +128,22 @@
 			loadMembers: function () {
 				this.results = [];
 				this.isLoading = true;
+
+				fetch(`/_api/organisation?membership=${this.membershipType}&season=${season}`)
+					.then(res => res.json())
+					.then(json => {
+						json.forEach(j => {
+							j.OrganisationUsers.forEach(ou => {
+								this.results.push({
+									Organisation: j.Name,
+									User: `${ou.User.FirstName} ${ou.User.Surname}`,
+									Email: ou.User.Email
+								});
+							});
+						});
+
+						this.isLoading = false;
+					});
 			}
 		}
 	});

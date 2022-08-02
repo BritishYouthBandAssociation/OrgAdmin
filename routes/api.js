@@ -21,14 +21,19 @@ router.get('/organisation', async (req, res) => {
 	}
 
 	if (req.query.membership != null) {
+		const where = {
+			Season: req.query.season ?? 2022 //TODO unhardcode
+		};
+
+		if (req.query.membership !== '*'){
+			where.MembershipTypeId = req.query.membership;
+		}
+
 		include.add({
 			model: req.db.OrganisationMembership,
 			include: [{
 				model: req.db.Membership,
-				where: {
-					MembershipTypeId: req.query.membership,
-					Season: req.query.season ?? 2022 //TODO unhardcode
-				},
+				where: where,
 				required: true
 			}],
 			required: true
