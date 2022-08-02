@@ -4,10 +4,16 @@
 	<div class="card mb-3">
 		<div class="card-body">
 			<h3 class="mb-3">Recipients</h3>
-			<button type="button" class="btn btn-default" data-bs-toggle="modal" data-bs-target="#recipientModal">+
-				Add</button>
+			<button type="button" class="btn btn-lg btn-default mb-3" data-bs-toggle="modal" data-bs-target="#recipientModal" v-on:click="loadMembers">+ Add</button>
 
-			<div>
+			<div class="d-block">
+				<span class="badge bg-secondary fs-5 me-1" v-for="recipient in recipients">
+					${recipient.User} (${recipient.Organisation})
+
+					<span v-on:click="removeRecipient(recipient.OrganisationUserID)">&times;</span>
+
+					<input type="hidden" name="orgUser[]" :value="recipient.OrganisationUserID" />
+				</span>
 			</div>
 		</div>
 	</div>
@@ -49,8 +55,7 @@
 						<select id="m-type" class="form-control" v-model="membershipType" v-on:change="loadMembers">
 							<option value="*">All</option>
 							{{#each types}}
-							<option value="{{id}}">{{Name}} ({{#if
-								IsOrganisation}}Organisation{{else}}Individual{{/if}})</option>
+							<option value="{{id}}">{{Name}}</option>
 							{{/each}}
 						</select>
 					</div>
@@ -65,15 +70,17 @@
 					</div>
 
 					<div class="list-group" v-if="!isLoading">
-						<label class="list-group-item" v-for="result in results">
-							<input type="checkbox" class="form-check-input me-1" />${result.Organisation} - ${result.User}
+						<label class="list-group-item" v-for="result in results" :class="{disabled: !result.IsSelectable}">
+							<input type="checkbox" class="form-check-input me-1"
+								v-model="result.IsSelected" />${result.Organisation} - ${result.User}
 							&lt;${result.Email}&gt;
 						</label>
 					</div>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-					<button type="button" class="btn btn-default">Add Recipients</button>
+					<button type="button" class="btn btn-default" data-bs-dismiss="modal" v-on:click="addRecipients">Add
+						Recipients</button>
 				</div>
 			</div>
 		</div>
@@ -137,13 +144,24 @@
 								this.results.push({
 									Organisation: j.Name,
 									User: `${ou.User.FirstName} ${ou.User.Surname}`,
-									Email: ou.User.Email
+									Email: ou.User.Email,
+									OrganisationUserID: ou.id,
+									IsSelected: false,
+									IsSelectable: !this.recipients.some(r => r.OrganisationUserID === ou.id)
 								});
 							});
 						});
 
 						this.isLoading = false;
 					});
+			},
+
+			addRecipients: function () {
+				this.recipients = this.recipients.concat(this.results.filter(r => r.IsSelected));
+			},
+
+			removeRecipient: function(orgUserID){
+				this.recipients = this.recipients.filter(r => r.OrganisationUserID !== orgUserID);
 			}
 		}
 	});

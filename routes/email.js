@@ -6,7 +6,8 @@ const router = express.Router();
 router.get('/', async (req, res) => {
 	const types = await req.db.MembershipType.findAll({
 		where: {
-			IsActive: true
+			IsActive: true,
+			IsOrganisation: true
 		}
 	});
 
