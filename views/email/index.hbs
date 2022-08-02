@@ -1,11 +1,14 @@
 <h2>Bulk Emailer</h2>
 
 <div id="app">
-	<div class="card card-body mb-3">
-		<h3 class="mb-3">Recipients <button type="button" class="btn btn-default" data-bs-toggle="modal"
-				data-bs-target="#recipientModal">+ Add</button></h3>
+	<div class="card mb-3">
+		<div class="card-body">
+			<h3 class="mb-3">Recipients</h3>
+			<button type="button" class="btn btn-default" data-bs-toggle="modal" data-bs-target="#recipientModal">+
+				Add</button>
 
-		<div>
+			<div>
+			</div>
 		</div>
 	</div>
 
@@ -41,10 +44,31 @@
 					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
 				<div class="modal-body">
-					<div class="filters">
+					<div class="form-group">
+						<label for="m-type">Membership Type</label>
+						<select id="m-type" class="form-control" v-model="membershipType" v-on:change="loadMembers">
+							<option value="*">All</option>
+							{{#each types}}
+							<option value="{{id}}">{{Name}} ({{#if
+								IsOrganisation}}Organisation{{else}}Individual{{/if}})</option>
+							{{/each}}
+						</select>
 					</div>
 
-					<div class="list-group">
+					<hr />
+
+					<div class="text-center my-3" v-if="isLoading">
+						<span class="fst-italic">Loading...</span>
+						<div class="spinner-border" role="status">
+							<span class="visually-hidden">Loading...</span>
+						</div>
+					</div>
+
+					<div class="list-group" v-if="!isLoading">
+						<label class="list-group-item">
+							<input type="checkbox" class="form-check-input me-1" />Revolution - Luke Taylor
+							&lt;luke.taylor@byba.online&gt;
+						</label>
 					</div>
 				</div>
 				<div class="modal-footer">
@@ -60,6 +84,8 @@
 <script src="https://cdn.tiny.cloud/1/jqnpk42m2gmjlp5gypj3ynprfipj9tnptt7oyi1uux35know/tinymce/6/tinymce.min.js"
 	referrerpolicy="origin"></script>
 <script>
+	const season = {{ season }};
+
 	tinymce.init({
 		selector: '#message',
 		plugins: 'autolink lists advlist link preview code wordcount quickbars',
@@ -90,6 +116,18 @@
 	});
 
 	const app = new Vue({
-		el: '#app'
+		el: '#app',
+		data: {
+			recipients: [],
+			results: [],
+			membershipType: '*',
+			isLoading: false
+		},
+		methods: {
+			loadMembers: function () {
+				this.results = [];
+				this.isLoading = true;
+			}
+		}
 	});
 </script>
