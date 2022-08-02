@@ -3,9 +3,17 @@
 const express = require('express');
 const router = express.Router();
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
+	const types = await req.db.MembershipType.findAll({
+		where: {
+			IsActive: true
+		}
+	});
+
 	return res.render('email/index.hbs', {
-		title: 'Bulk Emailer'
+		title: 'Bulk Emailer',
+		types: types,
+		season: 2022
 	});
 });
 
