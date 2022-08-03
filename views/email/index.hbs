@@ -1,46 +1,50 @@
 <h2>Bulk Emailer</h2>
 
 <div id="app">
-	<div class="card mb-3">
-		<div class="card-body">
-			<h3 class="mb-3">Recipients</h3>
-			<button type="button" class="btn btn-lg btn-default mb-3" data-bs-toggle="modal" data-bs-target="#recipientModal" v-on:click="loadMembers">+ Add</button>
+	<form method="post">
+		<div class="card mb-3">
+			<div class="card-body">
+				<h3 class="mb-3">Recipients</h3>
+				<button type="button" class="btn btn-lg btn-default mb-3" data-bs-toggle="modal"
+					data-bs-target="#recipientModal" v-on:click="loadMembers">+ Add</button>
 
-			<div class="d-block">
-				<span class="badge bg-secondary fs-5 me-1" v-for="recipient in recipients">
-					${recipient.User} (${recipient.Organisation})
+				<div class="d-block">
+					<span class="badge bg-secondary fs-5 me-1" v-for="recipient in recipients">
+						${recipient.DisplayName}
 
-					<span v-on:click="removeRecipient(recipient.OrganisationUserID)">&times;</span>
+						<span v-on:click="removeRecipient(recipient.MembershipID)">&times;</span>
 
-					<input type="hidden" name="orgUser[]" :value="recipient.OrganisationUserID" />
-				</span>
+						<input type="hidden" name="membership[]" :value="recipient.MembershipID" />
+					</span>
+				</div>
 			</div>
 		</div>
-	</div>
 
-	<div class="card card-body mb-3">
-		<h3>Message Details</h3>
+		<div class="card card-body mb-3">
+			<h3>Message Details</h3>
 
-		<div class="form-group mb-3">
-			<label for="sender">From</label>
-			<input id="sender" name="sender" type="text" class="form-control" readonly value="{{session.user.Email}}" />
+			<div class="form-group mb-3">
+				<label for="sender">From</label>
+				<input id="sender" name="sender" type="text" class="form-control" readonly
+					value="{{session.user.Email}}" />
+			</div>
+
+			<div class="form-group mb-3">
+				<label for="subject">Subject</label>
+				<input id="subject" name="subject" type="text" class="form-control" required />
+			</div>
+
+			<div class="form-group">
+				<label for="message">Message</label>
+				<textarea id="message" name="message" class="form-control" rows="7" required></textarea>
+			</div>
 		</div>
 
-		<div class="form-group mb-3">
-			<label for="subject">Subject</label>
-			<input id="subject" name="subject" type="text" class="form-control" required />
+		<div class="text-center">
+			<button type="submit" class="btn btn-success btn-lg mx-3" formaction="?test=1">Send Test Email</button>
+			<button type="button" class="btn btn-default btn-lg mx-3">Send Live Email</button>
 		</div>
-
-		<div class="form-group">
-			<label for="message">Message</label>
-			<textarea id="message" name="message" class="form-control" rows="7" required></textarea>
-		</div>
-	</div>
-
-	<div class="text-center">
-		<button type="button" class="btn btn-success btn-lg mx-3">Send Test Email</button>
-		<button type="button" class="btn btn-default btn-lg mx-3">Send Live Email</button>
-	</div>
+	</form>
 
 	<div class="modal fade" id="recipientModal" tabindex="-1" aria-hidden="true">
 		<div class="modal-dialog modal-lg">
@@ -69,12 +73,16 @@
 						</div>
 					</div>
 
-					<div class="list-group" v-if="!isLoading">
-						<label class="list-group-item" v-for="result in results" :class="{disabled: !result.IsSelectable}">
-							<input type="checkbox" class="form-check-input me-1"
-								v-model="result.IsSelected" />${result.Organisation} - ${result.User}
-							&lt;${result.Email}&gt;
-						</label>
+					<div v-if="!isLoading">
+						<button type="button" class="btn btn-default mb-3" v-on:click="selectAll">Select All</button>
+
+						<div class="list-group">
+							<label class="list-group-item" v-for="result in results"
+								:class="{disabled: !result.IsSelectable}">
+								<input type="checkbox" class="form-check-input me-1"
+									v-model="result.IsSelected" />${result.DisplayName}
+							</label>
+						</div>
 					</div>
 				</div>
 				<div class="modal-footer">
@@ -105,6 +113,8 @@
 			}
 		},
 		setup: (editor) => {
+			editor.on('change', editor.save);
+
 			editor.ui.registry.addMenuItem('firstname', {
 				text: 'Recipient First Name',
 				onAction: () => editor.insertContent("${firstname}")
@@ -136,20 +146,21 @@
 				this.results = [];
 				this.isLoading = true;
 
-				fetch(`/_api/organisation?membership=${this.membershipType}&season=${season}`)
+				let url = `/_api/membership/${season}`;
+				if (this.membershipType != '*') {
+					url += `?type=${this.membershipType}`;
+				}
+
+				fetch(url)
 					.then(res => res.json())
 					.then(json => {
-						json.forEach(j => {
-							j.OrganisationUsers.forEach(ou => {
-								this.results.push({
-									Organisation: j.Name,
-									User: `${ou.User.FirstName} ${ou.User.Surname}`,
-									Email: ou.User.Email,
-									OrganisationUserID: ou.id,
-									IsSelected: false,
-									IsSelectable: !this.recipients.some(r => r.OrganisationUserID === ou.id)
-								});
-							});
+						this.results = json.map(j => {
+							return {
+								MembershipID: j.id,
+								DisplayName: j.Name,
+								IsSelected: false,
+								IsSelectable: !this.recipients.some(r => r.MembershipID === j.id)
+							}
 						});
 
 						this.isLoading = false;
@@ -160,8 +171,12 @@
 				this.recipients = this.recipients.concat(this.results.filter(r => r.IsSelected));
 			},
 
-			removeRecipient: function(orgUserID){
-				this.recipients = this.recipients.filter(r => r.OrganisationUserID !== orgUserID);
+			removeRecipient: function (membershipID) {
+				this.recipients = this.recipients.filter(r => r.MembershipID !== membershipID);
+			},
+
+			selectAll: function () {
+				this.results.forEach(r => r.IsSelected = true);
 			}
 		}
 	});
