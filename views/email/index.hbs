@@ -4,6 +4,10 @@
 <div class="alert alert-success text-center">Message sent successfully</div>
 {{/if}}
 
+{{#if error}}
+<div class="alert alert-danger text-center">An error occurred. Please try again</div>
+{{/if}}
+
 <div id="app">
 	<form method="post">
 		<div class="card mb-3">
@@ -46,7 +50,7 @@
 
 		<div class="text-center">
 			<button type="submit" class="btn btn-success btn-lg mx-3" formaction="test">Send Test Email</button>
-			<button type="button" class="btn btn-default btn-lg mx-3">Send Live Email</button>
+			<button type="submit" class="btn btn-default btn-lg mx-3" formaction="send">Send Live Email</button>
 		</div>
 	</form>
 
