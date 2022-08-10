@@ -103,15 +103,14 @@
 	</div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-<script src="https://cdn.tiny.cloud/1/jqnpk42m2gmjlp5gypj3ynprfipj9tnptt7oyi1uux35know/tinymce/6/tinymce.min.js"
-	referrerpolicy="origin"></script>
+<script src="/js/vue.js"></script>
+<script src="/js/tinymce.min.js"></script>
 <script>
 	const season = {{ season }};
 
 	//take field names and generate camelCase and display object
-	const customFields = ['First Name', 'Last Name', 'Band Name'].map(m => {
-		const fieldName = e.split(' ').reduce((str, w, i) => {
+	const customFields = ['First Name', 'Last Name', 'Band Name'].map(f => {
+		const fieldName = f.split(' ').reduce((str, w, i) => {
 			if (i === 1)
 				str = str.toLowerCase();
 
@@ -120,7 +119,7 @@
 
 		return {
 			id: fieldName,
-			display: m
+			display: f
 		};
 	});
 
