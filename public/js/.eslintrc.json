@@ -4,5 +4,6 @@
 	],
 	"env": {
 		"browser": true
-	}
+	},
+	"ignorePatterns": ["bootstrap.min.js", "swal2.js", "tinymce.min.js", "vue.js"] //libraries
 }

@@ -31,7 +31,7 @@ router.post('/test', async (req, res) => {
 	const msg = await req.db.Message.create({
 		Sender: req.body.sender,
 		Subject: req.body.subject,
-		Body: req.body.message.replaceAll('${firstName}', req.session.user.FirstName).replaceAll('${lastName}', req.session.user.Surname).replaceAll('${bandName}', req.session.band?.Name ?? 'your band')
+		Body: req.body.message.replaceAll('{firstName}', req.session.user.FirstName).replaceAll('{lastName}', req.session.user.Surname).replaceAll('{bandName}', req.session.band?.Name ?? 'your band')
 	}, {
 		transaction: t
 	});
@@ -85,7 +85,7 @@ router.post('/send', async (req, res) => {
 				const msg = await req.db.Message.create({
 					Sender: req.body.sender,
 					Subject: req.body.subject,
-					Body: req.body.message.replaceAll('${firstName}', c.User.FirstName).replaceAll('${lastName}', c.User.Surname).replaceAll('${bandName}', member.OrganisationMembership?.Organisation?.Name ?? '')
+					Body: req.body.message.replaceAll('{firstName}', c.User.FirstName).replaceAll('{lastName}', c.User.Surname).replaceAll('{bandName}', member.OrganisationMembership?.Organisation?.Name ?? '')
 				}, {
 					transaction: t
 				});
