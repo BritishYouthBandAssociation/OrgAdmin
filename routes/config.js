@@ -3,7 +3,15 @@
 const express = require('express');
 const router = express.Router();
 
-router.get('/', (req, res) => {
+const checkAdmin = (req, res, next) => {
+	if (!req.session.user.IsAdmin){
+		return res.redirect("/no-access");
+	}
+
+	next();
+};
+
+router.get('/', checkAdmin, (req, res) => {
 	const sections = ['Membership Type', 'Organisation Type', 'Event Type', 'Payment Type'];
 
 	return res.render('config/index.hbs', {
@@ -12,7 +20,7 @@ router.get('/', (req, res) => {
 	});
 });
 
-router.get('/membership-type', async (req, res) => {
+router.get('/membership-type', checkAdmin, async (req, res) => {
 	const types = await req.db.MembershipType.findAll({
 		include: [{
 			model: req.db.Label
@@ -26,7 +34,7 @@ router.get('/membership-type', async (req, res) => {
 	});
 });
 
-router.post('/membership-type', async (req, res) => {
+router.post('/membership-type', checkAdmin, async (req, res) => {
 	for (let i = 0; i < req.body.type.length; i++){
 		let labelID = req.body.lbl[i];
 
@@ -80,7 +88,7 @@ router.post('/membership-type', async (req, res) => {
 	return res.redirect("?saved=1");
 });
 
-router.get('/organisation-type', async (req, res) => {
+router.get('/organisation-type', checkAdmin, async (req, res) => {
 	const types = await req.db.OrganisationType.findAll();
 
 	return res.render('config/organisation-type.hbs', {
@@ -90,7 +98,7 @@ router.get('/organisation-type', async (req, res) => {
 	});
 });
 
-router.post('/organisation-type', async (req, res) => {
+router.post('/organisation-type', checkAdmin, async (req, res) => {
 	for (let i = 0; i < req.body.type.length; i++){
 		if (req.body.id[i] < 0){
 			//insert
@@ -114,7 +122,7 @@ router.post('/organisation-type', async (req, res) => {
 	return res.redirect("?saved=1");
 });
 
-router.get('/event-type', async (req, res) => {
+router.get('/event-type', checkAdmin, async (req, res) => {
 	const types = await req.db.EventType.findAll();
 
 	return res.render('config/event-type.hbs', {
@@ -124,7 +132,7 @@ router.get('/event-type', async (req, res) => {
 	});
 });
 
-router.post('/event-type', async (req, res) => {
+router.post('/event-type', checkAdmin, async (req, res) => {
 	await Promise.all(req.body.type.map((type, i) => {
 		if (req.body.id[i] < 0) {
 			return req.db.EventType.create({
@@ -146,7 +154,7 @@ router.post('/event-type', async (req, res) => {
 	return res.redirect("?saved=1");
 });
 
-router.get('/payment-type', async (req, res) => {
+router.get('/payment-type', checkAdmin, async (req, res) => {
 	const types = await req.db.PaymentType.findAll();
 
 	return res.render('config/payment-type.hbs', {
@@ -156,7 +164,7 @@ router.get('/payment-type', async (req, res) => {
 	});
 });
 
-router.post('/payment-type', async (req, res) => {
+router.post('/payment-type', checkAdmin, async (req, res) => {
 	await Promise.all(req.body.type.map((type, i) => {
 		if (req.body.id[i] < 0) {
 			return req.db.PaymentType.create({
@@ -176,6 +184,15 @@ router.post('/payment-type', async (req, res) => {
 	}));
 
 	return res.redirect("?saved=1");
+});
+
+router.get('/division', checkAdmin, async (req, res) => {
+	const divisions = await req.db.Division.findAll();
+
+	return res.render('config/division.hbs', {
+		title: 'Divisions',
+		divisions: divisions
+	});
 });
 
 module.exports = {
