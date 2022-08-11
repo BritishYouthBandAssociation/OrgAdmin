@@ -12,7 +12,7 @@ const checkAdmin = (req, res, next) => {
 };
 
 router.get('/', checkAdmin, (req, res) => {
-	const sections = ['Membership Type', 'Organisation Type', 'Event Type', 'Payment Type'];
+	const sections = ['Membership Type', 'Organisation Type', 'Event Type', 'Payment Type', 'Division'];
 
 	return res.render('config/index.hbs', {
 		title: 'Configuration',
@@ -187,7 +187,9 @@ router.post('/division', checkAdmin, async (req, res) => {
 	await Promise.all(req.body.division.map((d, i) => {
 		const details = {
 			Name: req.body.division[i],
-			IsActive: req.body.isActive[i]
+			IsActive: req.body.isActive[i],
+			PromotionDivisionID: req.body.promotion[i] === "null" ? null : req.body.promotion[i],
+			RelegationDivisionID: req.body.relegation[i] === "null" ? null : req.body.relegation[i]
 		};
 
 		if (req.body.id[i] < 0) {

@@ -1,7 +1,7 @@
 <h2>Divisions</h2>
 
 {{#if saved}}
-<div class="alert alert-success text-center">Divisions saved successfully</div>
+	<div class="alert alert-success text-center">Divisions saved successfully</div>
 {{/if}}
 
 <form id="app" method="post">
@@ -14,20 +14,39 @@
 			<div class="card card-body">
 				<div class="form-group mb-3">
 					<label :for="'name-' + index">Division Name</label>
-					<input type="text" class="form-control" name="division[]" :id="'name-' + index" v-model="division.Name"
-						required />
+					<input type="text" class="form-control" name="division[]" :id="'name-' + index" v-model="division.Name" required />
+				</div>
+
+				<div class="form-group mb-3">
+					<label :for="'promotion-' + index">Promotion</label>
+					<select class="form-control" name="promotion[]" :id="'promotion-' + index" v-model="division.PromotionDivisionID" required>
+						<option value="">-- Please Select --</option>
+						<option value="null">(none)</option>
+						{{#each divisions}}
+							<option value="{{id}}" v-if="division.id != {{id}}">{{Name}}</option>
+						{{/each}}
+					</select>
+				</div>
+
+				<div class="form-group mb-3">
+					<label :for="'relegation-' + index">Relegation</label>
+					<select class="form-control" name="relegation[]" :id="'relegation-' + index" v-model="division.RelegationDivisionID" required>
+						<option value="">-- Please Select --</option>
+						<option value="null">(none)</option>
+						{{#each divisions}}
+							<option value="{{id}}" v-if="division.id != {{id}}">{{Name}}</option>
+						{{/each}}
+					</select>
 				</div>
 
 				<div class="row row-cols-2 align-items-center mb-3">
 					<div class="col">Is Active?</div>
 					<div class="col">
 						<div class="btn-group" role="group" aria-label="Is Active?">
-							<input type="radio" value="1" class="btn-check" :name="'isActive[' + index + ']'"
-								:id="'isActive-' + index + '-y'" autocomplete="off" :checked="division.IsActive" />
+							<input type="radio" value="1" class="btn-check" :name="'isActive[' + index + ']'" :id="'isActive-' + index + '-y'" autocomplete="off" :checked="division.IsActive" />
 							<label class="btn btn-outline-success" :for="'isActive-' + index + '-y'">Yes</label>
 
-							<input type="radio" value="0" class="btn-check" :name="'isActive[' + index + ']'"
-								:id="'isActive-' + index + '-n'" autocomplete="off" :checked="!division.IsActive">
+							<input type="radio" value="0" class="btn-check" :name="'isActive[' + index + ']'" :id="'isActive-' + index + '-n'" autocomplete="off" :checked="!division.IsActive">
 							<label class="btn btn-outline-danger" :for="'isActive-' + index + '-n'">No</label>
 						</div>
 					</div>
@@ -54,6 +73,8 @@
 				id: --id,
 				Name: "",
 				IsActive: true,
+				PromotionDivisionID: null,
+				RelegationDivisionID: null
 			});
 		}
 	}
