@@ -3,6 +3,20 @@
 const express = require('express');
 const router = express.Router();
 
+const replaceMessageTokens = (msg, user, org) => {
+	const tokens = {
+		firstName: user.FirstName,
+		lastName: user.Surname,
+		bandName: org?.Name ?? 'your band'
+	};
+
+	for (const [k,v] of Object.entries(tokens)){
+		msg.replaceAll(`{${k}}`, v);
+	}
+
+	return msg;
+};
+
 router.get('/', async (req, res) => {
 	if (!req.session.user.IsAdmin) {
 		return res.redirect("/no-access");
@@ -31,7 +45,7 @@ router.post('/test', async (req, res) => {
 	const msg = await req.db.Message.create({
 		Sender: req.body.sender,
 		Subject: req.body.subject,
-		Body: req.body.message.replaceAll('{firstName}', req.session.user.FirstName).replaceAll('{lastName}', req.session.user.Surname).replaceAll('{bandName}', req.session.band?.Name ?? 'your band')
+		Body: replaceMessageTokens(req.body.message, req.session.user, req.session.band)
 	}, {
 		transaction: t
 	});
@@ -85,7 +99,7 @@ router.post('/send', async (req, res) => {
 				const msg = await req.db.Message.create({
 					Sender: req.body.sender,
 					Subject: req.body.subject,
-					Body: req.body.message.replaceAll('{firstName}', c.User.FirstName).replaceAll('{lastName}', c.User.Surname).replaceAll('{bandName}', member.OrganisationMembership?.Organisation?.Name ?? '')
+					Body: replaceMessageTokens(req.body.message, c.User, member.OrganisationMembership?.Organisation)
 				}, {
 					transaction: t
 				});
