@@ -37,7 +37,7 @@ router.post('/test', async (req, res) => {
 	});
 
 	await req.db.Recipient.create({
-		Name: `${req.session.user.FirstName} ${req.session.user.Surname}`,
+		Name: req.session.user.FullName,
 		EmailAddress: req.session.user.Email,
 		MessageId: msg.id
 	}, {
@@ -91,7 +91,7 @@ router.post('/send', async (req, res) => {
 				});
 
 				await req.db.Recipient.create({
-					Name: `${c.User.FirstName} ${c.User.Surname}`,
+					Name: c.User.FullName,
 					EmailAddress: c.User.Email,
 					MessageId: msg.id
 				}, {
