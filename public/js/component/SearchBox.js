@@ -28,7 +28,9 @@ Vue.component('search-box', {
 	</div>
 	`,
 	methods: {
-		doSearch() {
+		doSearch(e) {
+			this.$data._text = e.target.value; //mobile workaround
+
 			if (this.$data._text.length < 3) {
 				this.results = [];
 				this.noneFound = false;
@@ -52,6 +54,5 @@ Vue.component('search-box', {
 	mounted: function(){
 		this.$data._text = this.text;
 		this.$data._value = this.value;
-		console.log("Mounted");
 	}
 });
