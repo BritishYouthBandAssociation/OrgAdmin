@@ -1,13 +1,22 @@
 'use strict';
 
 const express = require('express');
+const Joi = require('joi');
 const router = express.Router();
+
+const validator = require('@byba/express-validator');
 
 const {
 	Op
 } = require('sequelize');
 
-router.get('/', async (req, res) => {
+const idParamSchema = Joi.object({
+	id: Joi.string()
+		.guid()
+		.required()
+});
+
+router.get('/', async (req, res, next) => {
 	if (!req.session.user.IsAdmin){
 		return res.redirect('/no-access');
 	}
@@ -33,7 +42,11 @@ router.get('/', async (req, res) => {
 	});
 });
 
-router.get('/new', (req, res) => {
+router.get('/new', validator.query(Joi.object({
+	orgID: Joi.number(),
+	email: Joi.string()
+		.email()
+})), (req, res, next) => {
 	if (!req.session.user.IsAdmin){
 		return res.redirect('/no-access');
 	}
@@ -51,13 +64,32 @@ router.get('/new', (req, res) => {
 	});
 });
 
-router.post('/new', async (req, res) => {
+router.post('/new', validator.body(Joi.object({
+	firstName: Joi.string()
+		.required(),
+	surname: Joi.string()
+		.required(),
+	email: Joi.string()
+		.email()
+		.required(),
+	password: Joi.string()
+		.required(),
+	confirm: Joi.ref('password'),
+	isActive: Joi.boolean()
+		.truthy('1')
+		.falsy('0')
+		.required(),
+	isAdmin: Joi.boolean()
+		.truthy('1')
+		.falsy('0')
+		.required(),
+}).with('password', 'confirm')), validator.query(Joi.object({
+	orgId: Joi.number(),
+	membership: Joi.number()
+})), async (req, res, next) => {
 	if (!req.session.user.IsAdmin){
 		return res.redirect('/no-access');
 	}
-
-	req.body.isActive = parseInt(req.body.isActive);
-	req.body.isAdmin = parseInt(req.body.isAdmin);
 
 	const match = await req.db.User.count({
 		where: {
@@ -66,12 +98,9 @@ router.post('/new', async (req, res) => {
 	});
 
 	let err = '';
+
 	if (match > 0){
 		err = 'A user with that email address already exists';
-	}
-
-	if (req.body.password !== req.body.confirm){
-		err = 'Passwords do not match';
 	}
 
 	if (err !== ''){
@@ -91,35 +120,36 @@ router.post('/new', async (req, res) => {
 		IsAdmin: req.body.isAdmin
 	});
 
-	if (req.query.orgID != null){
+	// redirect to other creation pages that depend on users
+	if (req.query.orgID){
 		return res.redirect(`/organisation/${req.query.orgID}/contacts/add/${req.body.email}`);
 	}
 
-	if (req.query.membership != null){
+	if (req.query.membership){
 		return res.redirect(`/membership/new?email=${req.body.email}&type=${req.query.membership}`);
 	}
 
 	return res.redirect(user.id);
 });
 
-router.post('/:id/password', async (req, res, next) => {
+router.post('/:id/password', validator.params(idParamSchema), validator.body(Joi.object({
+	password: Joi.string()
+		.required(),
+	confirm: Joi.ref('password')
+}).with('password', 'confirm')), async (req, res, next) => {
 	if (!req.session.user.IsAdmin && req.session.user.id !== req.params.id){
 		return res.redirect('/no-access');
 	}
 
 	const user = await req.db.User.findByPk(req.params.id);
 
-	if (user == null){
+	if (!user){
 		return next();
-	}
-
-	if (req.body.password !== req.body.confirm){
-		return res.redirect(`../${req.params.id}?nomatch=1`);
 	}
 
 	await req.db.User.update({
 		Password: req.body.password,
-		ForcePasswordReset: req.session.user.id != req.params.id
+		ForcePasswordReset: req.session.user.id !== req.params.id
 	}, {
 		where: { id: req.params.id },
 		individualHooks: true
@@ -128,7 +158,7 @@ router.post('/:id/password', async (req, res, next) => {
 	return res.redirect(`../${req.params.id}?saved=1`);
 });
 
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', validator.params(idParamSchema), async (req, res, next) => {
 	if (!req.session.user.IsAdmin && req.session.user.id !== req.params.id){
 		return res.redirect('/no-access');
 	}
@@ -137,7 +167,7 @@ router.get('/:id', async (req, res, next) => {
 		include: [req.db.Caption]
 	});
 
-	if (user == null){
+	if (!user){
 		return next();
 	}
 
@@ -150,20 +180,35 @@ router.get('/:id', async (req, res, next) => {
 	});
 });
 
-router.post('/:id', async (req, res, next) => {
-	if (!req.session.user.IsAdmin && req.session.user.id != req.params.id){
+router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
+	firstName: Joi.string()
+		.required(),
+	surname: Joi.string()
+		.required(),
+	email: Joi.string()
+		.email()
+		.required(),
+	isActive: Joi.boolean()
+		.truthy('1')
+		.falsy('0')
+		.required(),
+	isAdmin: Joi.boolean()
+		.truthy('1')
+		.falsy('0')
+		.required(),
+})), async (req, res, next) => {
+	if (!req.session.user.IsAdmin && req.session.user.id !== req.params.id){
 		return res.redirect('/no-access');
 	}
 
 	const user = await req.db.User.findByPk(req.params.id);
 
-	if (user == null){
+	if (!user){
 		return next();
 	}
 
 	await req.db.User.update({
 		Email: req.body.email,
-		Password: req.body.password,
 		FirstName: req.body.firstName,
 		Surname: req.body.surname,
 		IsActive: req.body.isActive,
@@ -172,7 +217,7 @@ router.post('/:id', async (req, res, next) => {
 		where: { id: req.params.id }
 	});
 
-	return res.redirect(`${req.params.id}?saved=1`);
+	return res.redirect('./?saved=1');
 });
 
 //this needs putting somewhere!
@@ -190,8 +235,10 @@ async function loadCaption(db, parent){
 	return parent;
 }
 
-router.get('/:id/captions', async (req, res, next) => {
-	if (!req.session.user.IsAdmin && req.session.user.id != req.params.id){
+router.get('/:id/captions', validator.params(idParamSchema), validator.query(Joi.object({
+	saved: Joi.boolean()
+})), async (req, res, next) => {
+	if (!req.session.user.IsAdmin && req.session.user.id !== req.params.id){
 		return res.redirect('/no-access');
 	}
 
@@ -199,7 +246,7 @@ router.get('/:id/captions', async (req, res, next) => {
 		include: [req.db.Caption]
 	});
 
-	if (user == null){
+	if (!user){
 		return next();
 	}
 
@@ -223,14 +270,17 @@ router.get('/:id/captions', async (req, res, next) => {
 	});
 });
 
-router.post('/:id/captions', async (req, res, next) => {
-	if (!req.session.user.IsAdmin && req.session.user.id != req.params.id){
+router.post('/:id/captions', validator.params(idParamSchema), validator.body(Joi.object({
+	caption: Joi.array()
+		.items(Joi.number())
+})), async (req, res, next) => {
+	if (!req.session.user.IsAdmin && req.session.user.id !== req.params.id){
 		return res.redirect('/no-access');
 	}
 
 	const user = await req.db.User.findByPk(req.params.id);
 
-	if (user == null){
+	if (!user){
 		return next();
 	}
 
@@ -248,6 +298,6 @@ router.post('/:id/captions', async (req, res, next) => {
 });
 
 module.exports = {
-	root: '/user/',
+	root: '/user',
 	router: router
 };
