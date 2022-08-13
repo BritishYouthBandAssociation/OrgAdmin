@@ -19,7 +19,7 @@
 					data-bs-target="#recipientModal" v-on:click="loadMembers">+ Add</button>
 
 				<div class="d-block">
-					<span class="badge bg-secondary fs-5 me-1" v-for="recipient in recipients">
+					<span class="badge bg-secondary fs-5 me-1 mb-1" v-for="recipient in recipients">
 						${recipient.DisplayName}
 
 						<span v-on:click="removeRecipient(recipient.MembershipID)">&times;</span>
@@ -52,8 +52,8 @@
 		</div>
 
 		<div class="text-center">
-			<button type="button" class="btn btn-success btn-lg mx-3" v-on:click="sendTest">Send Test Email</button>
-			<button type="button" class="btn btn-default btn-lg mx-3" v-on:click="sendLive">Send Live Email</button>
+			<button type="button" class="btn btn-success btn-lg mx-3 mb-3" v-on:click="sendTest">Send Test Email</button>
+			<button type="button" class="btn btn-default btn-lg mx-3 mb-3" v-on:click="sendLive">Send Live Email</button>
 		</div>
 	</form>
 
