@@ -14,6 +14,11 @@
   resolved "https://registry.yarnpkg.com/@byba/eslint-config/-/eslint-config-1.4.0.tgz#b0f6deaf5b80d003c546e5f5e2dccd208a7153f5"
   integrity sha512-72WuYHmfb+Zc71UL4kdhrD9Pa/JyTCsIbj/qP94r1zfORVAT1fAF1JvYy3F+dxI7qhYVCIHnu5uvzogZcz5Egg==
 
+"@byba/express-validator@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@byba/express-validator/-/express-validator-1.0.0.tgz#09d53e099fcff254052ea71b8cdc6c4ab2d7f0de"
+  integrity sha512-maS5V5RnpewrSkDA4ahou+2OyyhCD9YnOJpUD58h/1yQxCClnLgSsUv0IUjtU25ue4FY2SJ8OObVu5SJXvMhRA==
+
 "@eslint/eslintrc@^1.3.2":
   version "1.3.2"
   resolved "https://registry.yarnpkg.com/@eslint/eslintrc/-/eslintrc-1.3.2.tgz#58b69582f3b7271d8fa67fe5251767a5b38ea356"
