@@ -11,20 +11,20 @@
 				</div>
 				<div class='col form-group text-start mb-3'>
 					<label class='form-label' for='type'>Event Type</label>
-					<select id='type' class='form-control' name='type'>
-						<option disabled selected value> -- select a type -- </option>
+					<select id='type' class='form-control' name='type' required>
+						<option value="">-- Please Select --</option>
 						{{#each types}}
 							<option value='{{this.id}}'>{{this.Name}}</option>
 						{{/each}}
 					</select>
 				</div>
 			</div>
-			<div class='row row-cols-1 row-cols-lg-2 form mb-3'>
+			<div class='row row-cols-1 row-cols-lg-2 mb-3'>
 				<div class='col form-group mb-3'>
 					<label class='form-label' for='start'>Start</label>
 					<input type='datetime-local' class='form-control' id='start' name='start' required \>
 				</div>
-				<div class='col form-group mb-3'>
+				<div class='col form-group'>
 					<label class='form-label' for='end'>End Time</label>
 					<input type='datetime-local' class='form-control' id='end' name='end' required \>
 				</div>
