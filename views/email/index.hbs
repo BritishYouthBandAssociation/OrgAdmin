@@ -8,6 +8,8 @@
 <div class="alert alert-danger text-center">An error occurred. Please try again</div>
 {{/if}}
 
+<div class="alert alert-warning text-center d-lg-none">This page is intended for use on desktop devices and might not play well with mobile devices - <strong>use at your own peril!</strong></div>
+
 <div id="app">
 	<form method="post" id="emailForm">
 		<div class="card mb-3">
@@ -127,9 +129,10 @@
 
 	tinymce.init({
 		selector: '#message',
-		plugins: 'autolink lists advlist link preview code wordcount quickbars',
+		plugins: 'autolink lists advlist link preview code wordcount',
 		toolbar_mode: 'floating',
 		menubar: 'file edit view insert tools format custom',
+		contextmenu: 'link lists table',
 		menu: {
 			custom: {
 				title: 'Add Data Field',
