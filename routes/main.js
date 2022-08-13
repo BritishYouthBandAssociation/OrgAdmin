@@ -8,7 +8,7 @@ const router = express.Router();
 const lib = require(__lib);
 
 // Set up default route to check server is running
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
 	//single equals to include undefined
 	if (req.session.user != null) {
 		return res.redirect('home');
@@ -55,14 +55,14 @@ router.post('/', async (req, res) => {
 	});
 });
 
-router.get('/home', (req, res) => {
+router.get('/home', (req, res, next) => {
 	return res.render('index', {
 		title: 'Home',
 		name: req.session.user.FirstName
 	});
 });
 
-router.get('/logout', (req, res) => {
+router.get('/logout', (req, res, next) => {
 	req.session.destroy();
 	return res.redirect('/');
 });
@@ -81,7 +81,7 @@ router.post('/change-band', (req, res, next) => {
 	return res.redirect('back');
 });
 
-router.all('/no-access', (req, res) => {
+router.all('/no-access', (req, res, next) => {
 	return res.render('no-access.hbs', {
 		title: 'No Access',
 		previousPage: req.query.page ?? ''
