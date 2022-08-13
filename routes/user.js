@@ -24,7 +24,8 @@ router.get('/', async (req, res) => {
 	return res.render('user/index.hbs', {
 		title: 'Users',
 		active: active,
-		inactive: inactive
+		inactive: inactive,
+		total: users.length
 	});
 });
 
