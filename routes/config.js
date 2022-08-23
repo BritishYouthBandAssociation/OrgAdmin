@@ -212,6 +212,48 @@ router.get('/caption', checkAdmin, (req, res) => {
 	});
 });
 
+async function saveCaption(db, caption, parent) {
+	if (caption.id < 0){
+		const _new = await db.create({
+			Name: caption.name,
+			MaxScore: caption.maxScore,
+			Multiplier: caption.multiplier,
+			IsOptional: caption.isOptional,
+			ParentID: parent
+		});
+
+		caption.id = _new.id;
+	} else {
+		await db.update({
+			Name: caption.name,
+			MaxScore: caption.maxScore,
+			Multiplier: caption.multiplier,
+			IsOptional: caption.isOptional,
+			ParentID: parent
+		}, {
+			where: {
+				id: caption.id
+			}
+		});
+	}
+
+	if (caption.subcaptions.length > 0) {
+		await Promise.all(caption.subcaptions.map(c => {
+			return saveCaption(db, c, caption.id);
+		}));
+	}
+}
+
+router.post('/caption', checkAdmin, async (req, res) => {
+	const data = JSON.parse(req.body.caption);
+
+	await Promise.all(data.map(c => {
+		return saveCaption(req.db.Caption, c, null);
+	}));
+
+	return res.redirect('?success=1');
+});
+
 module.exports = {
 	root: '/config/',
 	router: router

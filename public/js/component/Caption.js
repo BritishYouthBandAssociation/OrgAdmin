@@ -18,6 +18,11 @@ Vue.component('caption-selector', {
 			</div>
 
 			<div class="form-group mb-3">
+				<label :for="'multiplier-' + caption.id">Multiplier</label>
+				<input type="number" class="form-control" :id="'multiplier-' + caption.id" v-model="caption.multiplier" step="0.01"/>
+			</div>
+
+			<div class="form-group mb-3">
 				<label :for="'optional-' + caption.id">Is Optional?</label>
 				<div class="btn-group" role="group" aria-label="Is Optional?">
 					<input type="radio" value="true" class="btn-check" :name="'optional-' + caption.id" :id="'optional-y-' + caption.id" autocomplete="off" v-model="caption.isOptional">
@@ -43,6 +48,7 @@ Vue.component('caption-selector', {
 				name: '',
 				isOptional: false,
 				maxScore: 0,
+				multiplier: 1.0,
 				subcaptions: []
 			});
 		}
