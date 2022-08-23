@@ -19,17 +19,17 @@
 		delimiters: ['${', '}'],
 		el: '#app',
 		data: {
-			captions: []
+			captions: {{{ json captions }}}
 		},
 		methods: {
 			addCaption: function () {
 				this.captions.push({
 					id: --id,
-					name: '',
-					isOptional: false,
-					maxScore: 0,
-					multiplier: 1.0,
-					subcaptions: []
+					Name: '',
+					IsOptional: false,
+					MaxScore: 0,
+					Multiplier: 1.0,
+					Subcaptions: []
 				});
 			}
 		}
