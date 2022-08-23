@@ -1,0 +1,34 @@
+<h2>Captions</h2>
+
+<div id="app">
+	<form method="post">
+		<button type="button" class="btn btn-default mb-3" v-on:click="addCaption">+ Add</button>
+		<caption-selector v-for="(caption, i) in captions" :key="caption.id" :caption="caption"></caption-selector>
+
+		<button type="submit" class="btn btn-success mt-3" v-if="captions.length > 0">Save</button>
+		<input type="hidden" id="caption" name="caption" :value="JSON.stringify(captions)" />
+	</form>
+</div>
+
+<script src="/js/vue.js"></script>
+<script src="/js/component/Caption.js"></script>
+<script>
+	let id = 0;
+
+	const app = new Vue({
+		delimiters: ['${', '}'],
+		el: '#app',
+		data: {
+			captions: []
+		},
+		methods: {
+			addCaption: function () {
+				this.captions.push({
+					id: --id,
+					name: '',
+					subcaptions: []
+				});
+			}
+		}
+	});
+</script>
