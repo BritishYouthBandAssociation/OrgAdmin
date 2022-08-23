@@ -1,5 +1,9 @@
 <h2>Captions</h2>
 
+{{#if success}}
+<div class="alert alert-success text-center">Captions successfully saved</div>
+{{/if}}
+
 <div id="app">
 	<form method="post">
 		<button type="button" class="btn btn-default mb-3" v-on:click="addCaption">+ Add</button>
