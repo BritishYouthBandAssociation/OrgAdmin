@@ -1,0 +1,17 @@
+<h2>{{user.FullName}}'s Captions</h2>
+<p><a href="./">&lt; back to {{user.FullName}}</a></p>
+
+<div id="app">
+	<hierarchical-checkbox :items="captions" text-prop="Name" data-prop="id" child-prop="Subcaptions"></hierarchical-checkbox>
+</div>
+
+<script src="/js/vue.js"></script>
+<script src="/js/component/HierarchicalCheckbox.js"></script>
+<script>
+	const app = new Vue({
+		el: '#app',
+		data: {
+			captions: {{{json captions}}}
+		}
+	});
+</script>
