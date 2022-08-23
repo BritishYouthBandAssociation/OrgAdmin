@@ -206,39 +206,65 @@ router.post('/division', checkAdmin, async (req, res) => {
 	return res.redirect('?saved=true');
 });
 
-router.get('/caption', checkAdmin, (req, res) => {
+async function loadCaption(db, parent){
+	console.log(`Seearching for children of ${parent.id}`);
+	parent.Subcaptions = await db.findAll({
+		where: {
+			ParentID: parent.id
+		}
+	});
+
+	await Promise.all(parent.Subcaptions.map(s => {
+		return loadCaption(db, s);
+	}));
+
+	return parent;
+}
+
+router.get('/caption', checkAdmin, async (req, res) => {
+	//load top level
+	const captions = await req.db.Caption.findAll({
+		where: {
+			ParentID: null
+		}
+	});
+
+	//load the rest
+	await Promise.all(captions.map(c => {
+		return loadCaption(req.db.Caption, c);
+	}));
+
+	console.log(captions);
+
 	return res.render('config/caption.hbs', {
-		title: 'Captions'
+		title: 'Captions',
+		captions: captions
 	});
 });
 
 async function saveCaption(db, caption, parent) {
+	const details = {
+		Name: caption.Name,
+		MaxScore: caption.MaxScore,
+		Multiplier: caption.Multiplier,
+		IsOptional: caption.IsOptional,
+		ParentID: parent
+	};
+
 	if (caption.id < 0){
-		const _new = await db.create({
-			Name: caption.name,
-			MaxScore: caption.maxScore,
-			Multiplier: caption.multiplier,
-			IsOptional: caption.isOptional,
-			ParentID: parent
-		});
+		const _new = await db.create(details);
 
 		caption.id = _new.id;
 	} else {
-		await db.update({
-			Name: caption.name,
-			MaxScore: caption.maxScore,
-			Multiplier: caption.multiplier,
-			IsOptional: caption.isOptional,
-			ParentID: parent
-		}, {
+		await db.update(details, {
 			where: {
 				id: caption.id
 			}
 		});
 	}
 
-	if (caption.subcaptions.length > 0) {
-		await Promise.all(caption.subcaptions.map(c => {
+	if (caption.Subcaptions.length > 0) {
+		await Promise.all(caption.Subcaptions.map(c => {
 			return saveCaption(db, c, caption.id);
 		}));
 	}
