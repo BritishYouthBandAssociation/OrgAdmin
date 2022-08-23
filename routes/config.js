@@ -5,7 +5,7 @@ const router = express.Router();
 
 const checkAdmin = (req, res, next) => {
 	if (!req.session.user.IsAdmin) {
-		return res.redirect("/no-access");
+		return res.redirect('/no-access');
 	}
 
 	next();
@@ -77,7 +77,7 @@ router.post('/membership-type', checkAdmin, async (req, res) => {
 		}
 	}
 
-	return res.redirect("?saved=1");
+	return res.redirect('?saved=1');
 });
 
 router.get('/organisation-type', checkAdmin, async (req, res) => {
@@ -108,7 +108,7 @@ router.post('/organisation-type', checkAdmin, async (req, res) => {
 		});
 	}));
 
-	return res.redirect("?saved=1");
+	return res.redirect('?saved=1');
 });
 
 router.get('/event-type', checkAdmin, async (req, res) => {
@@ -139,7 +139,7 @@ router.post('/event-type', checkAdmin, async (req, res) => {
 		});
 	}));
 
-	return res.redirect("?saved=1");
+	return res.redirect('?saved=1');
 });
 
 router.get('/payment-type', checkAdmin, async (req, res) => {
@@ -170,7 +170,7 @@ router.post('/payment-type', checkAdmin, async (req, res) => {
 		});
 	}));
 
-	return res.redirect("?saved=1");
+	return res.redirect('?saved=1');
 });
 
 router.get('/division', checkAdmin, async (req, res) => {
@@ -188,8 +188,8 @@ router.post('/division', checkAdmin, async (req, res) => {
 		const details = {
 			Name: req.body.division[i],
 			IsActive: req.body.isActive[i],
-			PromotionDivisionID: req.body.promotion[i] === "null" ? null : req.body.promotion[i],
-			RelegationDivisionID: req.body.relegation[i] === "null" ? null : req.body.relegation[i]
+			PromotionDivisionID: req.body.promotion[i] === 'null' ? null : req.body.promotion[i],
+			RelegationDivisionID: req.body.relegation[i] === 'null' ? null : req.body.relegation[i]
 		};
 
 		if (req.body.id[i] < 0) {
@@ -204,6 +204,12 @@ router.post('/division', checkAdmin, async (req, res) => {
 	}));
 
 	return res.redirect('?saved=true');
+});
+
+router.get('/caption', checkAdmin, (req, res) => {
+	return res.render('config/caption.hbs', {
+		title: 'Captions'
+	});
 });
 
 module.exports = {
