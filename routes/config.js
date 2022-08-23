@@ -207,7 +207,6 @@ router.post('/division', checkAdmin, async (req, res) => {
 });
 
 async function loadCaption(db, parent){
-	console.log(`Seearching for children of ${parent.id}`);
 	parent.Subcaptions = await db.findAll({
 		where: {
 			ParentID: parent.id
@@ -234,11 +233,10 @@ router.get('/caption', checkAdmin, async (req, res) => {
 		return loadCaption(req.db.Caption, c);
 	}));
 
-	console.log(captions);
-
 	return res.render('config/caption.hbs', {
 		title: 'Captions',
-		captions: captions
+		captions: captions,
+		success: req.query.success ?? false
 	});
 });
 
