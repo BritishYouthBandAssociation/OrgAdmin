@@ -7,10 +7,10 @@ Vue.component('hierarchical-checkbox', {
 	<ul style="list-style: none" class="mb-3" v-if="items.length > 0">
 		<li v-for="(item, index) in items" :key="item.id">
 			<label :for="name + '-' + item[dataProp]">
-				<input type="checkbox" :id="name + '-' + item[dataProp]" :name="name" v-model="item.checked" :value="item[dataProp]" v-on:click="checkChildren(!item.checked, index)"/>
+				<input type="checkbox" :id="name + '-' + item[dataProp]" :name="name + '[]'" v-model="item.checked" :value="item[dataProp]" v-on:click="checkChildren(!item.checked, index)"/>
 				{{item[textProp]}} 
 			</label>
-			<hierarchical-checkbox ref="theChild" :items="item[childProp]" :text-prop="textProp" :data-prop="dataProp" :child-prop="childProp"></hierarchical-checkbox>
+			<hierarchical-checkbox ref="theChild" :items="item[childProp]" :text-prop="textProp" :data-prop="dataProp" :child-prop="childProp" :name="name"></hierarchical-checkbox>
 		</li>
 	</ul>
 	`,
