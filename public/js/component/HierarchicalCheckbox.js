@@ -2,15 +2,15 @@
 /*global Vue*/
 
 Vue.component('hierarchical-checkbox', {
-	props: ['items', 'textProp', 'dataProp', 'childProp', 'name'],
+	props: ['items', 'textProp', 'dataProp', 'childProp', 'name', 'hideEmpty'],
 	template: `
-	<ul style="list-style: none" class="mb-3" v-if="items.length > 0">
-		<li v-for="(item, index) in items" :key="item.id">
+	<ul style="list-style: none" class="mb-3">
+		<li v-for="(item, index) in items" :key="item.id" v-if="!hideEmpty || item[childProp].length > 0">
 			<label :for="name + '-' + item[dataProp]">
 				<input type="checkbox" :id="name + '-' + item[dataProp]" :name="name + '[]'" v-model="item.checked" :value="item[dataProp]" v-on:click="checkChildren(!item.checked, index)"/>
 				{{item[textProp]}} 
 			</label>
-			<hierarchical-checkbox ref="theChild" :items="item[childProp]" :text-prop="textProp" :data-prop="dataProp" :child-prop="childProp" :name="name"></hierarchical-checkbox>
+			<hierarchical-checkbox ref="theChild" :items="item[childProp]" :text-prop="textProp" :data-prop="dataProp" :child-prop="childProp" :name="name" :hide-empty="hideEmpty"></hierarchical-checkbox>
 		</li>
 	</ul>
 	`,

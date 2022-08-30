@@ -132,7 +132,9 @@ router.get('/:id', async (req, res, next) => {
 		return res.redirect('/no-access');
 	}
 
-	const user = await req.db.User.findByPk(req.params.id);
+	const user = await req.db.User.findByPk(req.params.id, {
+		include: [req.db.Caption]
+	});
 
 	if (user == null){
 		return next();
@@ -198,8 +200,6 @@ router.get('/:id/captions', async (req, res, next) => {
 	if (user == null){
 		return next();
 	}
-
-	console.log(user);
 
 	//load top level
 	const captions = await req.db.Caption.findAll({
