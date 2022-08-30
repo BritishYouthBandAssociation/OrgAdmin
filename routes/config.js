@@ -12,7 +12,7 @@ const checkAdmin = (req, res, next) => {
 };
 
 router.get('/', checkAdmin, (req, res) => {
-	const sections = ['Membership Type', 'Organisation Type', 'Event Type', 'Payment Type', 'Division'];
+	const sections = ['Membership Type', 'Organisation Type', 'Event Type', 'Payment Type', 'Division', 'Caption'];
 
 	return res.render('config/index.hbs', {
 		title: 'Configuration',
