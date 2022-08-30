@@ -1,17 +1,37 @@
 <h2>{{user.FullName}}'s Captions</h2>
 <p><a href="./">&lt; back to {{user.FullName}}</a></p>
 
+{{#if saved}}
+<div class="alert alert-success text-center">Captions successfully saved</div>
+{{/if}}
+
 <div id="app">
-	<hierarchical-checkbox :items="captions" text-prop="Name" data-prop="id" child-prop="Subcaptions"></hierarchical-checkbox>
+	<form method="post">
+		<hierarchical-checkbox name="caption" :items="captions" text-prop="Name" data-prop="id" child-prop="Subcaptions"></hierarchical-checkbox>
+
+		<button type="submit" class="btn btn-success mt-3">Save</button>
+	</form>
 </div>
 
 <script src="/js/vue.js"></script>
 <script src="/js/component/HierarchicalCheckbox.js"></script>
 <script>
+	const checked = {{{ json user.Captions }}};
+
+
 	const app = new Vue({
 		el: '#app',
 		data: {
-			captions: {{{json captions}}}
+			captions: {{{ json captions }}}
+		},
+		mounted: function(){
+			this.captions.forEach(c => checkCaption(c));
 		}
 	});
+
+	function checkCaption(cap){
+		Vue.set(cap, 'checked', !!checked.find(x => x.id === cap.id));
+
+		cap.Subcaptions.forEach(sub => checkCaption(sub));
+	}
 </script>

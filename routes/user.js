@@ -3,6 +3,10 @@
 const express = require('express');
 const router = express.Router();
 
+const {
+	Op
+} = require('sequelize');
+
 router.get('/', async (req, res) => {
 	if (!req.session.user.IsAdmin){
 		return res.redirect('/no-access');
@@ -187,11 +191,15 @@ router.get('/:id/captions', async (req, res, next) => {
 		return res.redirect('/no-access');
 	}
 
-	const user = await req.db.User.findByPk(req.params.id);
+	const user = await req.db.User.findByPk(req.params.id, {
+		include: [req.db.Caption]
+	});
 
 	if (user == null){
 		return next();
 	}
+
+	console.log(user);
 
 	//load top level
 	const captions = await req.db.Caption.findAll({
@@ -208,8 +216,33 @@ router.get('/:id/captions', async (req, res, next) => {
 	return res.render('user/captions.hbs', {
 		title: `${user.FullName}'s Captions`,
 		user: user,
-		captions: captions
+		captions: captions,
+		saved: req.query.saved ?? false
 	});
+});
+
+router.post('/:id/captions', async (req, res, next) => {
+	if (!req.session.user.IsAdmin && req.session.user.id != req.params.id){
+		return res.redirect('/no-access');
+	}
+
+	const user = await req.db.User.findByPk(req.params.id);
+
+	if (user == null){
+		return next();
+	}
+
+	const data = await req.db.Caption.findAll({
+		where: {
+			id: {
+				[Op.in]: req.body.caption
+			}
+		}
+	});
+
+	await user.setCaptions(data);
+
+	res.redirect('?saved=1');
 });
 
 module.exports = {
