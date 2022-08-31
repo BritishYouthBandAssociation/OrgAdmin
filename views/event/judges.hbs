@@ -1,0 +1,51 @@
+<h2>Judges</h2>
+<p><a href="./">&lt; back to {{event.Name}}</a></p>
+
+{{#if success}}
+	<div class="alert alert-success text-center">Changes saved successfully</div>
+{{/if}}
+
+<button type="button" class="btn btn-warning mb-3" id="useDefault">Use Default Captions</button>
+<form method="post" action="reset" id="reset">
+</form>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 text-center">
+	{{#each event.Captions}}
+		<div class="col mb-3">
+			<div class="card h-100">
+				<div class="card-body">
+					<h3>{{Name}}</h3>
+
+				</div>
+				<div class="card-footer">
+					<form method="post" action="remove">
+						<button type="submit" class="btn btn-danger" name="caption" value="{{id}}">Remove</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	{{/each}}
+</div>
+
+<script src="/js/swal2.js"></script>
+<script>
+	document.getElementById("useDefault").addEventListener("click", () => {
+		Swal.fire({
+			icon: 'question',
+			title: 'ARE YOU SURE?',
+			text: 'Are you sure you wish to reset this event to use the default captions? Any added captions and judges will be removed and replaced.',
+			showCancelButton: true,
+			customClass: {
+				confirmButton: 'btn btn-lg btn-success mx-3',
+				cancelButton: 'btn btn-lg btn-danger mx-3'
+			},
+			buttonsStyling: false,
+			reverseButtons: true,
+			confirmButtonText: 'Yes, reset to default captions'
+		}).then(res => {
+			if (res.isConfirmed) {
+				document.getElementById("reset").submit();
+			}
+		})
+	});
+</script>
