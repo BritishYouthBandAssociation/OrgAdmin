@@ -97,7 +97,8 @@ router.get('/:id', async (req, res, next) => {
 		req.db.Event.findByPk(req.params.id, {
 			include: [
 				req.db.Address,
-				req.db.EventType
+				req.db.EventType,
+				req.db.Caption
 			]
 		}),
 		req.db.EventType.findAll({
@@ -204,22 +205,6 @@ router.post('/:id/registration', async (req, res, next) => {
 	return res.redirect(`/event/${req.params.id}?saved=1`);
 });
 
-router.get('/:id/judges', async (req, res, next) => {
-	const event = await req.db.Event.findByPk(req.params.id, {
-		include: [req.db.Caption]
-	});
-
-	if (!event) {
-		return next();
-	}
-
-	res.render('event/judges.hbs', {
-		title: `Judges for ${event.Name}`,
-		event: event,
-		success: req.query.success ?? false
-	});
-});
-
 async function loadCaption(db, parent){
 	parent.Subcaptions = await db.findAll({
 		where: {
@@ -248,6 +233,58 @@ function filterCaptions(arr, caption){
 	return arr;
 }
 
+router.get('/:id/judges', async (req, res, next) => {
+	const event = await req.db.Event.findByPk(req.params.id, {
+		include: [req.db.Caption]
+	});
+
+	if (!event) {
+		return next();
+	}
+
+	if (req.query.add && !event.Captions.some(c => c.id === req.query.add)){
+		const cap = await req.db.Caption.findByPk(req.query.add);
+		event.addCaption(cap);
+
+		return res.redirect('?success=true');
+	}
+
+	//load top level
+	const captionData = await req.db.Caption.findAll({
+		where: {
+			ParentID: null
+		}
+	});
+
+	//load the rest
+	await Promise.all(captionData.map(c => {
+		return loadCaption(req.db.Caption, c);
+	}));
+
+	let captions = [];
+	captionData.forEach(c => filterCaptions(captions, c));
+	captions = captions.filter(c => !event.Captions.some(cap => cap.id === c.id));
+
+	res.render('event/judges.hbs', {
+		title: `Judges for ${event.Name}`,
+		event: event,
+		captions: captions,
+		success: req.query.success ?? false
+	});
+});
+
+router.post('/:id/judges/remove', async (req, res, next) => {
+	const [event, caption] = await Promise.all([req.db.Event.findByPk(req.params.id), req.db.Caption.findByPk(req.body.caption)]);
+
+	if (!event || !caption){
+		return next();
+	}
+
+	event.removeCaption(caption);
+
+	res.redirect('./?success=true');
+});
+
 router.post('/:id/judges/reset', async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id);
 	if (!event) {
@@ -271,7 +308,7 @@ router.post('/:id/judges/reset', async (req, res, next) => {
 
 	event.setCaptions(captions);
 
-	res.redirect('../judges/?success=true');
+	res.redirect('./?success=true');
 });
 
 module.exports = {
