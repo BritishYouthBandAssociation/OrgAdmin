@@ -204,6 +204,76 @@ router.post('/:id/registration', async (req, res, next) => {
 	return res.redirect(`/event/${req.params.id}?saved=1`);
 });
 
+router.get('/:id/judges', async (req, res, next) => {
+	const event = await req.db.Event.findByPk(req.params.id, {
+		include: [req.db.Caption]
+	});
+
+	if (!event) {
+		return next();
+	}
+
+	res.render('event/judges.hbs', {
+		title: `Judges for ${event.Name}`,
+		event: event,
+		success: req.query.success ?? false
+	});
+});
+
+async function loadCaption(db, parent){
+	parent.Subcaptions = await db.findAll({
+		where: {
+			ParentID: parent.id
+		}
+	});
+
+	await Promise.all(parent.Subcaptions.map(s => {
+		return loadCaption(db, s);
+	}));
+
+	return parent;
+}
+
+function filterCaptions(arr, caption){
+	if (caption.Subcaptions.length > 0 && caption.Subcaptions[0].Subcaptions.length === 0){
+		//we have found our weird mid-level!
+		arr.push(caption);
+		return arr;
+	}
+
+	caption.Subcaptions.forEach(c => {
+		arr = filterCaptions(arr, c);
+	});
+
+	return arr;
+}
+
+router.post('/:id/judges/reset', async (req, res, next) => {
+	const event = await req.db.Event.findByPk(req.params.id);
+	if (!event) {
+		return next();
+	}
+
+	//load top level
+	const captionData = await req.db.Caption.findAll({
+		where: {
+			ParentID: null
+		}
+	});
+
+	//load the rest
+	await Promise.all(captionData.map(c => {
+		return loadCaption(req.db.Caption, c);
+	}));
+
+	const captions = [];
+	captionData.forEach(c => filterCaptions(captions, c));
+
+	event.setCaptions(captions);
+
+	res.redirect('../judges/?success=true');
+});
+
 module.exports = {
 	root: '/event',
 	router: router
