@@ -98,7 +98,7 @@ async function main() {
 	//prevent unauthorised access
 	app.use(async (req, res, next) => {
 		//allow css/js files
-		if (req.path.slice(req.path.length - 4) === ".css" || req.path.slice(req.path.length - 3) === ".js") {
+		if (req.path.slice(req.path.length - 4) === '.css' || req.path.slice(req.path.length - 3) === '.js') {
 			return next();
 		}
 
@@ -127,12 +127,12 @@ async function main() {
 				}
 			});
 
-			if (!req.session.user.bands.some(b => b.id === req.session.band?.id)){
+			if (!req.session.user.bands.some(b => b.id === req.session.band?.id)) {
 				req.session.band = null;
 			}
 
-			if (!req.session.band){
-				if (req.session.user.bands.length > 0){
+			if (!req.session.band) {
+				if (req.session.user.bands.length > 0) {
 					req.session.band = req.session.user.bands[0];
 				}
 			}

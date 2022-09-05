@@ -3,7 +3,6 @@
 /* global __lib */
 
 const express = require('express');
-const { cls } = require('sequelize');
 const router = express.Router();
 
 const {helpers: {ValidationHelper, SlugHelper: {formatSlug}}} = require(__lib);

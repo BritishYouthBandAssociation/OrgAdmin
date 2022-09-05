@@ -55,8 +55,6 @@ Vue.component('caption-selector', {
 	},
 	computed: {
 		maxScore: function() {
-			const score = 0;
-
 			if (this.caption.Subcaptions.length > 0) {
 				this.caption.MaxScore = this.caption.Subcaptions.reduce((acc, cap) => {
 					return acc + parseInt(cap.MaxScore);

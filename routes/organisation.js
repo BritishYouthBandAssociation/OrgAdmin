@@ -7,7 +7,7 @@ const router = express.Router();
 //list orgs
 router.get('/', async (req, res) => {
 	if (!req.session.user.IsAdmin) {
-		return res.redirect("/no-access");
+		return res.redirect('/no-access');
 	}
 
 	const orgs = await req.db.Organisation.findAll({
@@ -23,13 +23,13 @@ router.get('/', async (req, res) => {
 //add org
 router.get('/new', async (req, res) => {
 	if (!req.session.user.IsAdmin) {
-		return res.redirect("/no-access");
+		return res.redirect('/no-access');
 	}
 
 	const types = await req.db.OrganisationType.findAll();
 
 	return res.render('organisation/add.hbs', {
-		title: "Add New Organisation",
+		title: 'Add New Organisation',
 		types: types,
 		organisation: {}
 	});
@@ -37,7 +37,7 @@ router.get('/new', async (req, res) => {
 
 router.post('/new', async (req, res) => {
 	if (!req.session.user.IsAdmin) {
-		return res.redirect("/no-access");
+		return res.redirect('/no-access');
 	}
 
 	const org = await req.db.Organisation.create({
@@ -65,7 +65,7 @@ router.post('/new', async (req, res) => {
 //show org
 router.get('/:orgID', async (req, res, next) => {
 	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
-		return res.redirect("/no-access");
+		return res.redirect('/no-access');
 	}
 
 	const [ org, types ] = await Promise.all([
@@ -96,7 +96,7 @@ router.get('/:orgID', async (req, res, next) => {
 
 router.post('/:orgID', async (req, res, next) => {
 	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
-		return res.redirect("/no-access");
+		return res.redirect('/no-access');
 	}
 
 	const org = await req.db.Organisation.findByPk(req.params.orgID);
@@ -127,13 +127,13 @@ router.post('/:orgID', async (req, res, next) => {
 		console.error(e);
 	}
 
-	return res.redirect("?saved=1");
+	return res.redirect('?saved=1');
 });
 
 //org contacts
 router.get('/:orgID/contacts', async (req, res, next) => {
 	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
-		return res.redirect("/no-access");
+		return res.redirect('/no-access');
 	}
 
 	const org = await req.db.Organisation.findByPk(req.params.orgID, {
@@ -149,7 +149,7 @@ router.get('/:orgID/contacts', async (req, res, next) => {
 		return next();
 	}
 
-	return res.render("organisation/contacts.hbs", {
+	return res.render('organisation/contacts.hbs', {
 		title: `${org.Name} Contact Management`,
 		organisation: org,
 		contacts: contacts,
@@ -162,7 +162,7 @@ router.get('/:orgID/contacts', async (req, res, next) => {
 //add contact
 router.get('/:orgID/contacts/add', (req, res, next) => {
 	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
-		return res.redirect("/no-access");
+		return res.redirect('/no-access');
 	}
 
 	if (req.query.email == null) {
@@ -174,7 +174,7 @@ router.get('/:orgID/contacts/add', (req, res, next) => {
 
 router.get('/:orgID/contacts/add/:email', async (req, res, next) => {
 	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
-		return res.redirect("/no-access");
+		return res.redirect('/no-access');
 	}
 
 	const org = await req.db.Organisation.findByPk(req.params.orgID, {
@@ -199,7 +199,7 @@ router.get('/:orgID/contacts/add/:email', async (req, res, next) => {
 
 router.post('/:orgID/contacts/add/:email', async (req, res, next) => {
 	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
-		return res.redirect("/no-access");
+		return res.redirect('/no-access');
 	}
 
 	const org = await req.db.Organisation.findByPk(req.params.orgID);
@@ -220,7 +220,7 @@ router.post('/:orgID/contacts/add/:email', async (req, res, next) => {
 	}) > 0;
 
 	if (exists){
-		return res.redirect("?exists=1");
+		return res.redirect('?exists=1');
 	}
 
 	const contact = await req.db.OrganisationUser.build();
@@ -228,13 +228,13 @@ router.post('/:orgID/contacts/add/:email', async (req, res, next) => {
 	await contact.setUser(user.id);
 	await contact.save();
 
-	res.redirect("../../contacts?added=1");
+	res.redirect('../../contacts?added=1');
 });
 
 //remove contact
 router.get('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
 	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
-		return res.redirect("/no-access");
+		return res.redirect('/no-access');
 	}
 
 	const contact = await req.db.OrganisationUser.findByPk(req.params.contactID, {
@@ -245,7 +245,7 @@ router.get('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
 		return next();
 	}
 
-	return res.render("organisation/remove-contact.hbs", {
+	return res.render('organisation/remove-contact.hbs', {
 		title: `Remove ${contact.Organisation.Name} Contact`,
 		organisation: contact.Organisation,
 		contact: contact.User
@@ -254,7 +254,7 @@ router.get('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
 
 router.post('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
 	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
-		return res.redirect("/no-access");
+		return res.redirect('/no-access');
 	}
 
 	const contact = await req.db.OrganisationUser.findByPk(req.params.contactID, {
@@ -267,7 +267,7 @@ router.post('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
 
 	await contact.destroy();
 
-	res.redirect("../../contacts?removed=1");
+	res.redirect('../../contacts?removed=1');
 });
 
 module.exports = {
