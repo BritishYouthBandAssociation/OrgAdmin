@@ -3,6 +3,8 @@
 const express = require('express');
 const router = express.Router();
 
+const { Op } = require('sequelize');
+
 router.get('/organisation', async (req, res) => {
 	const where = {};
 	const include = new Set();
@@ -70,6 +72,35 @@ router.get('/membership/:season', async (req, res) => {
 	});
 
 	res.json(members);
+});
+
+router.get('/caption/:id/judges/search', async (req, res, next) => {
+	const caption = await req.db.Caption.findByPk(req.params.id);
+
+	if (!caption){
+		return next();
+	}
+
+	const judges = await req.db.User.findAll({
+		include: [{
+			model: req.db.Caption,
+			where: {
+				id: caption.id
+			}
+		}],
+		where: {
+			[Op.or]: {
+				FirstName: {
+					[Op.like]: `%${req.query.q}%`
+				},
+				Surname: {
+					[Op.like]: `%${req.query.q}%`
+				}
+			}
+		}
+	});
+
+	res.json(judges);
 });
 
 module.exports = {

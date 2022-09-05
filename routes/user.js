@@ -235,7 +235,7 @@ router.post('/:id/captions', async (req, res, next) => {
 	const data = await req.db.Caption.findAll({
 		where: {
 			id: {
-				[Op.in]: req.body.caption
+				[Op.in]: req.body.caption ?? []
 			}
 		}
 	});
