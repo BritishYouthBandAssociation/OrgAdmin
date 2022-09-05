@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
 	if (!req.session.user.IsAdmin) {
-		return res.redirect("/no-access");
+		return res.redirect('/no-access');
 	}
 
 	const memberships = await req.db.Membership.findAll({
@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
 	});
 
 	return res.render('membership/index.hbs', {
-		title: "Membership",
+		title: 'Membership',
 		seasons: [2022],
 		season: 2022,
 		membership: memberships,
@@ -53,10 +53,10 @@ router.get('/new', async (req, res) => {
 	}
 
 	res.render('membership/add.hbs', {
-		title: "Add Membership",
+		title: 'Add Membership',
 		types: types,
-		type: req.query.type ?? "",
-		email: req.query.email ?? "",
+		type: req.query.type ?? '',
+		email: req.query.email ?? '',
 		member: member
 	});
 });
@@ -69,7 +69,7 @@ router.post('/new', async (req, res) => {
 	});
 
 	if (type == null) {
-		return res.redirect("");
+		return res.redirect('');
 	}
 
 	if (type.IsOrganisation) {
@@ -189,14 +189,14 @@ router.get('/:id', async (req, res, next) => {
 	if (!req.session.user.IsAdmin) {
 		if (membership.MembershipType.IsOrganisation) {
 			if (membership.Entity.id !== req.session.band?.id) {
-				return res.redirect("/no-access");
+				return res.redirect('/no-access');
 			}
 		} else if (membership.Entity.Email !== req.session.user.Email) {
-			return res.redirect("/no-access");
+			return res.redirect('/no-access');
 		}
 	}
 
-	return res.render("membership/view.hbs", {
+	return res.render('membership/view.hbs', {
 		title: `Membership ${membership.Number}`,
 		membership: membership,
 		entity: membership.Entity,

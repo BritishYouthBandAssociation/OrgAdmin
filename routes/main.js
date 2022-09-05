@@ -11,12 +11,12 @@ const lib = require(__lib);
 router.get('/', (req, res) => {
 	//single equals to include undefined
 	if (req.session.user != null) {
-		return res.redirect("home");
+		return res.redirect('home');
 	}
 
 	return res.render('login', {
 		title: 'Please Log In',
-		layout: "no-nav.hbs"
+		layout: 'no-nav.hbs'
 	});
 });
 
@@ -27,7 +27,7 @@ router.post('/', async (req, res) => {
 			'email': 'email'
 		}).fields;
 	} catch (ex) {
-		console.log("Invalid fields!");
+		console.log('Invalid fields!');
 		console.log(ex);
 	}
 
@@ -42,7 +42,7 @@ router.post('/', async (req, res) => {
 		if (user !== null && await user.validPassword(fields.get('password'))) {
 			//successful login
 			req.session.user = user.dataValues;
-			const next = req.query.next ?? "home";
+			const next = req.query.next ?? 'home';
 			return res.redirect(next);
 		}
 	}
@@ -51,7 +51,7 @@ router.post('/', async (req, res) => {
 		title: 'Please Log In',
 		error: 'Username or password incorrect. Please try again',
 		email: fields.get('email'),
-		layout: "no-nav.hbs"
+		layout: 'no-nav.hbs'
 	});
 });
 
@@ -64,7 +64,7 @@ router.get('/home', (req, res) => {
 
 router.get('/logout', (req, res) => {
 	req.session.destroy();
-	return res.redirect("/");
+	return res.redirect('/');
 });
 
 router.post('/change-band', (req, res, next) => {
@@ -84,7 +84,7 @@ router.post('/change-band', (req, res, next) => {
 router.all('/no-access', (req, res) => {
 	return res.render('no-access.hbs', {
 		title: 'No Access',
-		previousPage: req.query.page ?? ""
+		previousPage: req.query.page ?? ''
 	});
 });
 
