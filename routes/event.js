@@ -3,6 +3,7 @@
 /* global __lib */
 
 const express = require('express');
+const { cls } = require('sequelize');
 const router = express.Router();
 
 const {helpers: {ValidationHelper, SlugHelper: {formatSlug}}} = require(__lib);
@@ -98,7 +99,7 @@ router.get('/:id', async (req, res, next) => {
 			include: [
 				req.db.Address,
 				req.db.EventType,
-				req.db.Caption
+				req.db.EventCaption
 			]
 		}),
 		req.db.EventType.findAll({
@@ -235,16 +236,21 @@ function filterCaptions(arr, caption){
 
 router.get('/:id/judges', async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id, {
-		include: [req.db.Caption]
+		include: [{
+			model: req.db.EventCaption,
+			include: [req.db.Caption]
+		}]
 	});
 
 	if (!event) {
 		return next();
 	}
 
-	if (req.query.add && !event.Captions.some(c => c.id === req.query.add)){
-		const cap = await req.db.Caption.findByPk(req.query.add);
-		event.addCaption(cap);
+	if (req.query.add && !event.EventCaptions.some(c => c.CaptionId === req.query.add)){
+		req.db.EventCaption.create({
+			EventId: req.params.id,
+			CaptionId: req.query.add
+		});
 
 		return res.redirect('?success=true');
 	}
@@ -263,7 +269,7 @@ router.get('/:id/judges', async (req, res, next) => {
 
 	let captions = [];
 	captionData.forEach(c => filterCaptions(captions, c));
-	captions = captions.filter(c => !event.Captions.some(cap => cap.id === c.id));
+	captions = captions.filter(c => !event.EventCaptions.some(cap => cap.CaptionId === c.id));
 
 	res.render('event/judges.hbs', {
 		title: `Judges for ${event.Name}`,
@@ -273,6 +279,30 @@ router.get('/:id/judges', async (req, res, next) => {
 	});
 });
 
+router.post('/:id/judges', async (req, res, next) => {
+	const event = await req.db.Event.findByPk(req.params.id);
+
+	if (!event) {
+		return next();
+	}
+
+	await Promise.all(req.body.judge.map((j, index) => {
+		if (j.trim().length === 0){
+			return null;
+		}
+
+		return req.db.EventCaption.update({
+			JudgeId: j
+		}, {
+			where: {
+				id: req.body.caption[index]
+			}
+		});
+	}));
+
+	res.redirect('?success=true');
+});
+
 router.post('/:id/judges/remove', async (req, res, next) => {
 	const [event, caption] = await Promise.all([req.db.Event.findByPk(req.params.id), req.db.Caption.findByPk(req.body.caption)]);
 
@@ -280,7 +310,12 @@ router.post('/:id/judges/remove', async (req, res, next) => {
 		return next();
 	}
 
-	event.removeCaption(caption);
+	await req.db.EventCaption.destroy({
+		where: {
+			EventId: event.id,
+			CaptionId: caption.id
+		}
+	});
 
 	res.redirect('./?success=true');
 });
@@ -306,7 +341,18 @@ router.post('/:id/judges/reset', async (req, res, next) => {
 	const captions = [];
 	captionData.forEach(c => filterCaptions(captions, c));
 
-	event.setCaptions(captions);
+	await req.db.EventCaption.destroy({
+		where: {
+			EventId: req.params.id
+		}
+	});
+
+	Promise.all(captions.map(c => {
+		return req.db.EventCaption.create({
+			EventId: req.params.id,
+			CaptionId: c.id
+		});
+	}));
 
 	res.redirect('./?success=true');
 });

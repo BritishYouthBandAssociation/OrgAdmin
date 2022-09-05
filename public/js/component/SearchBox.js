@@ -2,22 +2,22 @@
 /*global Vue*/
 
 Vue.component('search-box', {
-	props: ['placeholder', 'title', 'name', 'url', 'text', 'value', 'textProp', 'valueProp'],
+	props: ['placeholder', 'title', 'name', 'url', 'text', 'value', 'textProp', 'valueProp', 'isArray'],
 	data: function() {
 		return {
 			results: [],
 			noneFound: false,
-			_text: "",
-			_value: ""
+			_text: '',
+			_value: ''
 		};
 	},
 	template: `
 	<div>
 		<div class="form-group">
-			<label :for="name + '_search'">{{title}}</label>
-			<input type="text" class="form-control" :name="name + '_search'" :id="name + '_search'" :placeholder="placeholder" @keyup="doSearch" v-model="$data._text" autocomplete="off" />
+			<label :for="getName('search')">{{title}}</label>
+			<input type="text" class="form-control" :name="getName('search')" :id="getName('search')" :placeholder="placeholder" @keyup="doSearch" v-model="$data._text" autocomplete="off" />
 
-			<input type="hidden" :name="name" v-model="$data._value" />
+			<input type="hidden" :name="getName()" v-model="$data._value" />
 		</div>
 
 		<div class="search-results-container" v-if="results.length > 0">
@@ -49,6 +49,22 @@ Vue.component('search-box', {
 			this.$data._value = result[this.valueProp];
 			this.$data._text = result[this.textProp];
 			this.results = [];
+		},
+
+		getName(suffix){
+			suffix ??= '';
+
+			let name = this.name;
+
+			if (suffix.trim().length > 0){
+				name += `_${suffix}`;
+			}
+
+			if (this.isArray){
+				name += '[]';
+			}
+
+			return name;
 		}
 	},
 	mounted: function(){
