@@ -117,6 +117,8 @@ router.get('/:id', async (req, res, next) => {
 		title: event.Name,
 		event,
 		types,
+		totalCaptions: event.EventCaptions?.length ?? 0,
+		judgesAssigned: event.EventCaptions?.filter(ec => ec.JudgeId != null).length ?? 0,
 		saved: req.query.saved ?? false,
 	});
 });
@@ -238,7 +240,7 @@ router.get('/:id/judges', async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id, {
 		include: [{
 			model: req.db.EventCaption,
-			include: [req.db.Caption]
+			include: [req.db.Caption, req.db.User]
 		}]
 	});
 
