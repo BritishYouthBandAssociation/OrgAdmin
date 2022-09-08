@@ -19,8 +19,10 @@
 		<div class="card card-body">
 			<h3 class="text-center">Branding</h3>
 
-			
-		<colour-picker title="Primary Colour"></color-picker>
+			<colour-picker title="Primary Colour" name="primary"></colour-picker>
+			<colour-picker title="Secondary Colour" name="secondary"></colour-picker>
+			<file-upload title="Logo" name="logo" accept="image/*"></file-upload>
+			<file-upload title="Header Image" name="header" accept="image/*"></file-upload>
 		</div>
 	</div>
 
@@ -67,6 +69,7 @@
 
 <script src="/js/vue.js"></script>
 <script src="/js/component/ColourPicker.js"></script>
+<script src="/js/component/FileUpload.js"></script>
 
 <script>
 	const app = new Vue({
