@@ -16,13 +16,17 @@
 	</div>
 
 	<div class="col-12 col-lg-4 order-4 order-lg-2" id="app">
-		<div class="card card-body">
+		<div class="card card-body mb-3">
 			<h3 class="text-center">Branding</h3>
 
-			<colour-picker title="Primary Colour" name="primary"></colour-picker>
-			<colour-picker title="Secondary Colour" name="secondary"></colour-picker>
-			<file-upload title="Logo" name="logo" accept="image/*"></file-upload>
-			<file-upload title="Header Image" name="header" accept="image/*"></file-upload>
+			<form method="post" action="branding">
+				<colour-picker title="Primary Colour" name="primary" value="{{organisation.PrimaryColour}}"></colour-picker>
+				<colour-picker title="Secondary Colour" name="secondary" value="{{organisation.SecondaryColour}}"></colour-picker>
+				<file-upload title="Logo" name="logo" accept="image/*"></file-upload>
+				<file-upload title="Header Image" name="header" accept="image/*"></file-upload>
+
+				<button class="btn btn-default mt-3">Update Branding</button>
+			</form>
 		</div>
 	</div>
 
