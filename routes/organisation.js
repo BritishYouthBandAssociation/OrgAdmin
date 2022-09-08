@@ -4,6 +4,17 @@
 const express = require('express');
 const router = express.Router();
 
+const path = require('path');
+const fs = require('fs');
+
+const jimp = require('jimp');
+
+const {
+	helpers: {
+		ConfigHelper
+	}
+} = require(global.__lib);
+
 //list orgs
 router.get('/', async (req, res) => {
 	if (!req.session.user.IsAdmin) {
@@ -62,6 +73,14 @@ router.post('/new', async (req, res) => {
 	res.redirect(org.id + '/');
 });
 
+function fileUploaded(base, id, type){
+	const file = path.resolve(base, id, `${type}.png`);
+
+	console.log(`Checking ${file}`);
+
+	return fs.existsSync(file);
+}
+
 //show org
 router.get('/:orgID', async (req, res, next) => {
 	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
@@ -86,11 +105,16 @@ router.get('/:orgID', async (req, res, next) => {
 		return next();
 	}
 
+	const config = ConfigHelper.importJSON(path.join(global.__approot, 'config'), 'server');
+	const id = String(org.id);
+
 	return res.render('organisation/view.hbs', {
 		title: org.Name,
 		organisation: org,
 		types: types,
-		saved: req.query.saved ?? false
+		saved: req.query.saved ?? false,
+		logo: fileUploaded(config.uploadPath, id, 'logo') ? new URL(`${id}/logo.png`, config.uploadURL) : '',
+		header: fileUploaded(config.uploadPath, id, 'header') ? new URL(`${id}/header.png`,config.uploadURL) : ''
 	});
 });
 
@@ -146,7 +170,22 @@ router.post('/:orgID/branding', async (req, res, next) => {
 		SecondaryColour: req.body.secondary
 	});
 
-	console.log(req.body.logo);
+	const config = ConfigHelper.importJSON(path.join(global.__approot, 'config'), 'server');
+	const uploadBase = path.resolve(config.uploadPath, String(org.id));
+
+	if (!fs.existsSync()){
+		fs.mkdirSync(uploadBase, { recursive: true});
+	}
+
+	Object.keys(req.files).forEach(async (f) => {
+		const file = req.files[f];
+		const newName = `${f}.png`;
+
+		const uploadPath = path.join(uploadBase, newName);
+
+		const img = await jimp.read(file.path);
+		await img.writeAsync(uploadPath);
+	});
 
 	return res.redirect('./?saved=1');
 });
