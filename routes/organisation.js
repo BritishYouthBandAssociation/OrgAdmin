@@ -130,6 +130,27 @@ router.post('/:orgID', async (req, res, next) => {
 	return res.redirect('?saved=1');
 });
 
+router.post('/:orgID/branding', async (req, res, next) => {
+	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
+		return res.redirect('/no-access');
+	}
+
+	const org = await req.db.Organisation.findByPk(req.params.orgID);
+
+	if (org == null) {
+		return next();
+	}
+
+	await org.update({
+		PrimaryColour: req.body.primary,
+		SecondaryColour: req.body.secondary
+	});
+
+	console.log(req.body.logo);
+
+	return res.redirect('./?saved=1');
+});
+
 //org contacts
 router.get('/:orgID/contacts', async (req, res, next) => {
 	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin){
