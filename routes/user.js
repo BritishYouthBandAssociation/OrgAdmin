@@ -144,7 +144,8 @@ router.get('/:id', async (req, res, next) => {
 		title: `${user.FirstName} ${user.Surname}`,
 		user: user.dataValues,
 		saved: req.query.saved ?? false,
-		nomatch: req.query.nomatch ?? false
+		nomatch: req.query.nomatch ?? false,
+		needsPasswordReset: req.session.user.id === req.params.id && req.session.user.ForcePasswordReset
 	});
 });
 
