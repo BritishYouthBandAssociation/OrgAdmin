@@ -98,7 +98,7 @@ async function main() {
 	//prevent unauthorised access
 	app.use(async (req, res, next) => {
 		//allow css/js files
-		if (req.path.slice(req.path.length - 4) === ".css" || req.path.slice(req.path.length - 3) === ".js") {
+		if (req.path.slice(req.path.length - 4) === '.css' || req.path.slice(req.path.length - 3) === '.js') {
 			return next();
 		}
 
@@ -135,6 +135,12 @@ async function main() {
 				if (req.session.user.bands.length > 0){
 					req.session.band = req.session.user.bands[0];
 				}
+			}
+
+			const resetPath = `/user/${req.session.user.id}`;
+			if (req.session.user.ForcePasswordReset && req.path !== resetPath){
+				res.redirect(resetPath);
+				return;
 			}
 		}
 
