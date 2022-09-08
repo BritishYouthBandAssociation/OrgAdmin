@@ -118,7 +118,8 @@ router.post('/:id/password', async (req, res, next) => {
 	}
 
 	await req.db.User.update({
-		Password: req.body.password
+		Password: req.body.password,
+		ForcePasswordReset: false
 	}, {
 		where: { id: req.params.id },
 		individualHooks: true
