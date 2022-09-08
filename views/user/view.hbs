@@ -1,9 +1,14 @@
 <h2>{{user.firstName}} {{user.surname}}</h2>
 
+{{#if needsPasswordReset}}
+	<div class="alert alert-warning text-center">You must change your password before continuing</div>
+{{/if}}
+
 {{#if saved}}
 <div class="alert alert-success text-center">Changes saved successfully!</div>
 {{/if}}
 
+{{#unless needsPasswordReset}}
 <div class="card card-body mb-3">
 	<h3 class="text-center">User Details</h3>
 
@@ -15,6 +20,7 @@
 		</div>
 	</form>
 </div>
+{{/unless}}
 
 <div class="card card-body">
 	<h3 class="text-center">Change Password</h3>
