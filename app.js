@@ -136,6 +136,12 @@ async function main() {
 					req.session.band = req.session.user.bands[0];
 				}
 			}
+
+			const resetPath = `/user/${req.session.user.id}`;
+			if (req.session.user.ForcePasswordReset && req.path !== resetPath){
+				res.redirect(resetPath);
+				return;
+			}
 		}
 
 		next();
