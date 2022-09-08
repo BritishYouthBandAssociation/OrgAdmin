@@ -1,54 +1,75 @@
 <h2>{{organisation.Name}}</h2>
 
 {{#if saved}}
-<div class="alert alert-success text-center mb-2">Changes saved successfully!</div>
+	<div class="alert alert-success text-center mb-2">Changes saved successfully!</div>
 {{/if}}
 
-<div class="card card-body mb-3">
-	<h3 class="text-center">Organisation Details</h3>
-	<form method="post">
-		{{> organisation organisation=organisation types=types required=required}}
-		<button class="btn btn-default">Save</button>
-	</form>
-</div>
+<div class="row">
+	<div class="col-12 col-lg-8 order-1">
+		<div class="card card-body mb-3">
+			<h3 class="text-center">Organisation Details</h3>
+			<form method="post">
+				{{> organisation organisation=organisation types=types required=required}}
+				<button class="btn btn-default">Save</button>
+			</form>
+		</div>
+	</div>
 
-<div class="row row-cols-1 row-cols-lg-2">
-	<div class="col mb-3">
+	<div class="col-12 col-lg-4 order-4 order-lg-2" id="app">
+		<div class="card card-body">
+			<h3 class="text-center">Branding</h3>
+
+			
+		<colour-picker title="Primary Colour"></color-picker>
+		</div>
+	</div>
+
+
+	<div class="col-12 col-lg-6 mb-3 order-2 order-lg-3">
 		<div class="card card-body">
 			<h3 class="text-center">Address</h3>
 			{{#if organisation.Address}}
-			{{#with organisation.Address}}
-			<p>{{Line1}}</p>
-			<p>{{Line2}}</p>
-			<p>{{City}}</p>
-			<p>{{Postcode}}</p>
-			<button type="button" class="btn btn-default" id="editAddress">Edit Address</button>
-			{{/with}}
+				{{#with organisation.Address}}
+					<p>{{Line1}}</p>
+					<p>{{Line2}}</p>
+					<p>{{City}}</p>
+					<p>{{Postcode}}</p>
+					<button type="button" class="btn btn-default" id="editAddress">Edit Address</button>
+				{{/with}}
 			{{else}}
-			<div class="alert alert-danger text-light">No address set for this organisation</div>
-			<button type="button" class="btn btn-default" id="addAddress">Add Address</button>
+				<div class="alert alert-danger text-light">No address set for this organisation</div>
+				<button type="button" class="btn btn-default" id="addAddress">Add Address</button>
 			{{/if}}
 		</div>
 	</div>
 
-	<div class="col">
+	<div class="col-12 col-lg-6 order-3 order-lg-4">
 		<div class="card card-body text-center">
 			<h3>Contacts</h3>
 			{{#if organisation.OrganisationUsers}}
-			<div class="card mb-3">
-				<div class="list-group list-group-flush">
-					{{#each organisation.OrganisationUsers}}
-					{{#with User}}
-						<div class="list-group-item">{{FirstName}} {{Surname}} - {{Email}}</div>
-					{{/with}}
-					{{/each}}
+				<div class="card mb-3">
+					<div class="list-group list-group-flush">
+						{{#each organisation.OrganisationUsers}}
+							{{#with User}}
+								<div class="list-group-item">{{FirstName}} {{Surname}} - {{Email}}</div>
+							{{/with}}
+						{{/each}}
+					</div>
 				</div>
-			</div>
 			{{else}}
-			<div class="alert alert-danger">No contacts set for this organisation</div>
+				<div class="alert alert-danger">No contacts set for this organisation</div>
 			{{/if}}
 
 			<a href="contacts" class="btn btn-default">Manage Contacts</a>
 		</div>
 	</div>
 </div>
+
+<script src="/js/vue.js"></script>
+<script src="/js/component/ColourPicker.js"></script>
+
+<script>
+	const app = new Vue({
+		el: '#app'
+	});
+</script>
