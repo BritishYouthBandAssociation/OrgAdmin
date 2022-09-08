@@ -1,4 +1,6 @@
 {
 	"port": 5000,
-	"noAuthRequired": []
+	"noAuthRequired": [],
+	"uploadPath":"/web/uploads/-org-",
+	"uploadURL": ""
 }

@@ -8,6 +8,8 @@ const path = require('path');
 const serveFavicon = require('serve-favicon');
 const session = require('express-session');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
+const os = require('os');
+const formData = require('express-form-data');
 
 // Initialise library path
 const libPath = path.join(__dirname, process.env.LIB_PATH ?? '../Library');
@@ -64,6 +66,13 @@ async function main() {
 	);
 	app.set('view engine', 'hbs');
 	app.set('views', path.join(__dirname, 'views'));
+
+	//allow file uploads
+	app.use(formData.parse({
+		uploadDir: os.tmpdir(),
+		autoClean: true
+	}));
+	app.use(formData.format());
 
 	// Set up parsers to allow access to POST bodies
 	app.use(express.json());
