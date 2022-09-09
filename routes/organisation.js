@@ -75,9 +75,6 @@ router.post('/new', async (req, res) => {
 
 function fileUploaded(base, id, type){
 	const file = path.resolve(base, id, `${type}.png`);
-
-	console.log(`Checking ${file}`);
-
 	return fs.existsSync(file);
 }
 
