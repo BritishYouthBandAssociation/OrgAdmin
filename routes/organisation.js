@@ -110,8 +110,8 @@ router.get('/:orgID', async (req, res, next) => {
 		organisation: org,
 		types: types,
 		saved: req.query.saved ?? false,
-		logo: fileUploaded(config.uploadPath, id, 'logo') ? new URL(`${id}/logo.png`, config.uploadURL) : '',
-		header: fileUploaded(config.uploadPath, id, 'header') ? new URL(`${id}/header.png`,config.uploadURL) : ''
+		logo: fileUploaded(config.uploadPath, id, 'logo') ? new URL(`${id}/logo.png?v=${new Date()}`, config.uploadURL) : '',
+		header: fileUploaded(config.uploadPath, id, 'header') ? new URL(`${id}/header.png?v=${new Date()}`,config.uploadURL) : ''
 	});
 });
 
