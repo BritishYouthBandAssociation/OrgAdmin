@@ -2,6 +2,7 @@
 
 // Import modules
 const express = require('express');
+const { Op } = require('sequelize');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
@@ -9,8 +10,19 @@ router.get('/', async (req, res) => {
 		return res.redirect('/no-access');
 	}
 
+	const season = await req.db.Season.findOne({
+		where: {
+			Start: {
+				[Op.lte]: Date.now()
+			},
+			End: {
+				[Op.gte]: Date.now()
+			}
+		}
+	});
+
 	const memberships = await req.db.Membership.findAll({
-		where: { Season: 2022 },
+		where: { SeasonId: season.id },
 		include: [
 			req.db.Label,
 			req.db.MembershipType,
@@ -26,15 +38,15 @@ router.get('/', async (req, res) => {
 	});
 
 	const labels = await req.db.Label.findAll({
-		where: { '$Memberships.Season$': 2022 },
+		where: { '$Memberships.SeasonId$': season.id },
 		include: [req.db.Membership],
 		order: [['Name', 'ASC']]
 	});
 
 	return res.render('membership/index.hbs', {
 		title: 'Membership',
-		seasons: [2022],
-		season: 2022,
+		seasons: [season.id],
+		season: season.id,
 		membership: memberships,
 		filters: labels
 	});
@@ -52,12 +64,24 @@ router.get('/new', async (req, res) => {
 		member = await req.db.Organisation.findByPk(req.query.org);
 	}
 
+	const season = await req.db.Season.findOne({
+		where: {
+			Start: {
+				[Op.lte]: Date.now()
+			},
+			End: {
+				[Op.gte]: Date.now()
+			}
+		}
+	});
+
 	res.render('membership/add.hbs', {
 		title: 'Add Membership',
 		types: types,
 		type: req.query.type ?? '',
 		email: req.query.email ?? '',
-		member: member
+		member: member,
+		season: season
 	});
 });
 
@@ -79,7 +103,7 @@ router.post('/new', async (req, res) => {
 
 		const exists = await req.db.Membership.findOne({
 			where: {
-				Season: req.body.season,
+				SeasonId: req.body.season,
 			},
 			include: [{
 				model: req.db.OrganisationMembership,
@@ -97,7 +121,7 @@ router.post('/new', async (req, res) => {
 
 		//create the membership
 		const membership = await req.db.Membership.create({
-			Season: req.body.season,
+			SeasonId: req.body.season,
 			MembershipTypeId: req.body.type
 		});
 
@@ -126,7 +150,7 @@ router.post('/new', async (req, res) => {
 	//do they already have a membership for this season?
 	const eMemb = await req.db.Membership.findOne({
 		where: {
-			Season: req.body.season,
+			SeasonId: req.body.season,
 		},
 		include: [{
 			model: req.db.IndividualMembership,
@@ -143,7 +167,7 @@ router.post('/new', async (req, res) => {
 
 	//create the membership
 	const membership = await req.db.Membership.create({
-		Season: req.body.season,
+		SeasonId: req.body.season,
 		MembershipTypeId: req.body.type
 	});
 

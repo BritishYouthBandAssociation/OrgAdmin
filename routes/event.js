@@ -3,6 +3,7 @@
 /* global __lib */
 
 const express = require('express');
+const { Op } = require('sequelize');
 const router = express.Router();
 
 const {helpers: {ValidationHelper, SlugHelper: {formatSlug}}} = require(__lib);
@@ -14,19 +15,29 @@ const validDate = (date) => {
 };
 
 router.get('/', async (req, res) => {
-	const [ events, eventTypes ] = await Promise.all([
+	const [ events, eventTypes, season ] = await Promise.all([
 		req.db.Event.findAll({
 			include: [
 				req.db.EventType
 			]
 		}),
-		req.db.EventType.findAll()
+		req.db.EventType.findAll(),
+		req.db.Season.findOne({
+			where: {
+				Start: {
+					[Op.lte]: Date.now()
+				},
+				End: {
+					[Op.gte]: Date.now()
+				}
+			}
+		})
 	]);
 
 	return res.render('event/index.hbs', {
 		title: 'Events',
-		years: [ '2022' ],
-		year: '2022',
+		years: [ season.id ],
+		year: season.id,
 		events,
 		filters: eventTypes
 	});
