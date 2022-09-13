@@ -323,8 +323,6 @@ router.post('/season', checkAdmin, async (req, res) => {
 				End: Guard.againstInvalidDate(req.body.end[i])
 			};
 
-			console.log(season);
-
 			if (id < 0) {
 				await req.db.Season.create(season, {
 					transaction: t
@@ -340,6 +338,24 @@ router.post('/season', checkAdmin, async (req, res) => {
 	});
 
 	res.redirect('?saved=true');
+});
+
+router.post('/season/:id', checkAdmin, async (req, res, next) => {
+	const season = await req.db.Season.findByPk(req.params.id);
+
+	if (!season){
+		return next();
+	}
+
+	const data = {
+		Identifier: Guard.againstEmptyString(req.body.name),
+		Start: Guard.againstInvalidDate(req.body.start),
+		End: Guard.againstInvalidDate(req.body.end)
+	};
+
+	await season.update(data);
+
+	res.redirect('./?saved=true');
 });
 
 module.exports = {
