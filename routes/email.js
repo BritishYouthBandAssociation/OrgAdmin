@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const { Op } = require('sequelize');
 const router = express.Router();
 
 const replaceMessageTokens = (msg, user, org) => {
@@ -22,16 +23,25 @@ router.get('/', async (req, res) => {
 		return res.redirect('/no-access');
 	}
 
-	const types = await req.db.MembershipType.findAll({
+	const [types, season] = await Promise.all([req.db.MembershipType.findAll({
 		where: {
 			IsActive: true
 		}
-	});
+	}), req.db.Season.findOne({
+		where: {
+			Start: {
+				[Op.lte]: Date.now()
+			},
+			End: {
+				[Op.gte]: Date.now()
+			}
+		}
+	})]);
 
 	return res.render('email/index.hbs', {
 		title: 'Bulk Emailer',
 		types: types,
-		season: 2022,
+		season: season.id,
 		success: req.query.success ?? false
 	});
 });
@@ -60,16 +70,25 @@ router.post('/test', async (req, res) => {
 
 	await t.commit();
 
-	const types = await req.db.MembershipType.findAll({
+	const [types, season] = await Promise.all([req.db.MembershipType.findAll({
 		where: {
 			IsActive: true
 		}
-	});
+	}), req.db.Season.findOne({
+		where: {
+			Start: {
+				[Op.lte]: Date.now()
+			},
+			End: {
+				[Op.gte]: Date.now()
+			}
+		}
+	})]);
 
 	return res.render('email/index.hbs', {
 		title: 'Bulk Emailer',
 		types: types,
-		season: 2022,
+		season: season.id,
 		subject: req.body.subject,
 		message: req.body.message,
 		success: true
@@ -120,16 +139,25 @@ router.post('/send', async (req, res) => {
 	} catch (ex) {
 		t.rollback();
 
-		const types = await req.db.MembershipType.findAll({
+		const [types, season] = await Promise.all([req.db.MembershipType.findAll({
 			where: {
 				IsActive: true
 			}
-		});
+		}), req.db.Season.findOne({
+			where: {
+				Start: {
+					[Op.lte]: Date.now()
+				},
+				End: {
+					[Op.gte]: Date.now()
+				}
+			}
+		})]);
 
 		res.render('email/index.hbs', {
 			title: 'Bulk Emailer',
 			types: types,
-			season: 2022,
+			season: season.id,
 			subject: req.body.subject,
 			message: req.body.message,
 			error: true

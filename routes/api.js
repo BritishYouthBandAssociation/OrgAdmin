@@ -45,7 +45,7 @@ router.get('/organisation/search', async (req, res) => {
 
 router.get('/membership/:season', async (req, res) => {
 	const where = {
-		Season: req.params.season
+		SeasonId: req.params.season
 	};
 
 	if (req.query.type){
