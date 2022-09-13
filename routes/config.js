@@ -309,41 +309,64 @@ router.get('/season', checkAdmin, async (req, res) => {
 		title: 'Seasons',
 		season: season,
 		others: others,
+		error: req.query.error ?? false,
 		saved: req.query.saved ?? false
 	});
 });
 
 router.post('/season', checkAdmin, async (req, res) => {
-	await req.db.sequelize.transaction(async (t) => {
-		for (let i = 0; i < req.body.id.length; i++) {
-			const id = Guard.againstNaN(req.body.id[i]);
-			const season = {
-				Identifier: Guard.againstEmptyString(req.body.name[i]),
-				Start: Guard.againstInvalidDate(req.body.start[i]),
-				End: Guard.againstInvalidDate(req.body.end[i])
-			};
+	try {
+		await req.db.sequelize.transaction(async (t) => {
+			for (let i = 0; i < req.body.id.length; i++) {
+				const id = Guard.againstNaN(req.body.id[i]);
+				const season = {
+					Identifier: Guard.againstEmptyString(req.body.name[i]),
+					Start: Guard.againstInvalidDate(req.body.start[i]),
+					End: Guard.againstInvalidDate(req.body.end[i])
+				};
 
-			if (id < 0) {
-				await req.db.Season.create(season, {
-					transaction: t
-				});
-			} else {
-				await req.db.Season.update(season, {
+				const match = await req.db.Season.findOne({
 					where: {
-						id: id
+						Start: {
+							[Op.gt]: season.Start
+						},
+						End: {
+							[Op.lte]: season.End
+						},
+						id: {
+							[Op.not]: id
+						}
 					}
-				}, { transaction: t });
-			}
-		}
-	});
+				});
 
-	res.redirect('?saved=true');
+				if (match) {
+					throw new Error('Season crossover');
+				}
+
+				if (id < 0) {
+					await req.db.Season.create(season, {
+						transaction: t
+					});
+				} else {
+					await req.db.Season.update(season, {
+						where: {
+							id: id
+						}
+					}, { transaction: t });
+				}
+			}
+		});
+
+		res.redirect('?saved=true');
+	} catch {
+		res.redirect('?error=true');
+	}
 });
 
 router.post('/season/:id', checkAdmin, async (req, res, next) => {
 	const season = await req.db.Season.findByPk(req.params.id);
 
-	if (!season){
+	if (!season) {
 		return next();
 	}
 
@@ -352,6 +375,25 @@ router.post('/season/:id', checkAdmin, async (req, res, next) => {
 		Start: Guard.againstInvalidDate(req.body.start),
 		End: Guard.againstInvalidDate(req.body.end)
 	};
+
+	const match = await req.db.Season.findOne({
+		where: {
+			Start: {
+				[Op.gt]: season.Start
+			},
+			End: {
+				[Op.lte]: season.End
+			},
+			id: {
+				[Op.not]: req.params.id
+			}
+		}
+	});
+
+	if (match) {
+		console.log(match);
+		return res.redirect('./?error=true');
+	}
 
 	await season.update(data);
 
