@@ -9,22 +9,24 @@
 
 				<div class="alert alert-danger text-center" v-if="currentSeason == null">There is no current season. Many sections of this system will not work correctly until one is added!</div>
 
-				<div v-if="currentSeason != null">
+				<form id="single" method="post" :action="currentSeason.id" v-if="currentSeason != null">
 					<div class="form-group mb-3">
 						<label for="name">Identifier</label>
-						<input type="text" name="name" id="name" class="form-control" required v-model="currentSeason.Identifier"/>
+						<input type="text" name="name" id="name" class="form-control" required v-model="currentSeason.Identifier" />
 					</div>
 
 					<div class="form-group mb-3">
 						<label for="start">Start Date</label>
-						<input type="date" name="start" id="start" class="form-control" required v-model="currentSeason.Start"/>
+						<input type="date" name="start" id="start" class="form-control" required v-model="currentSeason.Start" />
 					</div>
 
 					<div class="form-group mb-3">
 						<label for="end">End Date</label>
-						<input type="date" name="end" id="end" class="form-control" required v-model="currentSeason.End"/>
+						<input type="date" name="end" id="end" class="form-control" required v-model="currentSeason.End" />
 					</div>
-				</div>
+
+					<button type="button" class="btn btn-default" @click="validateCurrent">Save</button>
+				</form>
 			</div>
 		</div>
 
@@ -72,6 +74,7 @@
 </div>
 
 <script src="/js/vue.js"></script>
+<script src="/js/swal2.js"></script>
 <script>
 	let id = 0;
 
@@ -79,37 +82,65 @@
 		delimiters: ['${', '}'],
 		el: '#app',
 		data: {
-			currentSeason: {{{json season}}},
-			seasons: {{{json others}}}
+			currentSeason: {{{ json season }}},
+	seasons: {{{ json others }}}
 		},
-		methods: {
-			addSeason() {
-				this.seasons.push({
-					id: --id,
-					Start: '',
-					End: '',
-					Identifier: '',
-					touched: false
-				});
-			},
-			getTitle(season) {
-				if (season.Identifier.trim().length > 0) {
-					return season.Identifier;
-				}
+	methods: {
+		addSeason() {
+			this.seasons.push({
+				id: --id,
+				Start: '',
+				End: '',
+				Identifier: '',
+				touched: false
+			});
+		},
+		getTitle(season) {
+			if (season.Identifier.trim().length > 0) {
+				return season.Identifier;
+			}
 
-				return season.id < 0 ? "(new)" : "(untitled)";
-			}
+			return season.id < 0 ? "(new)" : "(untitled)";
 		},
-		mounted: function(){
-			if(this.currentSeason){
-				this.currentSeason.Start = this.currentSeason.Start.split("T")[0];
-				this.currentSeason.End = this.currentSeason.End.split("T")[0];
+		validateCurrent(){
+			if (new Date(this.currentSeason.Start) > Date.now() || new Date(this.currentSeason.End) < Date.now()) {
+				Swal.fire({
+					title: 'REMOVE CURRENT SEASON?',
+					icon: 'question',
+					text: 'By making these changes, there will no longer be a current season. This is usually not a desirable outcome. Are you sure you wish to proceed?',
+					showCancelButton: true,
+					customClass: {
+						confirmButton: 'btn btn-lg btn-success mx-3',
+						cancelButton: 'btn btn-lg btn-danger mx-3'
+					},
+					buttonsStyling: false,
+					reverseButtons: true,
+					confirmButtonText: 'Yes, remove the current season'
+				}).then(res => {
+					if(res.isConfirmed){
+						this.updateSeason();
+					}
+				});
+
+				return;
 			}
-			
-			this.seasons.forEach(s => {
-				s.Start = s.Start.split("T")[0];
-				s.End = s.End.split("T")[0];
-			})
+
+			this.updateSeason();
+		},
+		updateSeason(){
+			document.getElementById("single").submit();
 		}
+	},
+	mounted: function() {
+		if (this.currentSeason) {
+			this.currentSeason.Start = this.currentSeason.Start.split("T")[0];
+			this.currentSeason.End = this.currentSeason.End.split("T")[0];
+		}
+
+		this.seasons.forEach(s => {
+			s.Start = s.Start.split("T")[0];
+			s.End = s.End.split("T")[0];
+		})
+	}
 	});
 </script>
