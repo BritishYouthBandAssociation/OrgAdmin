@@ -2,6 +2,14 @@
 	<h2>Seasons</h2>
 	<button class="btn btn-lg btn-success mb-3" @click="addSeason">+ Add</button>
 
+	{{#if saved}}
+		<div class="alert alert-success text-center">Seasons updated successfully</div>
+	{{/if}}
+
+	{{#if error}}
+		<div class="alert alert-danger text-center">An error occurred whilst saving. Please double-check the entered data and ensure that there are no overlapping dates</div>
+	{{/if}}
+
 	<div class="row row-cols-1 row-cols-lg-2">
 		<div class="col mb-3">
 			<div class="card card-body">
