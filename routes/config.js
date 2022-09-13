@@ -1,6 +1,13 @@
 'use strict';
 
+const {
+	helpers: {
+		Guard
+	}
+} = require(global.__lib);
+
 const express = require('express');
+const { Op } = require('sequelize');
 const router = express.Router();
 
 const checkAdmin = (req, res, next) => {
@@ -278,11 +285,61 @@ router.post('/caption', checkAdmin, async (req, res) => {
 	return res.redirect('?success=1');
 });
 
-router.get('/season', checkAdmin, (req, res) => {
+router.get('/season', checkAdmin, async (req, res) => {
+	const season = await req.db.Season.findOne({
+		where: {
+			Start: {
+				[Op.lte]: Date.now()
+			},
+			End: {
+				[Op.gte]: Date.now()
+			}
+		}
+	});
+
+	const others = await req.db.Season.findAll({
+		where: {
+			id: {
+				[Op.not]: season?.id
+			}
+		}
+	});
+
 	return res.render('config/season.hbs', {
 		title: 'Seasons',
+		season: season,
+		others: others,
 		saved: req.query.saved ?? false
 	});
+});
+
+router.post('/season', checkAdmin, async (req, res) => {
+	await req.db.sequelize.transaction(async (t) => {
+		for (let i = 0; i < req.body.id.length; i++) {
+			const id = Guard.againstNaN(req.body.id[i]);
+			const season = {
+				Identifier: Guard.againstEmptyString(req.body.name[i]),
+				Start: Guard.againstInvalidDate(req.body.start[i]),
+				End: Guard.againstInvalidDate(req.body.end[i])
+			};
+
+			console.log(season);
+
+			if (id < 0) {
+				await req.db.Season.create(season, {
+					transaction: t
+				});
+			} else {
+				await req.db.Season.update(season, {
+					where: {
+						id: id
+					}
+				}, { transaction: t });
+			}
+		}
+	});
+
+	res.redirect('?saved=true');
 });
 
 module.exports = {
