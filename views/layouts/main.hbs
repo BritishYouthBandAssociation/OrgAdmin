@@ -72,6 +72,9 @@
 					</a>
 					{{#startsWith page "/config"}}
 						<ul class="nav nav-pills flex-column">
+							<li class="nav-item ps-4 {{#eq page "/config/season"}}bg-default{{/eq}}">
+								<a href="/config/season" class="nav-link {{#eq page "/config/season"}}text-white{{else}}text-dark{{/eq}}">&gt; Seasons</a>
+							</li>
 							<li class="nav-item ps-4 {{#eq page "/config/membership-type"}}bg-default{{/eq}}">
 								<a href="/config/membership-type" class="nav-link {{#eq page "/config/membership-type"}}text-white{{else}}text-dark{{/eq}}">&gt; Membership Types</a>
 							</li>
