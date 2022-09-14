@@ -11,7 +11,7 @@ const replaceMessageTokens = (msg, user, org) => {
 	};
 
 	for (const [k,v] of Object.entries(tokens)){
-		msg.replaceAll(`{${k}}`, v);
+		msg = msg.replaceAll(`{${k}}`, v);
 	}
 
 	return msg;
@@ -19,7 +19,7 @@ const replaceMessageTokens = (msg, user, org) => {
 
 router.get('/', async (req, res) => {
 	if (!req.session.user.IsAdmin) {
-		return res.redirect("/no-access");
+		return res.redirect('/no-access');
 	}
 
 	const types = await req.db.MembershipType.findAll({
@@ -38,7 +38,7 @@ router.get('/', async (req, res) => {
 
 router.post('/test', async (req, res) => {
 	if (!req.session.user.IsAdmin) {
-		return res.redirect("/no-access");
+		return res.redirect('/no-access');
 	}
 
 	const t = await req.db.sequelize.transaction();
@@ -78,7 +78,7 @@ router.post('/test', async (req, res) => {
 
 router.post('/send', async (req, res) => {
 	if (!req.session.user.IsAdmin) {
-		return res.redirect("/no-access");
+		return res.redirect('/no-access');
 	}
 
 	const t = await req.db.sequelize.transaction();
