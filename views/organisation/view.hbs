@@ -75,8 +75,21 @@
 <script src="/js/component/ColourPicker.js"></script>
 <script src="/js/component/FileUpload.js"></script>
 
+<script src="/js/tinymce.min.js"></script>
+
 <script>
 	const app = new Vue({
 		el: '#app'
+	});
+
+	tinymce.init({
+		selector: '#description',
+		plugins: 'autolink lists advlist link preview code wordcount',
+		toolbar_mode: 'floating',
+		menubar: 'file edit view insert tools format',
+		contextmenu: 'link lists table',
+		setup: (editor) => {
+			editor.on('change', editor.save);
+		}
 	});
 </script>
