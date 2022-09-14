@@ -40,11 +40,11 @@
 					<p>{{Line2}}</p>
 					<p>{{City}}</p>
 					<p>{{Postcode}}</p>
-					<button type="button" class="btn btn-default" id="editAddress">Edit Address</button>
+					<button type="button" class="btn btn-default" data-bs-toggle="modal" data-bs-target="#addressModal">Edit Address</button>
 				{{/with}}
 			{{else}}
 				<div class="alert alert-danger text-light">No address set for this organisation</div>
-				<button type="button" class="btn btn-default" id="addAddress">Add Address</button>
+				<button type="button" class="btn btn-default" data-bs-toggle="modal" data-bs-target="#addressModal">Add Address</button>
 			{{/if}}
 		</div>
 	</div>
@@ -70,6 +70,27 @@
 		</div>
 	</div>
 </div>
+
+<form method="post" action="address">
+	<div class="modal fade" id="addressModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Edit Address</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					{{> address data=organisation.Address required=true}}
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+					<button type="submit" class="btn btn-default">Save changes</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>
+
 
 <script src="/js/vue.js"></script>
 <script src="/js/component/ColourPicker.js"></script>
