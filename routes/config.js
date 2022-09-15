@@ -325,21 +325,31 @@ router.post('/season', checkAdmin, async (req, res) => {
 					End: Guard.againstInvalidDate(req.body.end[i])
 				};
 
-				const match = await req.db.Season.findOne({
+				const match = await req.db.Season.findAndCountAll({
 					where: {
-						Start: {
-							[Op.gt]: season.Start
-						},
-						End: {
-							[Op.lte]: season.End
-						},
 						id: {
 							[Op.not]: id
-						}
+						},
+						[Op.not]: [
+							{
+								[Op.or]: [
+									{
+										Start: {
+											[Op.gte]: season.End
+										},
+									},
+									{
+										End: {
+											[Op.lte]: season.Start
+										}
+									}
+								],
+							},
+						]
 					}
 				});
 
-				if (match) {
+				if (match.count > 0) {
 					throw new Error('Season crossover');
 				}
 
@@ -358,7 +368,8 @@ router.post('/season', checkAdmin, async (req, res) => {
 		});
 
 		res.redirect('?saved=true');
-	} catch {
+	} catch (e) {
+		console.error(e);
 		res.redirect('?error=true');
 	}
 });
@@ -376,22 +387,32 @@ router.post('/season/:id', checkAdmin, async (req, res, next) => {
 		End: Guard.againstInvalidDate(req.body.end)
 	};
 
-	const match = await req.db.Season.findOne({
+	const match = await req.db.Season.findAndCountAll({
 		where: {
-			Start: {
-				[Op.gt]: season.Start
-			},
-			End: {
-				[Op.lte]: season.End
-			},
 			id: {
 				[Op.not]: req.params.id
-			}
+			},
+			[Op.not]: [
+				{
+					[Op.or]: [
+						{
+							Start: {
+								[Op.gte]: season.End
+							},
+						},
+						{
+							End: {
+								[Op.lte]: season.Start
+							}
+						}
+					],
+				},
+			]
 		}
 	});
 
-	if (match) {
-		console.log(match);
+	if (match.count > 0) {
+		console.error(match.rows);
 		return res.redirect('./?error=true');
 	}
 
