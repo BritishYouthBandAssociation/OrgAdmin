@@ -85,6 +85,11 @@ async function main() {
 		path.join(__dirname, 'public/assets/favicon.ico')));
 	app.use(express.static(path.join(__dirname, 'public')));
 
+	// Serve uploads locally
+	if (serverOptions.serveUploads) {
+		app.use('/uploads', express.static(path.resolve(serverOptions.uploadPath)));
+	}
+
 	// Get database models and connection
 	const dbPath = path.join(libPath, 'models');
 	const db = await require(dbPath)(path.join(__dirname, 'config/db'));
