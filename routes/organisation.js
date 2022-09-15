@@ -74,8 +74,11 @@ router.post('/new', async (req, res) => {
 });
 
 function fileUploaded(base, id, type) {
-	const file = path.resolve(base, id, `${type}.png`);
-	return fs.existsSync(file);
+	const file = path.resolve(base, 'organisations', id, type);
+	const exists = fs.existsSync(file);
+	console.log(`Checking if ${file} exists : ${exists}`);
+
+	return exists;
 }
 
 //show org
@@ -105,13 +108,33 @@ router.get('/:orgID', async (req, res, next) => {
 	const config = ConfigHelper.importJSON(path.join(global.__approot, 'config'), 'server');
 	const id = String(org.id);
 
+	const buildFileURL = (filename) => {
+		if (!fileUploaded(config.uploadPath, id, `${filename}.png`))
+		{return '';}
+
+		let baseURL;
+		if (config.serveUploads) {
+			const protocol = req.headers.referer.slice(0, req.headers.referer.indexOf('://'));
+			const host = req.headers.host;
+
+			baseURL = `${protocol}://${host}/uploads`;
+		} else {
+			baseURL = config.uploadURL;
+		}
+
+		const url = new URL(`${baseURL}/organisations/${id}/${filename}.png`);
+		url.searchParams.append('v', new Date().getTime());
+
+		return url;
+	};
+
 	return res.render('organisation/view.hbs', {
 		title: org.Name,
 		organisation: org,
 		types: types,
 		saved: req.query.saved ?? false,
-		logo: fileUploaded(config.uploadPath, id, 'logo') ? new URL(`${id}/logo.png?v=${new Date()}`, config.uploadURL) : '',
-		header: fileUploaded(config.uploadPath, id, 'header') ? new URL(`${id}/header.png?v=${new Date()}`, config.uploadURL) : ''
+		logo: buildFileURL('logo'),
+		header: buildFileURL('header')
 	});
 });
 
@@ -168,7 +191,7 @@ router.post('/:orgID/branding', async (req, res, next) => {
 	});
 
 	const config = ConfigHelper.importJSON(path.join(global.__approot, 'config'), 'server');
-	const uploadBase = path.resolve(config.uploadPath, String(org.id));
+	const uploadBase = path.resolve(config.uploadPath, 'organisations', String(org.id));
 
 	if (!fs.existsSync()) {
 		fs.mkdirSync(uploadBase, { recursive: true });
