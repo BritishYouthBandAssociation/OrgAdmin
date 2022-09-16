@@ -10,6 +10,10 @@
 		<div class="alert alert-danger text-center">An error occurred whilst saving. Please double-check the entered data and ensure that there are no overlapping dates</div>
 	{{/if}}
 
+	{{#if needsSeason}}
+		<div class="alert alert-warning text-center">The page you were trying to access requires a current season, however there is not currently one configured. Please add one below before continuing</div>
+	{{/if}}
+
 	<div class="row row-cols-1 row-cols-lg-2">
 		<div class="col mb-3">
 			<div class="card card-body">
@@ -34,6 +38,10 @@
 					</div>
 
 					<button type="button" class="btn btn-default" @click="validateCurrent">Save</button>
+
+					{{#if next}}
+						<input type="hidden" name="next" value="{{next}}" />
+					{{/if}}
 				</form>
 			</div>
 		</div>
@@ -73,6 +81,10 @@
 
 				</div>
 
+				{{#if next}}
+					<input type="hidden" name="next" value="{{next}}" />
+				{{/if}}
+
 				<div class="text-center" v-if="seasons.length > 0">
 					<button type="submit" class="btn btn-default">Save Changes</button>
 				</div>
@@ -91,7 +103,7 @@
 		el: '#app',
 		data: {
 			currentSeason: {{{ json season }}},
-	seasons: {{{ json others }}}
+			seasons: {{{ json others }}}
 		},
 	methods: {
 		addSeason() {
@@ -125,7 +137,7 @@
 					reverseButtons: true,
 					confirmButtonText: 'Yes, remove the current season'
 				}).then(res => {
-					if(res.isConfirmed){
+					if (res.isConfirmed) {
 						this.updateSeason();
 					}
 				});
