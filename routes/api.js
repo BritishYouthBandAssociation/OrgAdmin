@@ -1,11 +1,16 @@
 'use strict';
 
 const express = require('express');
-const router = express.Router();
-
+const Joi = require('joi');
 const { Op } = require('sequelize');
 
-router.get('/organisation', async (req, res) => {
+const validator = require('@byba/express-validator');
+
+const router = express.Router();
+
+router.get('/organisation', validator.query(Joi.object({
+	type: Joi.number()
+})), async (req, res, next) => {
 	const where = {};
 	const include = new Set();
 
@@ -17,7 +22,7 @@ router.get('/organisation', async (req, res) => {
 		}]
 	});
 
-	if (req.query.type != null) {
+	if (req.query.type) {
 		where.OrganisationTypeID = req.query.type;
 		include.add(req.db.OrganisationType);
 	}
@@ -30,7 +35,10 @@ router.get('/organisation', async (req, res) => {
 	res.json(orgs);
 });
 
-router.get('/organisation/search', async (req, res) => {
+router.get('/organisation/search', validator.query(Joi.object({
+	q: Joi.string()
+		.required()
+})), async (req, res, next) => {
 	const orgs = await req.db.Organisation.findAll({
 		include: [req.db.OrganisationType],
 		where: {
@@ -43,7 +51,12 @@ router.get('/organisation/search', async (req, res) => {
 	res.json(orgs);
 });
 
-router.get('/membership/:season', async (req, res) => {
+router.get('/membership/:season', validator.query(Joi.object({
+	type: Joi.number()
+})), validator.params(Joi.object({
+	season: Joi.number()
+		.required()
+})), async (req, res, next) => {
 	const where = {
 		SeasonId: req.params.season
 	};
@@ -74,7 +87,13 @@ router.get('/membership/:season', async (req, res) => {
 	res.json(members);
 });
 
-router.get('/caption/:id/judges/search', async (req, res, next) => {
+router.get('/caption/:id/judges/search', validator.query(Joi.object({
+	q: Joi.string()
+		.required()
+})), validator.params(Joi.object({
+	id: Joi.number()
+		.required()
+})), async (req, res, next) => {
 	const caption = await req.db.Caption.findByPk(req.params.id);
 
 	if (!caption){
