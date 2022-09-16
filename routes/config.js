@@ -366,7 +366,9 @@ router.post('/caption', checkAdmin, (req, res, next) => {
 
 router.get('/season', checkAdmin, validator.query(Joi.object({
 	error: Joi.boolean(),
-	saved: Joi.boolean()
+	saved: Joi.boolean(),
+	next: Joi.string(),
+	needsSeason: Joi.boolean()
 })), async (req, res) => {
 	const season = await req.db.Season.findOne({
 		where: {
@@ -406,7 +408,8 @@ router.post('/season', checkAdmin, validator.body(Joi.object({
 	start: Joi.array()
 		.items(Joi.date()),
 	end: Joi.array()
-		.items(Joi.date())
+		.items(Joi.date()),
+	next: Joi.string()
 })), async (req, res) => {
 	try {
 		await req.db.sequelize.transaction(async (t) => {
@@ -472,7 +475,8 @@ router.post('/season/:id', checkAdmin, validator.body(Joi.object({
 	id: Joi.number(),
 	name: Joi.string(),
 	start: Joi.date(),
-	end: Joi.date()
+	end: Joi.date(),
+	next: Joi.string()
 })), validator.params(Joi.object({
 	id: Joi.number()
 		.required()

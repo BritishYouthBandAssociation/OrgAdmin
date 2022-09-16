@@ -84,8 +84,10 @@ router.post('/new', validator.body(Joi.object({
 		.falsy('0')
 		.required(),
 }).with('password', 'confirm')), validator.query(Joi.object({
-	orgId: Joi.number(),
-	membership: Joi.number()
+	orgID: Joi.number(),
+	membership: Joi.number(),
+	email: Joi.string()
+		.email()
 })), async (req, res, next) => {
 	if (!req.session.user.IsAdmin){
 		return res.redirect('/no-access');
