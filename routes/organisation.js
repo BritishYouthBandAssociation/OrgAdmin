@@ -2,25 +2,38 @@
 
 // Import modules
 const express = require('express');
+const fs = require('fs');
+const Joi = require('joi');
+const jimp = require('jimp');
+const path = require('path');
+
+const validator = require('@byba/express-validator');
+
+const { helpers: { ConfigHelper } } = require(global.__lib);
+
 const router = express.Router();
 
-const path = require('path');
-const fs = require('fs');
+const idParamSchema = Joi.object({
+	orgID: Joi.number()
+		.required()
+});
 
-const jimp = require('jimp');
+const checkAdmin = (req, res, next) => {
+	if (!req.session.user.IsAdmin)
+	{return res.redirect('/no-access');}
 
-const {
-	helpers: {
-		ConfigHelper
-	}
-} = require(global.__lib);
+	next();
+};
 
-//list orgs
-router.get('/', async (req, res) => {
-	if (!req.session.user.IsAdmin) {
+const checkAccess = (req, res, next) => {
+	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin) {
 		return res.redirect('/no-access');
 	}
 
+	next();
+};
+
+router.get('/', checkAdmin, async (req, res, next) => {
 	const orgs = await req.db.Organisation.findAll({
 		include: [req.db.OrganisationType]
 	});
@@ -31,12 +44,7 @@ router.get('/', async (req, res) => {
 	});
 });
 
-//add org
-router.get('/new', async (req, res) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
+router.get('/new', checkAdmin, async (req, res, next) => {
 	const types = await req.db.OrganisationType.findAll();
 
 	return res.render('organisation/add.hbs', {
@@ -46,11 +54,26 @@ router.get('/new', async (req, res) => {
 	});
 });
 
-router.post('/new', async (req, res) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
+router.post('/new', checkAdmin, validator.query(Joi.object({
+	membershipType: Joi.number()
+})), validator.body(Joi.object({
+	name: Joi.string()
+		.required(),
+	slug: Joi.string()
+		.required(),
+	description: Joi.string()
+		.required(),
+	type: Joi.number()
+		.required(),
+	lineOne: Joi.string()
+		.required(),
+	lineTwo: Joi.string()
+		.required(),
+	city: Joi.string()
+		.required(),
+	postcode: Joi.string()
+		.required(),
+})), async (req, res, next) => {
 	const org = await req.db.Organisation.create({
 		Name: req.body.name,
 		Slug: req.body.slug,
@@ -66,27 +89,19 @@ router.post('/new', async (req, res) => {
 		include: [req.db.Address]
 	});
 
-	if (req.query.membershipType != null) {
+	if (req.query.membershipType) {
 		return res.redirect(`/membership/new?org=${org.id}&type=${req.query.membershipType}`);
 	}
 
-	res.redirect(org.id + '/');
+	res.redirect(`${org.id}/`);
 });
 
 function fileUploaded(base, id, type) {
 	const file = path.resolve(base, 'organisations', id, type);
-	const exists = fs.existsSync(file);
-	console.log(`Checking if ${file} exists : ${exists}`);
-
-	return exists;
+	return fs.existsSync(file);
 }
 
-//show org
-router.get('/:orgID', async (req, res, next) => {
-	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
+router.get('/:orgID', validator.params(idParamSchema), checkAccess, async (req, res, next) => {
 	const [org, types] = await Promise.all([
 		req.db.Organisation.findByPk(req.params.orgID, {
 			include: [
@@ -101,7 +116,7 @@ router.get('/:orgID', async (req, res, next) => {
 		req.db.OrganisationType.findAll()
 	]);
 
-	if (org == null) {
+	if (!org) {
 		return next();
 	}
 
@@ -138,14 +153,17 @@ router.get('/:orgID', async (req, res, next) => {
 	});
 });
 
-router.post('/:orgID', async (req, res, next) => {
-	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
+router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.object({
+	name: Joi.string()
+		.required(),
+	slug: Joi.string()
+		.required(),
+	description: Joi.string()
+		.required(),
+})), checkAccess, async (req, res, next) => {
 	const org = await req.db.Organisation.findByPk(req.params.orgID);
 
-	if (org == null) {
+	if (!org) {
 		return next();
 	}
 
@@ -171,17 +189,21 @@ router.post('/:orgID', async (req, res, next) => {
 		console.error(e);
 	}
 
-	return res.redirect('?saved=1');
+	return res.redirect('?saved=true');
 });
 
-router.post('/:orgID/branding', async (req, res, next) => {
-	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
+// TODO validate req.files?
+router.post('/:orgID/branding', validator.params(idParamSchema), checkAccess, validator.body(Joi.object({
+	primary: Joi.string()
+		.regex(/#([\da-fA-F]{3}){1,2}/)
+		.required(),
+	secondary: Joi.string()
+		.regex(/#([\da-fA-F]{3}){1,2}/)
+		.required(),
+})), async (req, res, next) => {
 	const org = await req.db.Organisation.findByPk(req.params.orgID);
 
-	if (org == null) {
+	if (!org) {
 		return next();
 	}
 
@@ -207,17 +229,26 @@ router.post('/:orgID/branding', async (req, res, next) => {
 		await img.writeAsync(uploadPath);
 	});
 
-	return res.redirect('./?saved=1');
+	return res.redirect('./?saved=true');
 });
 
-router.post('/:orgID/address', async (req, res, next) => {
+router.post('/:orgID/address', validator.params(idParamSchema), checkAccess, validator.body(Joi.object({
+	lineOne: Joi.string()
+		.required(),
+	lineTwo: Joi.string()
+		.required(),
+	city: Joi.string()
+		.required(),
+	postcode: Joi.string()
+		.required(),
+})), async (req, res, next) => {
 	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin) {
 		return res.redirect('/no-access');
 	}
 
 	const org = await req.db.Organisation.findByPk(req.params.orgID);
 
-	if (org == null) {
+	if (!org) {
 		return next();
 	}
 
@@ -229,15 +260,13 @@ router.post('/:orgID/address', async (req, res, next) => {
 	});
 	await org.setAddress(addr);
 
-	res.redirect('./?saved=1');
+	res.redirect('./?saved=true');
 });
 
-//org contacts
-router.get('/:orgID/contacts', async (req, res, next) => {
-	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
+router.get('/:orgID/contacts', validator.params(idParamSchema), checkAccess, validator.query(Joi.object({
+	added: Joi.boolean(),
+	removed: Joi.boolean()
+})), async (req, res, next) => {
 	const org = await req.db.Organisation.findByPk(req.params.orgID, {
 		include: [{
 			model: req.db.OrganisationUser,
@@ -247,7 +276,7 @@ router.get('/:orgID/contacts', async (req, res, next) => {
 
 	const contacts = org.OrganisationUsers;
 
-	if (org == null) {
+	if (!org) {
 		return next();
 	}
 
@@ -261,28 +290,25 @@ router.get('/:orgID/contacts', async (req, res, next) => {
 	});
 });
 
-//add contact
-router.get('/:orgID/contacts/add', (req, res, next) => {
-	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
-	if (req.query.email == null) {
-		return next();
-	}
-
+router.get('/:orgID/contacts/add', validator.params(idParamSchema), checkAccess, validator.query(Joi.object({
+	email: Joi.string()
+		.email()
+		.required()
+})), (req, res, next) => {
 	return res.redirect(`add/${req.query.email}`);
 });
 
-router.get('/:orgID/contacts/add/:email', async (req, res, next) => {
-	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
+router.get('/:orgID/contacts/add/:email', validator.params(idParamSchema.keys({
+	email: Joi.string()
+		.email()
+		.required()
+})), checkAccess, validator.query(Joi.object({
+	exists: Joi.boolean()
+})), async (req, res, next) => {
 	const org = await req.db.Organisation.findByPk(req.params.orgID, {
 		include: [req.db.OrganisationType]
 	});
-	if (org == null) {
+	if (!org) {
 		return next();
 	}
 
@@ -299,30 +325,30 @@ router.get('/:orgID/contacts/add/:email', async (req, res, next) => {
 	});
 });
 
-router.post('/:orgID/contacts/add/:email', async (req, res, next) => {
-	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
+router.post('/:orgID/contacts/add/:email', validator.params(idParamSchema.keys({
+	email: Joi.string()
+		.email()
+		.required()
+})), checkAccess, async (req, res, next) => {
 	const org = await req.db.Organisation.findByPk(req.params.orgID);
-	if (org == null) {
+	if (!org) {
 		return next();
 	}
 
 	const user = await req.db.User.findOne({ where: { Email: req.params.email } });
-	if (user == null) {
+	if (!user) {
 		return res.redirect(`/user/new?orgID=${req.params.orgID}&email=${req.params.email}`);
 	}
 
-	const exists = await req.db.OrganisationUser.findAndCountAll({
+	const exists = (await req.db.OrganisationUser.findAndCountAll({
 		where: {
 			OrganisationId: org.id,
 			UserId: user.id
 		}
-	}) > 0;
+	})).count > 0;
 
 	if (exists) {
-		return res.redirect('?exists=1');
+		return res.redirect('?exists=true');
 	}
 
 	const contact = await req.db.OrganisationUser.build();
@@ -330,20 +356,18 @@ router.post('/:orgID/contacts/add/:email', async (req, res, next) => {
 	await contact.setUser(user.id);
 	await contact.save();
 
-	res.redirect('../../contacts?added=1');
+	res.redirect('../../contacts?added=true');
 });
 
-//remove contact
-router.get('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
-	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
+router.get('/:orgID/contacts/:contactID/remove', validator.params(idParamSchema.keys({
+	contactID: Joi.number()
+		.required()
+})), checkAccess, async (req, res, next) => {
 	const contact = await req.db.OrganisationUser.findByPk(req.params.contactID, {
 		include: [req.db.Organisation, req.db.User]
 	});
 
-	if (contact == null) {
+	if (!contact) {
 		return next();
 	}
 
@@ -354,22 +378,21 @@ router.get('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
 	});
 });
 
-router.post('/:orgID/contacts/:contactID/remove', async (req, res, next) => {
-	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
+router.post('/:orgID/contacts/:contactID/remove', validator.params(idParamSchema.keys({
+	contactID: Joi.number()
+		.required()
+})), checkAccess, async (req, res, next) => {
 	const contact = await req.db.OrganisationUser.findByPk(req.params.contactID, {
 		include: [req.db.Organisation, req.db.User]
 	});
 
-	if (contact == null) {
+	if (!contact) {
 		return next();
 	}
 
 	await contact.destroy();
 
-	res.redirect('../../contacts?removed=1');
+	res.redirect('../../contacts?removed=true');
 });
 
 module.exports = {

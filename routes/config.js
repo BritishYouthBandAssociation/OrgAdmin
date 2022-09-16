@@ -1,13 +1,11 @@
 'use strict';
 
-const {
-	helpers: {
-		Guard
-	}
-} = require(global.__lib);
-
 const express = require('express');
+const Joi = require('joi');
 const { Op } = require('sequelize');
+
+const validator = require('@byba/express-validator');
+
 const router = express.Router();
 
 const checkAdmin = (req, res, next) => {
@@ -27,7 +25,9 @@ router.get('/', checkAdmin, (req, res) => {
 	});
 });
 
-router.get('/membership-type', checkAdmin, async (req, res) => {
+router.get('/membership-type', checkAdmin, validator.query(Joi.object({
+	saved: Joi.boolean()
+})), async (req, res, next) => {
 	const types = await req.db.MembershipType.findAll({
 		include: [{
 			model: req.db.Label
@@ -41,7 +41,24 @@ router.get('/membership-type', checkAdmin, async (req, res) => {
 	});
 });
 
-router.post('/membership-type', checkAdmin, async (req, res) => {
+router.post('/membership-type', checkAdmin, validator.body(Joi.object({
+	id: Joi.array()
+		.items(Joi.number()),
+	lbl: Joi.array()
+		.items(Joi.number()),
+	type: Joi.array()
+		.items(Joi.string()),
+	bg: Joi.array()
+		.items(Joi.string()),
+	fg: Joi.array()
+		.items(Joi.string()),
+	cost: Joi.array()
+		.items(Joi.number()),
+	isActive: Joi.array()
+		.items(Joi.boolean().falsy('0').truthy('1')),
+	isOrganisation: Joi.array()
+		.items(Joi.boolean().falsy('0').truthy('1')),
+})), async (req, res, next) => {
 	for (let i = 0; i < req.body.type.length; i++) {
 		let labelID = req.body.lbl[i];
 
@@ -84,10 +101,12 @@ router.post('/membership-type', checkAdmin, async (req, res) => {
 		}
 	}
 
-	return res.redirect('?saved=1');
+	return res.redirect('?saved=true');
 });
 
-router.get('/organisation-type', checkAdmin, async (req, res) => {
+router.get('/organisation-type', checkAdmin, validator.query(Joi.object({
+	saved: Joi.boolean()
+})), async (req, res, next) => {
 	const types = await req.db.OrganisationType.findAll();
 
 	return res.render('config/organisation-type.hbs', {
@@ -97,7 +116,14 @@ router.get('/organisation-type', checkAdmin, async (req, res) => {
 	});
 });
 
-router.post('/organisation-type', checkAdmin, async (req, res) => {
+router.post('/organisation-type', checkAdmin, validator.body(Joi.object({
+	id: Joi.array()
+		.items(Joi.number()),
+	type: Joi.array()
+		.items(Joi.string()),
+	isActive: Joi.array()
+		.items(Joi.boolean().falsy('0').truthy('1')),
+})), async (req, res, next) => {
 	await Promise.all(req.body.type.map((t, i) => {
 		const details = {
 			Name: req.body.type[i],
@@ -115,10 +141,12 @@ router.post('/organisation-type', checkAdmin, async (req, res) => {
 		});
 	}));
 
-	return res.redirect('?saved=1');
+	return res.redirect('?saved=true');
 });
 
-router.get('/event-type', checkAdmin, async (req, res) => {
+router.get('/event-type', checkAdmin, validator.query(Joi.object({
+	saved: Joi.boolean()
+})), async (req, res, next) => {
 	const types = await req.db.EventType.findAll();
 
 	return res.render('config/event-type.hbs', {
@@ -128,7 +156,14 @@ router.get('/event-type', checkAdmin, async (req, res) => {
 	});
 });
 
-router.post('/event-type', checkAdmin, async (req, res) => {
+router.post('/event-type', checkAdmin, validator.body(Joi.object({
+	id: Joi.array()
+		.items(Joi.number()),
+	type: Joi.array()
+		.items(Joi.string()),
+	isActive: Joi.array()
+		.items(Joi.boolean().falsy('0').truthy('1')),
+})), async (req, res, next) => {
 	await Promise.all(req.body.type.map((type, i) => {
 		const details = {
 			Name: req.body.type[i],
@@ -146,10 +181,12 @@ router.post('/event-type', checkAdmin, async (req, res) => {
 		});
 	}));
 
-	return res.redirect('?saved=1');
+	return res.redirect('?saved=true');
 });
 
-router.get('/payment-type', checkAdmin, async (req, res) => {
+router.get('/payment-type', checkAdmin, validator.query(Joi.object({
+	saved: Joi.boolean()
+})), async (req, res, next) => {
 	const types = await req.db.PaymentType.findAll();
 
 	return res.render('config/payment-type.hbs', {
@@ -159,7 +196,14 @@ router.get('/payment-type', checkAdmin, async (req, res) => {
 	});
 });
 
-router.post('/payment-type', checkAdmin, async (req, res) => {
+router.post('/payment-type', checkAdmin, validator.body(Joi.object({
+	id: Joi.array()
+		.items(Joi.number()),
+	type: Joi.array()
+		.items(Joi.string()),
+	isActive: Joi.array()
+		.items(Joi.boolean().falsy('0').truthy('1')),
+})), async (req, res, next) => {
 	await Promise.all(req.body.type.map((type, i) => {
 		const details = {
 			Description: req.body.type[i],
@@ -177,10 +221,12 @@ router.post('/payment-type', checkAdmin, async (req, res) => {
 		});
 	}));
 
-	return res.redirect('?saved=1');
+	return res.redirect('?saved=true');
 });
 
-router.get('/division', checkAdmin, async (req, res) => {
+router.get('/division', checkAdmin, validator.query(Joi.object({
+	saved: Joi.boolean()
+})), async (req, res, next) => {
 	const divisions = await req.db.Division.findAll();
 
 	return res.render('config/division.hbs', {
@@ -190,7 +236,18 @@ router.get('/division', checkAdmin, async (req, res) => {
 	});
 });
 
-router.post('/division', checkAdmin, async (req, res) => {
+router.post('/division', checkAdmin, validator.body(Joi.object({
+	id: Joi.array()
+		.items(Joi.number()),
+	division: Joi.array()
+		.items(Joi.string()),
+	promotion: Joi.array()
+		.items(Joi.number().allow('null')),
+	relegation: Joi.array()
+		.items(Joi.number().allow('null')),
+	isActive: Joi.array()
+		.items(Joi.boolean().falsy('0').truthy('1')),
+})), async (req, res, next) => {
 	await Promise.all(req.body.division.map((d, i) => {
 		const details = {
 			Name: req.body.division[i],
@@ -227,7 +284,9 @@ async function loadCaption(db, parent){
 	return parent;
 }
 
-router.get('/caption', checkAdmin, async (req, res) => {
+router.get('/caption', checkAdmin, validator.query(Joi.object({
+	success: Joi.boolean()
+})), async (req, res) => {
 	//load top level
 	const captions = await req.db.Caption.findAll({
 		where: {
@@ -275,17 +334,40 @@ async function saveCaption(db, caption, parent) {
 	}
 }
 
-router.post('/caption', checkAdmin, async (req, res) => {
-	const data = JSON.parse(req.body.caption);
+router.post('/caption', checkAdmin, (req, res, next) => {
+	req.body.caption = JSON.parse(req.body.caption);
+	next();
+}, validator.body(Joi.object({
+	caption: Joi.array().items(Joi.object({
+		id: Joi.number()
+			.required(),
+		Name: Joi.string()
+			.required(),
+		MaxScore: Joi.number()
+			.required(),
+		Multiplier: Joi.number()
+			.required(),
+		IsOptional: Joi.boolean()
+			.required(),
+		ParentId: Joi.number()
+			.allow(null),
+		Subcaptions: Joi.array()
+			.items(Joi.object())
+	}).unknown(true))
+}).unknown(true)), async (req, res) => {
+	const data = req.body.caption;
 
 	await Promise.all(data.map(c => {
 		return saveCaption(req.db.Caption, c, null);
 	}));
 
-	return res.redirect('?success=1');
+	return res.redirect('?success=true');
 });
 
-router.get('/season', checkAdmin, async (req, res) => {
+router.get('/season', checkAdmin, validator.query(Joi.object({
+	error: Joi.boolean(),
+	saved: Joi.boolean()
+})), async (req, res) => {
 	const season = await req.db.Season.findOne({
 		where: {
 			Start: {
@@ -316,15 +398,24 @@ router.get('/season', checkAdmin, async (req, res) => {
 	});
 });
 
-router.post('/season', checkAdmin, async (req, res) => {
+router.post('/season', checkAdmin, validator.body(Joi.object({
+	id: Joi.array()
+		.items(Joi.number()),
+	name: Joi.array()
+		.items(Joi.string()),
+	start: Joi.array()
+		.items(Joi.date()),
+	end: Joi.array()
+		.items(Joi.date())
+})), async (req, res) => {
 	try {
 		await req.db.sequelize.transaction(async (t) => {
 			for (let i = 0; i < req.body.id.length; i++) {
-				const id = Guard.againstNaN(req.body.id[i]);
+				const id = req.body.id[i];
 				const season = {
-					Identifier: Guard.againstEmptyString(req.body.name[i]),
-					Start: Guard.againstInvalidDate(req.body.start[i]),
-					End: Guard.againstInvalidDate(req.body.end[i])
+					Identifier: req.body.name[i],
+					Start: req.body.start[i],
+					End: req.body.end[i]
 				};
 
 				const match = await req.db.Season.findAndCountAll({
@@ -377,7 +468,15 @@ router.post('/season', checkAdmin, async (req, res) => {
 	}
 });
 
-router.post('/season/:id', checkAdmin, async (req, res, next) => {
+router.post('/season/:id', checkAdmin, validator.body(Joi.object({
+	id: Joi.number(),
+	name: Joi.string(),
+	start: Joi.date(),
+	end: Joi.date()
+})), validator.params(Joi.object({
+	id: Joi.number()
+		.required()
+})), async (req, res, next) => {
 	const season = await req.db.Season.findByPk(req.params.id);
 
 	if (!season) {
@@ -385,9 +484,9 @@ router.post('/season/:id', checkAdmin, async (req, res, next) => {
 	}
 
 	const data = {
-		Identifier: Guard.againstEmptyString(req.body.name),
-		Start: Guard.againstInvalidDate(req.body.start),
-		End: Guard.againstInvalidDate(req.body.end)
+		Identifier: req.body.name,
+		Start: req.body.start,
+		End: req.body.end
 	};
 
 	const match = await req.db.Season.findAndCountAll({
@@ -426,6 +525,6 @@ router.post('/season/:id', checkAdmin, async (req, res, next) => {
 });
 
 module.exports = {
-	root: '/config/',
+	root: '/config',
 	router: router
 };

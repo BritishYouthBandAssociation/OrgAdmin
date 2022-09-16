@@ -1,7 +1,11 @@
 'use strict';
 
 const express = require('express');
+const Joi = require('joi');
 const { Op } = require('sequelize');
+
+const validator = require('@byba/express-validator');
+
 const router = express.Router();
 
 const replaceMessageTokens = (msg, user, org) => {
@@ -18,7 +22,9 @@ const replaceMessageTokens = (msg, user, org) => {
 	return msg;
 };
 
-router.get('/', async (req, res) => {
+router.get('/', validator.query(Joi.object({
+	success: Joi.boolean()
+})), async (req, res, next) => {
 	if (!req.session.user.IsAdmin) {
 		return res.redirect('/no-access');
 	}
@@ -50,7 +56,17 @@ router.get('/', async (req, res) => {
 	});
 });
 
-router.post('/test', async (req, res) => {
+router.post('/test', validator.body(Joi.object({
+	membership: Joi.array()
+		.items(Joi.number())
+		.required(),
+	sender: Joi.string()
+		.required(),
+	subject: Joi.string()
+		.required(),
+	message: Joi.string()
+		.required()
+})), async (req, res, next) => {
 	if (!req.session.user.IsAdmin) {
 		return res.redirect('/no-access');
 	}
@@ -103,7 +119,17 @@ router.post('/test', async (req, res) => {
 	});
 });
 
-router.post('/send', async (req, res) => {
+router.post('/send', validator.body(Joi.object({
+	membership: Joi.array()
+		.items(Joi.number())
+		.required(),
+	sender: Joi.string()
+		.required(),
+	subject: Joi.string()
+		.required(),
+	message: Joi.string()
+		.required()
+})), async (req, res, next) => {
 	if (!req.session.user.IsAdmin) {
 		return res.redirect('/no-access');
 	}
@@ -143,7 +169,7 @@ router.post('/send', async (req, res) => {
 
 		t.commit();
 
-		res.redirect('./?success=1');
+		res.redirect('./?success=true');
 	} catch (ex) {
 		t.rollback();
 

@@ -3,18 +3,22 @@
 /* global __lib */
 
 const express = require('express');
+const Joi = require('joi');
 const { Op } = require('sequelize');
+
+const validator = require('@byba/express-validator');
+
+const {helpers: {SlugHelper: {formatSlug}}} = require(__lib);
+
 const router = express.Router();
 
-const {helpers: {ValidationHelper, SlugHelper: {formatSlug}}} = require(__lib);
+const idParamSchema = Joi.object({
+	id: Joi.string()
+		.guid()
+		.required()
+});
 
-const validDate = (date) => {
-	date = date instanceof Date ? date : new Date(date);
-
-	return !isNaN(date);
-};
-
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
 	const season = await req.db.Season.findOne({
 		where: {
 			Start: {
@@ -51,7 +55,7 @@ router.get('/', async (req, res) => {
 	});
 });
 
-router.get('/new', async (req, res) => {
+router.get('/new', async (req, res, next) => {
 	const season = await req.db.Season.findOne({
 		where: {
 			Start: {
@@ -80,30 +84,21 @@ router.get('/new', async (req, res) => {
 	});
 });
 
-router.post('/new', async (req, res) => {
-	const validationRes = ValidationHelper.validate(req.body, [
-		'name',
-		'type',
-		'start',
-		'end',
-		'season'
-	]);
-
-	if (!validationRes.isValid) {
-		console.error(validationRes.errors);
-		return res.redirect(req.params.id);
-	}
-
-	const fields = validationRes.fields;
-
-	if (!(validDate(fields.get('start')) && validDate(fields.get('end')))) {
-		console.error('Invalid dates');
-		return res.redirect();
-	}
-
+router.post('/new', validator.body(Joi.object({
+	name: Joi.string()
+		.required(),
+	type: Joi.number()
+		.required(),
+	start: Joi.date()
+		.required(),
+	end: Joi.date()
+		.required(),
+	season: Joi.number()
+		.required()
+})), async (req, res, next) => {
 	const eventType = await req.db.EventType.findOne({
 		where: {
-			id: fields.get('type')
+			id: req.body.type
 		}
 	});
 
@@ -112,16 +107,14 @@ router.post('/new', async (req, res) => {
 		return res.redirect();
 	}
 
-	const startDate = new Date(fields.get('start'));
-
-	const slug = formatSlug(`${startDate.getFullYear()}-${fields.get('name')}`);
+	const slug = formatSlug(`${req.body.start.getFullYear()}-${req.body.name}`);
 
 	const event = await req.db.Event.create({
-		Name: fields.get('name'),
-		Start: fields.get('start'),
-		End: fields.get('end'),
+		Name: req.body.name,
+		Start: req.body.start,
+		End: req.body.end,
 		Slug: slug,
-		SeasonId: fields.get('season')
+		SeasonId: req.body.season
 	});
 
 	await event.setEventType(eventType);
@@ -129,7 +122,9 @@ router.post('/new', async (req, res) => {
 	return res.redirect(event.id);
 });
 
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
+	saved: Joi.boolean()
+})), async (req, res, next) => {
 	const [ event, types ] = await Promise.all([
 		req.db.Event.findByPk(req.params.id, {
 			include: [
@@ -159,7 +154,28 @@ router.get('/:id', async (req, res, next) => {
 	});
 });
 
-router.post('/:id', async (req, res, next) => {
+router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
+	name: Joi.string()
+		.required(),
+	type: Joi.number()
+		.required(),
+	start: Joi.date()
+		.required(),
+	end: Joi.date()
+		.required(),
+	slug: Joi.string()
+		.required(),
+	lineOne: Joi.string()
+		.empty(''),
+	lineTwo: Joi.string()
+		.empty(''),
+	city: Joi.string()
+		.empty(''),
+	postcode: Joi.string()
+		.empty(''),
+	description: Joi.string()
+		.empty(''),
+})), async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id, {
 		include: [ req.db.Address ]
 	});
@@ -168,42 +184,23 @@ router.post('/:id', async (req, res, next) => {
 		return next();
 	}
 
-	const validationRes = ValidationHelper.validate(req.body, [
-		'name',
-		'type',
-		'start',
-		'end',
-		'slug'
-	]);
-
-	if (!validationRes.isValid) {
-		console.error(validationRes.errors);
-		return res.redirect(req.params.id);
-	}
-
-	const fields = validationRes.fields;
-
-	if (!(validDate(fields.get('start')) && validDate(fields.get('end')))) {
-		console.error('Invalid dates');
-		return res.redirect();
-	}
-
 	const addressProvided = req.body.lineOne && req.body.lineTwo && req.body.city && req.body.postcode;
 
 	await event.update({
-		Name: fields.get('name'),
-		Type: fields.get('type'),
-		Start: fields.get('start'),
-		End: fields.get('end'),
-		Slug: formatSlug(fields.get('slug'))
+		Name: req.body.name,
+		Type: req.body.type,
+		Start: req.body.start,
+		End: req.body.end,
+		Slug: formatSlug(req.body.slug),
+		Description: req.body.description
 	});
 
 	if (addressProvided) {
 		const values = {
-			Line1: fields.get('lineOne'),
-			Line2: fields.get('lineTwo'),
-			City: fields.get('city'),
-			Postcode: fields.get('postcode'),
+			Line1: req.body.lineOne,
+			Line2: req.body.lineTwo,
+			City: req.body.city,
+			Postcode: req.body.postcode,
 		};
 
 		if (event.Address) {
@@ -214,34 +211,27 @@ router.post('/:id', async (req, res, next) => {
 		}
 	}
 
-	return res.redirect(`${req.params.id}?saved=1`);
+	return res.redirect(`${req.params.id}?saved=true`);
 });
 
-router.post('/:id/registration', async (req, res, next) => {
+router.post('/:id/registration', validator.params(idParamSchema), validator.body(Joi.object({
+	registrationCutoff: Joi.date()
+		.required(),
+	freeRegistrationCutoff: Joi.date()
+		.required()
+})), async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id);
 
 	if (!event) {
 		return next();
 	}
 
-	const validationRes = ValidationHelper.validate(req.body, [
-		'registration-cutoff',
-		'free-registration-cutoff'
-	]);
-
-	if (!validationRes.isValid) {
-		console.error(validationRes.errors);
-		return res.redirect(req.params.id);
-	}
-
-	const fields = validationRes.fields;
-
 	await event.update({
-		EntryCutoffDate: fields.get('registration-cutoff'),
-		FreeEntryCutoffDate: fields.get('free-registration-cutoff'),
+		EntryCutoffDate: req.body.registrationCutoff,
+		FreeEntryCutoffDate: req.body.freeRegistrationCutoff,
 	});
 
-	return res.redirect(`/event/${req.params.id}?saved=1`);
+	return res.redirect(`/event/${req.params.id}?saved=true`);
 });
 
 async function loadCaption(db, parent){
@@ -272,7 +262,10 @@ function filterCaptions(arr, caption){
 	return arr;
 }
 
-router.get('/:id/judges', async (req, res, next) => {
+router.get('/:id/judges', validator.params(idParamSchema), validator.query(Joi.object({
+	add: Joi.number(),
+	success: Joi.boolean()
+})), async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id, {
 		include: [{
 			model: req.db.EventCaption,
@@ -317,7 +310,15 @@ router.get('/:id/judges', async (req, res, next) => {
 	});
 });
 
-router.post('/:id/judges', async (req, res, next) => {
+router.post('/:id/judges', validator.params(idParamSchema), validator.body(Joi.object({
+	caption: Joi.array()
+		.items(Joi.number()),
+	// eslint-disable-next-line camelcase
+	judge_search: Joi.array()
+		.items(Joi.string()),
+	judge: Joi.array()
+		.items(Joi.string().uuid())
+})), async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id);
 
 	if (!event) {
@@ -341,8 +342,14 @@ router.post('/:id/judges', async (req, res, next) => {
 	res.redirect('?success=true');
 });
 
-router.post('/:id/judges/remove', async (req, res, next) => {
-	const [event, caption] = await Promise.all([req.db.Event.findByPk(req.params.id), req.db.Caption.findByPk(req.body.caption)]);
+router.post('/:id/judges/remove', validator.params(idParamSchema), validator.body(Joi.object({
+	caption: Joi.number()
+		.required()
+})), async (req, res, next) => {
+	const [event, caption] = await Promise.all([
+		req.db.Event.findByPk(req.params.id),
+		req.db.Caption.findByPk(req.body.caption)
+	]);
 
 	if (!event || !caption){
 		return next();
@@ -358,7 +365,7 @@ router.post('/:id/judges/remove', async (req, res, next) => {
 	res.redirect('./?success=true');
 });
 
-router.post('/:id/judges/reset', async (req, res, next) => {
+router.post('/:id/judges/reset', validator.params(idParamSchema), async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id);
 	if (!event) {
 		return next();
