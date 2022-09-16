@@ -122,12 +122,11 @@ async function main() {
 
 	//prevent unauthorised access
 	app.use(async (req, res, next) => {
-		//allow css/js files
-		if (req.path.slice(req.path.length - 4) === '.css' || req.path.slice(req.path.length - 3) === '.js') {
+		//allow css/css.map/js files
+		if (/\.(css|js|css\.map)$/.test(req.path)) {
 			return next();
 		}
 
-		//double equals to also check for undefined
 		if (!req.session.user) {
 			if (!serverOptions.noAuthRequired.includes(req.path)) {
 				return res.redirect(`/?next=${req.path}`);
