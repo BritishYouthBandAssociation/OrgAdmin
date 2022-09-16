@@ -13,7 +13,7 @@
 	<h3 class="text-center">User Details</h3>
 
 	<form method="post">
-		{{> user user=user accountControls=true }}
+		{{> user user=user accountControls=session.user.IsAdmin }}
 
 		<div class="text-center">
 			<button class="btn btn-default">Save</button>
@@ -59,7 +59,9 @@
 					</div>
 			{{/eq}}
 
+			{{#if session.user.IsAdmin}}
 			<a href="captions" class="btn btn-default">Edit Captions</a>
+			{{/if}}
 		</div>
 	</div>
 </div>
