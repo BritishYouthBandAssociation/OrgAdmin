@@ -2,10 +2,14 @@
 
 // Import modules
 const express = require('express');
+const Joi = require('joi');
 const { Op } = require('sequelize');
+
+const validator = require('@byba/express-validator');
+
 const router = express.Router();
 
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
 	if (!req.session.user.IsAdmin) {
 		return res.redirect('/no-access');
 	}
@@ -56,15 +60,19 @@ router.get('/', async (req, res) => {
 	});
 });
 
-router.get('/new', async (req, res) => {
+router.get('/new', validator.query(Joi.object({
+	type: Joi.string(),
+	email: Joi.string()
+		.email(),
+})), async (req, res, next) => {
 	const types = await req.db.MembershipType.findAll({
 		where: {
 			IsActive: true
 		}
 	});
 
-	let member = null;
-	if (req.query.org != null) {
+	let member;
+	if (req.query.org) {
 		member = await req.db.Organisation.findByPk(req.query.org);
 	}
 
@@ -93,15 +101,18 @@ router.get('/new', async (req, res) => {
 	});
 });
 
-router.post('/new', async (req, res) => {
+
+// TODO refactor into two routes - one for individual and one for org memberships
+// add validation
+router.post('/new', async (req, res, next) => {
 	const type = await req.db.MembershipType.findOne({
 		where: {
 			id: req.body.type
 		}
 	});
 
-	if (type == null) {
-		return res.redirect('');
+	if (!type) {
+		return res.redirect();
 	}
 
 	if (type.IsOrganisation) {
@@ -189,30 +200,36 @@ router.post('/new', async (req, res) => {
 	return res.redirect(membership.id);
 });
 
-router.get('/:id', async (req, res, next) => {
-	const [membership, paymentTypes] = await Promise.all([req.db.Membership.findByPk(req.params.id, {
-		include: [
-			req.db.Label,
-			req.db.MembershipType,
-			req.db.Fee,
-			{
-				model: req.db.IndividualMembership,
-				include: [req.db.User]
-			},
-			{
-				model: req.db.OrganisationMembership,
-				include: {
-					model: req.db.Organisation,
-					include: [req.db.OrganisationType]
+router.get('/:id', validator.params(Joi.object({
+	id: Joi.number()
+})), validator.query(Joi.object({
+	saved: Joi.boolean()
+})), async (req, res, next) => {
+	const [membership, paymentTypes] = await Promise.all([
+		req.db.Membership.findByPk(req.params.id, {
+			include: [
+				req.db.Label,
+				req.db.MembershipType,
+				req.db.Fee,
+				{
+					model: req.db.IndividualMembership,
+					include: [req.db.User]
+				},
+				{
+					model: req.db.OrganisationMembership,
+					include: {
+						model: req.db.Organisation,
+						include: [req.db.OrganisationType]
+					}
 				}
+			]
+		}),
+		req.db.PaymentType.findAll({
+			where: {
+				IsActive: true
 			}
-		]
-	}),
-	req.db.PaymentType.findAll({
-		where: {
-			IsActive: true
-		}
-	})]);
+		})
+	]);
 
 	if (!membership) {
 		return next();
