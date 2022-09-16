@@ -21,6 +21,10 @@ router.get('/', async (req, res) => {
 		}
 	});
 
+	if (!season){
+		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
+	}
+
 	const memberships = await req.db.Membership.findAll({
 		where: { SeasonId: season.id },
 		include: [
@@ -44,7 +48,7 @@ router.get('/', async (req, res) => {
 	});
 
 	return res.render('membership/index.hbs', {
-		title: 'Membership',
+		title: `${season.Identifier} Membership`,
 		seasons: [season.id],
 		season: season.id,
 		membership: memberships,
@@ -74,6 +78,10 @@ router.get('/new', async (req, res) => {
 			}
 		}
 	});
+
+	if (!season){
+		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
+	}
 
 	res.render('membership/add.hbs', {
 		title: 'Add Membership',

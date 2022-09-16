@@ -300,7 +300,7 @@ router.get('/season', checkAdmin, async (req, res) => {
 	const others = await req.db.Season.findAll({
 		where: {
 			id: {
-				[Op.not]: season?.id
+				[Op.not]: season?.id ?? 0
 			}
 		}
 	});
@@ -421,7 +421,7 @@ router.post('/season/:id', checkAdmin, async (req, res, next) => {
 
 	await season.update(data);
 
-	const redir = req.body.next ?? '?saved=true';
+	const redir = req.body.next ?? './?saved=true';
 	res.redirect(redir);
 });
 
