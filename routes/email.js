@@ -38,6 +38,10 @@ router.get('/', async (req, res) => {
 		}
 	})]);
 
+	if (!season){
+		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
+	}
+
 	return res.render('email/index.hbs', {
 		title: 'Bulk Emailer',
 		types: types,
@@ -84,6 +88,10 @@ router.post('/test', async (req, res) => {
 			}
 		}
 	})]);
+
+	if (!season){
+		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
+	}
 
 	return res.render('email/index.hbs', {
 		title: 'Bulk Emailer',
@@ -153,6 +161,10 @@ router.post('/send', async (req, res) => {
 				}
 			}
 		})]);
+
+		if (!season){
+			return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
+		}
 
 		res.render('email/index.hbs', {
 			title: 'Bulk Emailer',
