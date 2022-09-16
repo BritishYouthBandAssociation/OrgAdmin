@@ -37,7 +37,7 @@ router.post('/:id', validator.query(Joi.object({
 
 	await fee.setPaymentType(req.body.paymentType);
 
-	return res.redirect(`${redir}?saved=1`);
+	return res.redirect(`${redir}?saved=true`);
 });
 
 module.exports = {

@@ -211,7 +211,7 @@ router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
 		}
 	}
 
-	return res.redirect(`${req.params.id}?saved=1`);
+	return res.redirect(`${req.params.id}?saved=true`);
 });
 
 router.post('/:id/registration', validator.params(idParamSchema), validator.body(Joi.object({
@@ -231,7 +231,7 @@ router.post('/:id/registration', validator.params(idParamSchema), validator.body
 		FreeEntryCutoffDate: req.body.freeRegistrationCutoff,
 	});
 
-	return res.redirect(`/event/${req.params.id}?saved=1`);
+	return res.redirect(`/event/${req.params.id}?saved=true`);
 });
 
 async function loadCaption(db, parent){

@@ -155,7 +155,7 @@ router.post('/:id/password', validator.params(idParamSchema), validator.body(Joi
 		individualHooks: true
 	});
 
-	return res.redirect(`../${req.params.id}?saved=1`);
+	return res.redirect(`../${user.id}?saved=true`);
 });
 
 router.get('/:id', validator.params(idParamSchema), async (req, res, next) => {
@@ -217,7 +217,7 @@ router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
 		where: { id: req.params.id }
 	});
 
-	return res.redirect('./?saved=1');
+	return res.redirect('?saved=true');
 });
 
 //this needs putting somewhere!
@@ -294,7 +294,7 @@ router.post('/:id/captions', validator.params(idParamSchema), validator.body(Joi
 
 	await user.setCaptions(data);
 
-	res.redirect('?saved=1');
+	res.redirect('?saved=true');
 });
 
 module.exports = {
