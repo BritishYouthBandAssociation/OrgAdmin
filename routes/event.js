@@ -15,23 +15,31 @@ const validDate = (date) => {
 };
 
 router.get('/', async (req, res) => {
-	const [ events, eventTypes, season ] = await Promise.all([
+	const season = await req.db.Season.findOne({
+		where: {
+			Start: {
+				[Op.lte]: Date.now()
+			},
+			End: {
+				[Op.gte]: Date.now()
+			}
+		}
+	});
+
+	if (!season){
+		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
+	}
+
+	const [ events, eventTypes] = await Promise.all([
 		req.db.Event.findAll({
 			include: [
 				req.db.EventType
-			]
-		}),
-		req.db.EventType.findAll(),
-		req.db.Season.findOne({
+			],
 			where: {
-				Start: {
-					[Op.lte]: Date.now()
-				},
-				End: {
-					[Op.gte]: Date.now()
-				}
+				SeasonId: season.id
 			}
-		})
+		}),
+		req.db.EventType.findAll()
 	]);
 
 	return res.render('event/index.hbs', {
@@ -44,6 +52,21 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/new', async (req, res) => {
+	const season = await req.db.Season.findOne({
+		where: {
+			Start: {
+				[Op.lte]: Date.now()
+			},
+			End: {
+				[Op.gte]: Date.now()
+			}
+		}
+	});
+
+	if (!season){
+		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
+	}
+
 	const types = await req.db.EventType.findAll({
 		where: {
 			IsActive: true
@@ -52,7 +75,8 @@ router.get('/new', async (req, res) => {
 
 	return res.render('event/add.hbs', {
 		title: 'Add New Event',
-		types
+		types,
+		season
 	});
 });
 
@@ -61,7 +85,8 @@ router.post('/new', async (req, res) => {
 		'name',
 		'type',
 		'start',
-		'end'
+		'end',
+		'season'
 	]);
 
 	if (!validationRes.isValid) {
@@ -95,7 +120,8 @@ router.post('/new', async (req, res) => {
 		Name: fields.get('name'),
 		Start: fields.get('start'),
 		End: fields.get('end'),
-		Slug: slug
+		Slug: slug,
+		SeasonId: fields.get('season')
 	});
 
 	await event.setEventType(eventType);
