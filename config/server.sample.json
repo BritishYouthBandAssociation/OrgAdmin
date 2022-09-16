@@ -3,5 +3,6 @@
 	"noAuthRequired": [],
 	"uploadPath":"/web/uploads/-org-",
 	"uploadURL": "",
-	"serveUploads": true
+	"serveUploads": true,
+	"logging": true
 }

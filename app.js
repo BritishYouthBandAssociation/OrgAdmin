@@ -4,6 +4,7 @@
 const express = require('express');
 const { engine } = require('express-handlebars');
 const fs = require('fs');
+const morgan = require('morgan');
 const path = require('path');
 const serveFavicon = require('serve-favicon');
 const session = require('express-session');
@@ -51,6 +52,16 @@ async function main() {
 
 	// Import configuration
 	const serverOptions = ConfigHelper.importJSON(path.join(__dirname, 'config'), 'server');
+
+	// Add logging middleware
+	if (serverOptions.logging) {
+		app.use(morgan('tiny', {
+			// don't log out static files and unnecessary fluff
+			skip: (req, res) => {
+				return /(^\/(js|css|fonts|assets|favicon)|(png|jpg|css))/.test(req.path);
+			}
+		}));
+	}
 
 	// Set up handlebars templating engine
 	app.engine(
