@@ -402,7 +402,7 @@ router.post('/season', checkAdmin, validator.body(Joi.object({
 	id: Joi.array()
 		.items(Joi.number()),
 	name: Joi.array()
-		.items(Joi.string()),
+		.items(Joi.string().max(10)),
 	start: Joi.array()
 		.items(Joi.date()),
 	end: Joi.array()
