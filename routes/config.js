@@ -310,7 +310,9 @@ router.get('/season', checkAdmin, async (req, res) => {
 		season: season,
 		others: others,
 		error: req.query.error ?? false,
-		saved: req.query.saved ?? false
+		saved: req.query.saved ?? false,
+		needsSeason: req.query.needsSeason ?? false,
+		next: req.query.next
 	});
 });
 
@@ -367,7 +369,8 @@ router.post('/season', checkAdmin, async (req, res) => {
 			}
 		});
 
-		res.redirect('?saved=true');
+		const redir = req.body.next ?? '?saved=true';
+		res.redirect(redir);
 	} catch (e) {
 		console.error(e);
 		res.redirect('?error=true');
@@ -418,7 +421,8 @@ router.post('/season/:id', checkAdmin, async (req, res, next) => {
 
 	await season.update(data);
 
-	res.redirect('./?saved=true');
+	const redir = req.body.next ?? '?saved=true';
+	res.redirect(redir);
 });
 
 module.exports = {
