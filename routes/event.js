@@ -165,6 +165,14 @@ router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
 		.required(),
 	slug: Joi.string()
 		.required(),
+	membersOnly: Joi.boolean()
+		.truthy('1')
+		.falsy('0')
+		.required(),
+	scoresReleased: Joi.boolean()
+		.truthy('1')
+		.falsy('0')
+		.required(),
 	lineOne: Joi.string()
 		.empty(''),
 	lineTwo: Joi.string()
@@ -192,7 +200,9 @@ router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
 		Start: req.body.start,
 		End: req.body.end,
 		Slug: formatSlug(req.body.slug),
-		Description: req.body.description
+		Description: req.body.description,
+		MembersOnly: req.body.membersOnly,
+		ScoresReleased: req.body.scoresReleased
 	});
 
 	if (addressProvided) {
@@ -217,7 +227,7 @@ router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
 router.post('/:id/registration', validator.params(idParamSchema), validator.body(Joi.object({
 	registrationCutoff: Joi.date()
 		.required(),
-	freeRegistrationCutoff: Joi.date()
+	freeWithdrawalCutoff: Joi.date()
 		.required()
 })), async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id);
@@ -228,7 +238,7 @@ router.post('/:id/registration', validator.params(idParamSchema), validator.body
 
 	await event.update({
 		EntryCutoffDate: req.body.registrationCutoff,
-		FreeEntryCutoffDate: req.body.freeRegistrationCutoff,
+		FreeWithdrawalCutoffDate: req.body.freeWithdrawalCutoff,
 	});
 
 	return res.redirect(`/event/${req.params.id}?saved=true`);
