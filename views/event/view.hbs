@@ -50,6 +50,30 @@
 			</div>
 		</div>
 
+	<div class="row row-cols-1 row-cols-md-2 text-center">
+		<div class="col mb-3">
+			<p>Members Only?</p>
+			<div class="btn-group" role="group" aria-label="Members Only?">
+				<input type="radio" value="1" class="btn-check" name="membersOnly" id="membersOnly-y" autocomplete="off" {{#if event.MembersOnly}}checked{{/if}}>
+				<label class="btn btn-outline-success" for="membersOnly-y">Yes</label>
+
+				<input type="radio" value="0" class="btn-check" name="membersOnly" id="membersOnly-n" autocomplete="off" {{#unless event.MembersOnly}}checked{{/unless}}>
+				<label class="btn btn-outline-danger" for="membersOnly-n">No</label>
+			</div>
+		</div>
+
+		<div class="col mb-3">
+			<p>Scores released?</p>
+			<div class="btn-group" role="group" aria-label="Scores released?">
+				<input type="radio" value="1" class="btn-check" name="scoresReleased" id="scoresReleased-y" autocomplete="off" {{#if event.ScoresReleased}}checked{{/if}}>
+				<label class="btn btn-outline-success" for="scoresReleased-y">Yes</label>
+
+				<input type="radio" value="0" class="btn-check" name="scoresReleased" id="scoresReleased-n" autocomplete="off" {{#unless event.ScoresReleased}}checked{{/unless}}>
+				<label class="btn btn-outline-danger" for="scoresReleased-n">No</label>
+			</div>
+		</div>
+	</div>
+
 		<div class="card card-body mb-3">
 			<h3>Address</h3>
 			{{> address prefix="" required=false data=event.Address }}

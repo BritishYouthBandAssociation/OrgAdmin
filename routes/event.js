@@ -165,6 +165,14 @@ router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
 		.required(),
 	slug: Joi.string()
 		.required(),
+	membersOnly: Joi.boolean()
+		.truthy('1')
+		.falsy('0')
+		.required(),
+	scoresReleased: Joi.boolean()
+		.truthy('1')
+		.falsy('0')
+		.required(),
 	lineOne: Joi.string()
 		.empty(''),
 	lineTwo: Joi.string()
@@ -192,7 +200,9 @@ router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
 		Start: req.body.start,
 		End: req.body.end,
 		Slug: formatSlug(req.body.slug),
-		Description: req.body.description
+		Description: req.body.description,
+		MembersOnly: req.body.membersOnly,
+		ScoresReleased: req.body.scoresReleased
 	});
 
 	if (addressProvided) {
