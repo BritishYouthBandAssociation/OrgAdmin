@@ -421,6 +421,10 @@ router.post('/season', checkAdmin, validator.body(Joi.object({
 					End: req.body.end[i]
 				};
 
+				if (season.End < season.Start) {
+					throw new Error('Season ends before it starts');
+				}
+
 				const match = await req.db.Season.findAndCountAll({
 					where: {
 						id: {
