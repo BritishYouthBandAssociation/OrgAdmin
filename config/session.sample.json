@@ -3,7 +3,7 @@
 	"saveUninitialized": false,
 	"resave": false,
 	"cookie": {
-		"maxAge": 300000,
+		"maxAge": 3600000,
 		"sameSite": true
 	}
 }
