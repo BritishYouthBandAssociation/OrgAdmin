@@ -6,10 +6,10 @@
 
 <div id="app">
 	<form method="post">
-		<button type="button" class="btn btn-default mb-3" v-on:click="addCaption">+ Add</button>
+		<button type="button" class="btn btn-success btn-lg mb-3" v-on:click="addCaption">+ Add</button>
 		<caption-selector v-for="(caption, i) in captions" :key="caption.id" :caption="caption"></caption-selector>
 
-		<button type="submit" class="btn btn-success mt-3" v-if="captions.length > 0">Save</button>
+		<button type="submit" class="btn btn-default btn-lg" v-if="captions.length > 0">Save</button>
 		<input type="hidden" id="caption" name="caption" :value="JSON.stringify(captions)" />
 	</form>
 </div>
