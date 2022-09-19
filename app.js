@@ -94,6 +94,16 @@ async function main() {
 	// Set up routes for static files
 	app.use(serveFavicon(
 		path.join(__dirname, 'public/assets/favicon.ico')));
+
+	// Serve the production vue script if in production environment
+	app.get('/js/vue.js', (req, res, next) => {
+		if (process.env.NODE_ENV === 'production') {
+			return res.redirect('/js/vue.min.js');
+		}
+
+		next();
+	});
+
 	app.use(express.static(path.join(__dirname, 'public')));
 
 	// Serve uploads locally

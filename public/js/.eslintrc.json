@@ -5,5 +5,12 @@
 	"env": {
 		"browser": true
 	},
-	"ignorePatterns": ["bootstrap.min.js", "swal2.js", "tinymce.min.js", "vue.js", "smoothscroll.min.js"] //libraries
+	"ignorePatterns": [
+		"bootstrap.min.js",
+		"swal2.js",
+		"tinymce.min.js",
+		"vue.js",
+		"vue.min.js",
+		"smoothscroll.min.js"
+	] //libraries
 }
