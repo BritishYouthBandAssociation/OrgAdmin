@@ -9,7 +9,7 @@ const prompt = require('prompt-sync')({ sigint: true });
 const del = require('del');
 
 // Initialise library path
-const libPath = process.env.LIB_PATH ?? '../lib';
+const libPath = process.env.LIB_PATH ?? '../Library';
 
 // Import library functions
 const { helpers: { ConfigHelper } } = require(libPath);
@@ -108,6 +108,10 @@ function overwriteReadme(cb) {
 
 	const readmePath = path.join(__dirname, 'README.md');
 	const templatePath = path.join(__dirname, 'TEMPLATE_README.md');
+
+	if (!fs.existsSync(readmePath) | !fs.existsSync(templatePath)) {
+		return cb();
+	}
 
 	const readme = fs.readFileSync(readmePath, 'utf8');
 	const template = fs.readFileSync(templatePath, 'utf8');
