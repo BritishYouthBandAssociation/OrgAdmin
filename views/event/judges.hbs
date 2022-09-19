@@ -20,7 +20,11 @@
 
 							<input type="hidden" name="caption[]" value="{{../id}}" />
 
-							<search-box name="judge" is-array="true" title="Judge" url="/_api/caption/{{id}}/judges/search" text-prop="FullName" value-prop="id" text="{{../User.FullName}}" value="{{../User.id}}"></search-box>
+							<search-box name="judge" is-array="true" title="Judge"
+								url="/_api/caption/{{id}}/judges/search" text-prop="FullName" value-prop="id"
+								text="{{../User.FullName}}" value="{{../User.id}}"
+								placeholder="Start typing a name to search for a judge...">
+							</search-box>
 
 						</div>
 						<div class="card-footer">
