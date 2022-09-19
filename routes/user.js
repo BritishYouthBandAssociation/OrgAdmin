@@ -16,11 +16,23 @@ const idParamSchema = Joi.object({
 		.required()
 });
 
-router.get('/', async (req, res, next) => {
-	if (!req.session.user.IsAdmin){
+const checkAdmin = (req, res, next) => {
+	if (!req.session.user.IsAdmin) {
 		return res.redirect('/no-access');
 	}
 
+	next();
+};
+
+const checkAccess = (req, res, next) => {
+	if (!req.session.user.IsAdmin && req.session.user.id !== req.params.id){
+		return res.redirect('/no-access');
+	}
+
+	next();
+};
+
+router.get('/', checkAdmin, async (req, res, next) => {
 	const users = await req.db.User.findAll();
 	const active = [];
 	const inactive = [];
@@ -42,15 +54,11 @@ router.get('/', async (req, res, next) => {
 	});
 });
 
-router.get('/new', validator.query(Joi.object({
+router.get('/new', checkAdmin, validator.query(Joi.object({
 	orgID: Joi.number(),
 	email: Joi.string()
 		.email()
 })), (req, res, next) => {
-	if (!req.session.user.IsAdmin){
-		return res.redirect('/no-access');
-	}
-
 	const details = {
 		Email: req.query.email ?? '',
 		IsActive: true
@@ -64,7 +72,7 @@ router.get('/new', validator.query(Joi.object({
 	});
 });
 
-router.post('/new', validator.body(Joi.object({
+router.post('/new', checkAdmin, validator.body(Joi.object({
 	firstName: Joi.string()
 		.required(),
 	surname: Joi.string()
@@ -84,13 +92,11 @@ router.post('/new', validator.body(Joi.object({
 		.falsy('0')
 		.required(),
 }).with('password', 'confirm')), validator.query(Joi.object({
-	orgId: Joi.number(),
-	membership: Joi.number()
+	orgID: Joi.number(),
+	membership: Joi.number(),
+	email: Joi.string()
+		.email()
 })), async (req, res, next) => {
-	if (!req.session.user.IsAdmin){
-		return res.redirect('/no-access');
-	}
-
 	const match = await req.db.User.count({
 		where: {
 			email: req.body.email
@@ -132,15 +138,11 @@ router.post('/new', validator.body(Joi.object({
 	return res.redirect(user.id);
 });
 
-router.post('/:id/password', validator.params(idParamSchema), validator.body(Joi.object({
+router.post('/:id/password', validator.params(idParamSchema), checkAccess, validator.body(Joi.object({
 	password: Joi.string()
 		.required(),
 	confirm: Joi.ref('password')
 }).with('password', 'confirm')), async (req, res, next) => {
-	if (!req.session.user.IsAdmin && req.session.user.id !== req.params.id){
-		return res.redirect('/no-access');
-	}
-
 	const user = await req.db.User.findByPk(req.params.id);
 
 	if (!user){
@@ -158,11 +160,7 @@ router.post('/:id/password', validator.params(idParamSchema), validator.body(Joi
 	return res.redirect(`../${user.id}?saved=true`);
 });
 
-router.get('/:id', validator.params(idParamSchema), async (req, res, next) => {
-	if (!req.session.user.IsAdmin && req.session.user.id !== req.params.id){
-		return res.redirect('/no-access');
-	}
-
+router.get('/:id', validator.params(idParamSchema), checkAccess, async (req, res, next) => {
 	const user = await req.db.User.findByPk(req.params.id, {
 		include: [req.db.Caption]
 	});
@@ -180,7 +178,7 @@ router.get('/:id', validator.params(idParamSchema), async (req, res, next) => {
 	});
 });
 
-router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
+router.post('/:id', validator.params(idParamSchema), checkAccess, validator.body(Joi.object({
 	firstName: Joi.string()
 		.required(),
 	surname: Joi.string()
@@ -190,32 +188,31 @@ router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
 		.required(),
 	isActive: Joi.boolean()
 		.truthy('1')
-		.falsy('0')
-		.required(),
+		.falsy('0'),
 	isAdmin: Joi.boolean()
 		.truthy('1')
-		.falsy('0')
-		.required(),
+		.falsy('0'),
 })), async (req, res, next) => {
-	if (!req.session.user.IsAdmin && req.session.user.id !== req.params.id){
-		return res.redirect('/no-access');
-	}
-
 	const user = await req.db.User.findByPk(req.params.id);
 
 	if (!user){
 		return next();
 	}
 
-	await req.db.User.update({
+	const details = {
 		Email: req.body.email,
 		FirstName: req.body.firstName,
-		Surname: req.body.surname,
-		IsActive: req.body.isActive,
-		IsAdmin: req.body.isAdmin
-	}, {
-		where: { id: req.params.id }
-	});
+		Surname: req.body.surname
+	};
+
+	// Only allow updating of isAdmin and isActive fields if the request
+	// comes from an admin
+	if (req.session.user.IsAdmin) {
+		details.IsAdmin = req.body.isAdmin;
+		details.IsActive = req.body.isActive;
+	}
+
+	await user.update(details);
 
 	return res.redirect('?saved=true');
 });
@@ -235,13 +232,9 @@ async function loadCaption(db, parent){
 	return parent;
 }
 
-router.get('/:id/captions', validator.params(idParamSchema), validator.query(Joi.object({
+router.get('/:id/captions', validator.params(idParamSchema), checkAccess, validator.query(Joi.object({
 	saved: Joi.boolean()
 })), async (req, res, next) => {
-	if (!req.session.user.IsAdmin && req.session.user.id !== req.params.id){
-		return res.redirect('/no-access');
-	}
-
 	const user = await req.db.User.findByPk(req.params.id, {
 		include: [req.db.Caption]
 	});
@@ -270,14 +263,10 @@ router.get('/:id/captions', validator.params(idParamSchema), validator.query(Joi
 	});
 });
 
-router.post('/:id/captions', validator.params(idParamSchema), validator.body(Joi.object({
+router.post('/:id/captions', validator.params(idParamSchema), checkAccess, validator.body(Joi.object({
 	caption: Joi.array()
 		.items(Joi.number())
 })), async (req, res, next) => {
-	if (!req.session.user.IsAdmin && req.session.user.id !== req.params.id){
-		return res.redirect('/no-access');
-	}
-
 	const user = await req.db.User.findByPk(req.params.id);
 
 	if (!user){

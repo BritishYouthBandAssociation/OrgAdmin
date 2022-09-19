@@ -64,6 +64,7 @@ router.get('/new', validator.query(Joi.object({
 	type: Joi.string(),
 	email: Joi.string()
 		.email(),
+	org: Joi.number()
 })), async (req, res, next) => {
 	const types = await req.db.MembershipType.findAll({
 		where: {

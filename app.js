@@ -4,6 +4,7 @@
 const express = require('express');
 const { engine } = require('express-handlebars');
 const fs = require('fs');
+const morgan = require('morgan');
 const path = require('path');
 const serveFavicon = require('serve-favicon');
 const session = require('express-session');
@@ -51,6 +52,16 @@ async function main() {
 
 	// Import configuration
 	const serverOptions = ConfigHelper.importJSON(path.join(__dirname, 'config'), 'server');
+
+	// Add logging middleware
+	if (serverOptions.logging) {
+		app.use(morgan('tiny', {
+			// don't log out static files and unnecessary fluff
+			skip: (req, res) => {
+				return /(^\/(js|css|fonts|assets|favicon)|(png|jpg|css))/.test(req.path);
+			}
+		}));
+	}
 
 	// Set up handlebars templating engine
 	app.engine(
@@ -111,12 +122,11 @@ async function main() {
 
 	//prevent unauthorised access
 	app.use(async (req, res, next) => {
-		//allow css/js files
-		if (req.path.slice(req.path.length - 4) === '.css' || req.path.slice(req.path.length - 3) === '.js') {
+		//allow css/css.map/js files
+		if (/\.(css|js|css\.map)$/.test(req.path)) {
 			return next();
 		}
 
-		//double equals to also check for undefined
 		if (!req.session.user) {
 			if (!serverOptions.noAuthRequired.includes(req.path)) {
 				return res.redirect(`/?next=${req.path}`);
