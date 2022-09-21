@@ -1,5 +1,9 @@
 <h2>Add Event</h2>
 
+{{#eq types.length 0}}
+	<div class="alert alert-warning text-center">There are no event types currently configured. You must <a href="/config/event-type">create one</a> before creating an event</div>
+{{/eq}}
+
 <form method='post'>
 	<div class='mb-3'>
 		<div class='card card-body'>
