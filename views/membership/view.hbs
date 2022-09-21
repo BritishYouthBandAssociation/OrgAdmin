@@ -18,10 +18,11 @@
 
 			<p>Membership Number: {{membership.Number}}</p>
 			<p>Membership Type: {{membership.MembershipType.Name}}</p>
-			<p>Season: {{membership.Season}}</p>
+			<p>Season: {{membership.Season.Identifier}}</p>
 			<p>Cost: &pound;{{membership.Fee.Total}} {{#unless membership.Fee.IsPaid}}<span class="text-danger">Fee
 					Outstanding</span>{{else}}<span class="text-success">Fee Paid</span>{{/unless}}</p>
 			<p>Start Date: {{date membership.DateStarted}}</p>
+			<p>End Date: {{date membership.Season.End}}</p>
 		</div>
 
 		<div class="card card-body mb-3">

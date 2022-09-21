@@ -212,6 +212,7 @@ router.get('/:id', validator.params(Joi.object({
 				req.db.Label,
 				req.db.MembershipType,
 				req.db.Fee,
+				req.db.Season,
 				{
 					model: req.db.IndividualMembership,
 					include: [req.db.User]
