@@ -9,13 +9,14 @@
 		<button type="button" class="btn btn-success btn-lg mb-3" v-on:click="addCaption">+ Add</button>
 		<caption-selector v-for="(caption, i) in captions" :key="caption.id" :caption="caption"></caption-selector>
 
-		<button type="submit" class="btn btn-default btn-lg" v-if="captions.length > 0">Save</button>
+		<button type="submit" class="btn btn-default btn-lg" id='save-button' v-if="captions.length > 0">Save</button>
 		<input type="hidden" id="caption" name="caption" :value="JSON.stringify(captions)" />
 	</form>
 </div>
 
 <script src="/js/vue.js"></script>
 <script src="/js/component/Caption.js"></script>
+<script src="/js/smoothscroll.min.js"></script>
 <script>
 	let id = 0;
 
@@ -26,7 +27,7 @@
 			captions: {{{ json captions }}}
 		},
 		methods: {
-			addCaption: function () {
+			addCaption: function (e) {
 				this.captions.push({
 					id: --id,
 					Name: '',
@@ -34,6 +35,12 @@
 					MaxScore: 0,
 					Multiplier: 1.0,
 					Subcaptions: []
+				});
+
+				// scroll to the bottom of the page
+				// for some reason this doesn't actually scroll to the button but it's close enough for now
+				Vue.nextTick(() => {
+					document.getElementById('save-button').scrollIntoView(true);
 				});
 			}
 		}

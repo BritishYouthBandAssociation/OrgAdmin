@@ -101,7 +101,10 @@ function fileUploaded(base, id, type) {
 	return fs.existsSync(file);
 }
 
-router.get('/:orgID', validator.params(idParamSchema), checkAccess, async (req, res, next) => {
+router.get('/:orgID', validator.params(idParamSchema), checkAccess, validator.query(Joi.object({
+	saved: Joi.boolean(),
+	error: [ Joi.boolean(), Joi.string() ],
+})), async (req, res, next) => {
 	const [org, types] = await Promise.all([
 		req.db.Organisation.findByPk(req.params.orgID, {
 			include: [
@@ -129,7 +132,7 @@ router.get('/:orgID', validator.params(idParamSchema), checkAccess, async (req, 
 
 		let baseURL;
 		if (config.serveUploads) {
-			const protocol = req.headers.referer.slice(0, req.headers.referer.indexOf('://'));
+			const protocol = 'http';
 			const host = req.headers.host;
 
 			baseURL = `${protocol}://${host}/uploads`;
@@ -143,11 +146,18 @@ router.get('/:orgID', validator.params(idParamSchema), checkAccess, async (req, 
 		return url;
 	};
 
+	if (typeof req.query.error === 'string') {
+		req.query.error = decodeURIComponent(req.query.error);
+	} else if (typeof req.query.error === 'boolean') {
+		req.query.error = 'An error has occurred while saving, please check the details and try again';
+	}
+
 	return res.render('organisation/view.hbs', {
 		title: org.Name,
 		organisation: org,
 		types: types,
 		saved: req.query.saved ?? false,
+		error: req.query.error ?? false,
 		logo: buildFileURL('logo'),
 		header: buildFileURL('header')
 	});
@@ -219,15 +229,21 @@ router.post('/:orgID/branding', validator.params(idParamSchema), checkAccess, va
 		fs.mkdirSync(uploadBase, { recursive: true });
 	}
 
-	Object.keys(req.files).forEach(async (f) => {
-		const file = req.files[f];
-		const newName = `${f}.png`;
+	for (const [filename, file] of Object.entries(req.files)) {
+		const newName = `${filename}.png`;
 
 		const uploadPath = path.join(uploadBase, newName);
 
-		const img = await jimp.read(file.path);
+		let img;
+		try {
+			img = await jimp.read(file.path);
+		} catch (e) {
+			console.error(e);
+			return res.redirect(`./?error=${encodeURIComponent(e.message)}`);
+		}
+
 		await img.writeAsync(uploadPath);
-	});
+	}
 
 	return res.redirect('./?saved=true');
 });

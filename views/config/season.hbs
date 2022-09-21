@@ -7,7 +7,7 @@
 	{{/if}}
 
 	{{#if error}}
-		<div class="alert alert-danger text-center">An error occurred whilst saving. Please double-check the entered data and ensure that there are no overlapping dates</div>
+		<div class="alert alert-danger text-center">An error occurred whilst saving. Please double-check the entered data and ensure that there are no overlapping dates and that the season dates are the correct way round.</div>
 	{{/if}}
 
 	{{#if needsSeason}}
@@ -160,7 +160,7 @@
 		this.seasons.forEach(s => {
 			s.Start = s.Start.split("T")[0];
 			s.End = s.End.split("T")[0];
-		})
+		});
 	}
 	});
 </script>

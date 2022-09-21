@@ -36,10 +36,11 @@
 		</div>
 	</div>
 
-	<button class="btn btn-default btn-lg">Save</button>
+	<button class="btn btn-default btn-lg" id='save-button'>Save</button>
 </form>
 
 <script src="/js/vue.js"></script>
+<script src="/js/smoothscroll.min.js"></script>
 <script>
 	let id = 0;
 
@@ -56,6 +57,11 @@
 				Cost: 0,
 				IsActive: true,
 				IsOrganisation: true
+			});
+
+			// scroll to the bottom of the page
+			Vue.nextTick(() => {
+				document.getElementById('save-button').scrollIntoView(true);
 			});
 		}
 	}
