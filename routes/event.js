@@ -119,7 +119,7 @@ router.post('/new', validator.body(Joi.object({
 
 	await event.setEventType(eventType);
 
-	return res.redirect(event.id);
+	return res.redirect(`${event.id}/`);
 });
 
 router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
