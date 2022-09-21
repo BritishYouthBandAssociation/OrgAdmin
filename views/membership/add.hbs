@@ -1,5 +1,9 @@
 <h2>Add Membership</h2>
 
+{{#eq types.length 0}}
+	<div class="alert alert-warning text-center">There are no membership types currently configured. You must <a href="/config/membership-type/">create one</a> before creating a membership</div>
+{{/eq}}
+
 <form method="post" id="app">
 	<div class="card card-body mb-3">
 		<h3>Membership Details</h3>
