@@ -157,7 +157,7 @@ router.post('/:id/password', validator.params(idParamSchema), checkAccess, valid
 		individualHooks: true
 	});
 
-	return res.redirect(`../${user.id}?saved=true`);
+	return res.redirect('./?saved=true');
 });
 
 router.get('/:id', validator.params(idParamSchema), checkAccess, async (req, res, next) => {
