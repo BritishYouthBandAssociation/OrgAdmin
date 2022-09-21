@@ -46,6 +46,7 @@
 			<div class='card-body'>
 				<p class='h4'><a href='{{id}}/' class='stretched-link text-reset text-decoration-none'>{{Name}}</a></p>
 				<p>{{datetimeDelta Start End format='long'}}</p>
+				<div><span class='badge {{#if MembersOnly}}bg-danger{{else}}bg-success{{/if}}'>{{#if MembersOnly}}Members Only{{else}}Open to all{{/if}}</span></div>
 			</div>
 			<div class='card-footer label-container'>
 				{{#with EventType}}
