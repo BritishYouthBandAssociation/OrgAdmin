@@ -19,8 +19,7 @@ const idParamSchema = Joi.object({
 });
 
 const checkAdmin = (req, res, next) => {
-	if (!req.session.user.IsAdmin)
-	{return res.redirect('/no-access');}
+	if (!req.session.user.IsAdmin) { return res.redirect('/no-access'); }
 
 	next();
 };
@@ -103,7 +102,7 @@ function fileUploaded(base, id, type) {
 
 router.get('/:orgID', validator.params(idParamSchema), checkAccess, validator.query(Joi.object({
 	saved: Joi.boolean(),
-	error: [ Joi.boolean(), Joi.string() ],
+	error: [Joi.boolean(), Joi.string()],
 })), async (req, res, next) => {
 	const [org, types] = await Promise.all([
 		req.db.Organisation.findByPk(req.params.orgID, {
@@ -127,23 +126,28 @@ router.get('/:orgID', validator.params(idParamSchema), checkAccess, validator.qu
 	const id = String(org.id);
 
 	const buildFileURL = (filename) => {
-		if (!fileUploaded(config.uploadPath, id, `${filename}.png`))
-		{return '';}
+		try {
+			if (!fileUploaded(config.uploadPath, id, `${filename}.png`)) {
+				return '';
+			}
 
-		let baseURL;
-		if (config.serveUploads) {
-			const protocol = 'http';
-			const host = req.headers.host;
+			let baseURL;
+			if (config.serveUploads) {
+				const protocol = 'http';
+				const host = req.headers.host;
 
-			baseURL = `${protocol}://${host}/uploads`;
-		} else {
-			baseURL = config.uploadURL;
+				baseURL = `${protocol}://${host}/uploads`;
+			} else {
+				baseURL = config.uploadURL;
+			}
+
+			const url = new URL(`${baseURL}/organisations/${id}/${filename}.png`);
+			url.searchParams.append('v', new Date().getTime());
+
+			return url;
+		} catch (ex) {
+			return '';
 		}
-
-		const url = new URL(`${baseURL}/organisations/${id}/${filename}.png`);
-		url.searchParams.append('v', new Date().getTime());
-
-		return url;
 	};
 
 	if (typeof req.query.error === 'string') {
@@ -159,7 +163,8 @@ router.get('/:orgID', validator.params(idParamSchema), checkAccess, validator.qu
 		saved: req.query.saved ?? false,
 		error: req.query.error ?? false,
 		logo: buildFileURL('logo'),
-		header: buildFileURL('header')
+		header: buildFileURL('header'),
+		enableUpload: config.uploadPath != null
 	});
 });
 
@@ -223,26 +228,33 @@ router.post('/:orgID/branding', validator.params(idParamSchema), checkAccess, va
 	});
 
 	const config = ConfigHelper.importJSON(path.join(global.__approot, 'config'), 'server');
-	const uploadBase = path.resolve(config.uploadPath, 'organisations', String(org.id));
 
-	if (!fs.existsSync()) {
-		fs.mkdirSync(uploadBase, { recursive: true });
-	}
-
-	for (const [filename, file] of Object.entries(req.files)) {
-		const newName = `${filename}.png`;
-
-		const uploadPath = path.join(uploadBase, newName);
-
-		let img;
+	if (config.uploadPath) {
 		try {
-			img = await jimp.read(file.path);
-		} catch (e) {
-			console.error(e);
-			return res.redirect(`./?error=${encodeURIComponent(e.message)}`);
-		}
+			const uploadBase = path.resolve(config.uploadPath, 'organisations', String(org.id));
 
-		await img.writeAsync(uploadPath);
+			if (!fs.existsSync()) {
+				fs.mkdirSync(uploadBase, { recursive: true });
+			}
+
+			for (const [filename, file] of Object.entries(req.files)) {
+				const newName = `${filename}.png`;
+
+				const uploadPath = path.join(uploadBase, newName);
+
+				let img;
+				try {
+					img = await jimp.read(file.path);
+				} catch (e) {
+					console.error(e);
+					return res.redirect(`./?error=${encodeURIComponent(e.message)}`);
+				}
+
+				await img.writeAsync(uploadPath);
+			}
+		} catch (ex) {
+			return res.redirect(`./?error=${encodeURIComponent(ex.message)}`);
+		}
 	}
 
 	return res.redirect('./?saved=true');

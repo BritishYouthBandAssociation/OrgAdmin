@@ -26,8 +26,13 @@
 			<form method="post" action="branding" enctype="multipart/form-data">
 				<colour-picker title="Primary Colour" name="primary" value="{{organisation.PrimaryColour}}"></colour-picker>
 				<colour-picker title="Secondary Colour" name="secondary" value="{{organisation.SecondaryColour}}"></colour-picker>
+
+				{{#if enableUpload}}
 				<file-upload title="Logo" name="logo" accept="image/*" src="{{logo}}"></file-upload>
 				<file-upload title="Header Image" name="header" accept="image/*" src="{{header}}"></file-upload>
+				{{else}}
+					<div class="alert alert-warning text-center">Uploads are currently not supported. Please contact your site administrator for more information</div>
+				{{/if}}
 
 				<button class="btn btn-default mt-3">Update Branding</button>
 			</form>
