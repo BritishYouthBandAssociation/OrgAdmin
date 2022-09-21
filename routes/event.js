@@ -221,7 +221,7 @@ router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
 		}
 	}
 
-	return res.redirect(`${req.params.id}?saved=true`);
+	return res.redirect('./?saved=true');
 });
 
 router.post('/:id/registration', validator.params(idParamSchema), validator.body(Joi.object({
@@ -241,7 +241,7 @@ router.post('/:id/registration', validator.params(idParamSchema), validator.body
 		FreeWithdrawalCutoffDate: req.body.freeWithdrawalCutoff,
 	});
 
-	return res.redirect(`/event/${req.params.id}?saved=true`);
+	return res.redirect('./?saved=true');
 });
 
 async function loadCaption(db, parent){
@@ -333,6 +333,10 @@ router.post('/:id/judges', validator.params(idParamSchema), validator.body(Joi.o
 
 	if (!event) {
 		return next();
+	}
+
+	if (!req.body.judge) {
+		return res.redirect('.');
 	}
 
 	await Promise.all(req.body.judge.map((j, index) => {
