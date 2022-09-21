@@ -5,7 +5,7 @@ Vue.component('caption-selector', {
 	props: ['caption'],
 	template: `
 	<div class="col">
-		<div class="card card-body mb-3">
+		<div class="card card-body mb-3" :id="'caption-' + caption.id">
 			<div class="form-group mb-3">
 				<label :for="'name-' + caption.id">Name</label>
 				<input type="text" class="form-control" :id="'name-' + caption.id" v-model="caption.Name" />
@@ -50,6 +50,10 @@ Vue.component('caption-selector', {
 				MaxScore: 0,
 				Multiplier: 1.0,
 				Subcaptions: []
+			});
+
+			Vue.nextTick(() => {
+				document.getElementById(`caption-${id}`).scrollIntoView(true);
 			});
 		}
 	},
