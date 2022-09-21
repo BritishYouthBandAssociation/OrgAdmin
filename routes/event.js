@@ -303,6 +303,8 @@ router.get('/:id/judges', validator.params(idParamSchema), validator.query(Joi.o
 		}
 	});
 
+	const noCaptions = captionData.length === 0;
+
 	//load the rest
 	await Promise.all(captionData.map(c => {
 		return loadCaption(req.db.Caption, c);
@@ -316,7 +318,8 @@ router.get('/:id/judges', validator.params(idParamSchema), validator.query(Joi.o
 		title: `Judges for ${event.Name}`,
 		event: event,
 		captions: captions,
-		success: req.query.success ?? false
+		success: req.query.success ?? false,
+		noCaptions
 	});
 });
 

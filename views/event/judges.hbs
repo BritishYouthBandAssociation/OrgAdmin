@@ -10,6 +10,10 @@
 		<button type="button" class="btn btn-warning mb-3" id="useDefault">Use Default Captions</button>
 		<button type="button" class="btn btn-success mb-3" id="addCaption" {{#eq captions.length 0}}disabled{{/eq}}>Add Caption</button>
 
+		{{#if noCaptions}}
+			<div class="alert alert-warning text-center">The caption structure has not yet been set up. <a href="/config/caption">Configure this first</a> before adding judges to events.</div>
+		{{/if}}
+
 		<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 text-center">
 			{{#each event.EventCaptions}}
 				{{#with Caption}}
