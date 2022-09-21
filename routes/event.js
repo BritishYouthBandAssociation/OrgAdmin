@@ -130,7 +130,8 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 			include: [
 				req.db.Address,
 				req.db.EventType,
-				req.db.EventCaption
+				req.db.EventCaption,
+				req.db.Organisation
 			]
 		}),
 		req.db.EventType.findAll({
@@ -150,6 +151,7 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 		types,
 		totalCaptions: event.EventCaptions?.length ?? 0,
 		judgesAssigned: event.EventCaptions?.filter(ec => ec.JudgeId != null).length ?? 0,
+		organisationsRegistered: event.Organisations?.length ?? 0,
 		saved: req.query.saved ?? false,
 	});
 });
