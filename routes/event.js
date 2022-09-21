@@ -418,6 +418,100 @@ router.post('/:id/judges/reset', validator.params(idParamSchema), async (req, re
 	res.redirect('./?success=true');
 });
 
+router.get('/:id/organisations', validator.params(idParamSchema), validator.query(Joi.object({
+	error: [ Joi.boolean(), Joi.string() ],
+	org: Joi.number()
+		.integer()
+})), async (req, res, next) => {
+	const registrations = await req.db.EventRegistration.findAll({
+		include: [
+			{
+				model: req.db.Event,
+				where: {
+					id: req.params.id
+				}
+			},
+			req.db.Organisation,
+			req.db.User,
+			req.db.Division
+		]
+	});
+
+	if (!registrations) {
+		return next();
+	}
+
+	let org;
+	if (req.query.org) {
+		org = await req.db.Organisation.findByPk(req.query.org);
+	}
+
+	if (typeof req.query.error === 'string') {
+		req.query.error = decodeURIComponent(req.query.error);
+	} else if (typeof req.query.error === 'boolean') {
+		req.query.error = 'An error has occurred while saving, please check the details and try again';
+	}
+
+	res.render('event/organisations.hbs', {
+		registrations,
+		org,
+		error: req.query.error
+	});
+});
+
+router.post('/:id/organisations/add', validator.params(idParamSchema), validator.body(Joi.object({
+	// eslint-disable-next-line camelcase
+	organisation_search: Joi.string()
+		.allow('')
+		.required(),
+	organisation: Joi.number()
+		.integer()
+		.allow('')
+		.required(),
+	notFound: Joi.boolean()
+})), async (req, res, next) => {
+	const event = await req.db.Event.findByPk(req.params.id);
+
+	if (!event) {
+		return next();
+	}
+
+	if (req.body.notFound) {
+		return res.redirect(`/organisation/new?eventId=${req.params.id}`);
+	}
+
+	const org = await req.db.Organisation.findByPk(req.body.organisation);
+
+	if (!org) {
+		return next();
+	}
+
+	const details = {
+		OrganisationId: org.id,
+		EventId: event.id
+	};
+
+	const exists = (await req.db.EventRegistration.findAndCountAll({
+		where: details
+	})).count > 0;
+
+	if (exists) {
+		const errorMessage = `${org.Name} is already registered`;
+		return res.redirect(`./?error=${encodeURIComponent(errorMessage)}`);
+	}
+
+	if (event.MembersOnly) {
+		// TODO check membership of org
+	}
+
+	await req.db.EventRegistration.create({
+		...details,
+		RegisteredById: req.session.user.id
+	});
+
+	res.redirect('.');
+});
+
 module.exports = {
 	root: '/event',
 	router: router

@@ -55,7 +55,9 @@ router.get('/new', checkAdmin, async (req, res, next) => {
 });
 
 router.post('/new', checkAdmin, validator.query(Joi.object({
-	membershipType: Joi.number()
+	membershipType: Joi.number(),
+	eventId: Joi.string()
+		.guid()
 })), validator.body(Joi.object({
 	name: Joi.string()
 		.required(),
@@ -91,6 +93,10 @@ router.post('/new', checkAdmin, validator.query(Joi.object({
 
 	if (req.query.membershipType) {
 		return res.redirect(`/membership/new?org=${org.id}&type=${req.query.membershipType}`);
+	}
+
+	if (req.query.eventId) {
+		return res.redirect(`/event/${req.query.eventId}/organisations/?org=${org.id}`);
 	}
 
 	res.redirect(`${org.id}/`);
