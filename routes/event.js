@@ -420,6 +420,7 @@ router.post('/:id/judges/reset', validator.params(idParamSchema), async (req, re
 
 router.get('/:id/organisations', validator.params(idParamSchema), validator.query(Joi.object({
 	error: [ Joi.boolean(), Joi.string() ],
+	success: Joi.boolean(),
 	org: Joi.number()
 		.integer()
 })), async (req, res, next) => {
@@ -455,7 +456,8 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 	res.render('event/organisations.hbs', {
 		registrations,
 		org,
-		error: req.query.error
+		error: req.query.error,
+		success: req.query.success
 	});
 });
 
@@ -510,7 +512,7 @@ router.post('/:id/organisations/add', validator.params(idParamSchema), validator
 		RegisteredById: req.session.user.id
 	});
 
-	res.redirect('./');
+	res.redirect('./?success=true');
 });
 
 module.exports = {
