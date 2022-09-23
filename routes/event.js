@@ -453,8 +453,18 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 		req.query.error = 'An error has occurred while saving, please check the details and try again';
 	}
 
+	const sortedRegistrations = {};
+
+	registrations.forEach(r => {
+		const divisionName = r.Division ? r.Division.Name : 'Unknown';
+		if (!sortedRegistrations[divisionName])
+		{sortedRegistrations[divisionName] = [];}
+
+		sortedRegistrations[divisionName].push(r);
+	});
+
 	res.render('event/organisations.hbs', {
-		registrations,
+		registrations: sortedRegistrations,
 		org,
 		error: req.query.error,
 		success: req.query.success

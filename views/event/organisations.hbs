@@ -37,6 +37,9 @@
 {{/if}}
 
 {{#each registrations}}
+	<h2 class='my-3'>{{@key}}</h2>
+	<div class="accordion" id='accordion'>
+	{{#each this}}
 	<div class="accordion-item">
 		{{#with Organisation}}
 		<p class="accordion-header" id="heading-{{id}}">
@@ -57,8 +60,9 @@
 			</div>
 		</div>
 	</div>
+	{{/each}}
+	</div>
 {{/each}}
-</div>
 
 {{#if session.user.IsAdmin}}
 <script src="/js/vue.js"></script>
