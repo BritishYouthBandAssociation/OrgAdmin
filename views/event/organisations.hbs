@@ -4,6 +4,7 @@
 	<div class="alert alert-danger text-center">{{error}}</div>
 {{/if}}
 
+{{#if session.user.IsAdmin}}
 <div class='p-5 my-4 bg-default text-light rounded-3 text-center'>
 	<p>Register an organistation for the event</p>
 	<form action='add' method='post' id='app'>
@@ -19,6 +20,7 @@
 		<button class='btn btn-success mt-3'>+ Add</button>
 	</form>
 </div>
+{{/if}}
 
 <div class="accordion" id='accordion'>
 {{#each registrations}}
@@ -45,6 +47,7 @@
 {{/each}}
 </div>
 
+{{#if session.user.IsAdmin}}
 <script src="/js/vue.js"></script>
 <script src="/js/component/SearchBox.js"></script>
 
@@ -53,3 +56,4 @@
 		el: '#app',
 	})
 </script>
+{{/if}}

@@ -30,15 +30,17 @@
 <div class='card card-body mb-3'>
 	<h3 class='text-center'>Event Details</h3>
 
+	{{#if session.user.IsAdmin}}
 	<form method='post'>
+	{{/if}}
 		<div class='row row-cols-1 row-cols-lg-2 form'>
 			<div class='col form-group mb-3'>
 				<label class='form-label' for='name'>Name</label>
-				<input type='text' class='form-control' id='name' name='name' placeholder='Name' value='{{event.Name}}' required />
+				<input type='text' class='form-control' id='name' name='name' placeholder='Name' value='{{event.Name}}' {{#unless session.user.IsAdmin}}readonly{{/unless}} required />
 			</div>
 			<div class='col form-group text-start mb-3'>
 				<label class='form-label' for='type'>Event Type</label>
-				<select id='type' class='form-control' name='type' required>
+				<select id='type' class='form-control' name='type' {{#unless session.user.IsAdmin}}readonly{{/unless}} required>
 					{{#each types}}
 						<option value='{{this.id}}' {{#eq ../event.EventType.id this.id}} selected {{/eq}}>{{this.Name}}</option>
 					{{/each}}
@@ -47,16 +49,16 @@
 		</div>
 		<div class='form-group mb-3'>
 			<label class='form-label' for='slug'>Slug</label>
-			<input type='text' class='form-control' id='slug' name='slug' placeholder='Slug' value='{{event.Slug}}' required />
+			<input type='text' class='form-control' id='slug' name='slug' placeholder='Slug' value='{{event.Slug}}' {{#unless session.user.IsAdmin}}readonly{{/unless}} required />
 		</div>
 		<div class='row row-cols-1 row-cols-lg-2 form mb-3'>
 			<div class='col form-group mb-3'>
 				<label class='form-label' for='start'>Start</label>
-				<input type='datetime-local' class='form-control' id='start' name='start' value='{{datetimeFieldValue event.Start}}' required \>
+				<input type='datetime-local' class='form-control' id='start' name='start' value='{{datetimeFieldValue event.Start}}' {{#unless session.user.IsAdmin}}readonly{{/unless}} required \>
 			</div>
 			<div class='col form-group mb-3'>
 				<label class='form-label' for='end'>End Time</label>
-				<input type='datetime-local' class='form-control' id='end' name='end' value='{{datetimeFieldValue event.End}}' required \>
+				<input type='datetime-local' class='form-control' id='end' name='end' value='{{datetimeFieldValue event.End}}' {{#unless session.user.IsAdmin}}readonly{{/unless}} required \>
 			</div>
 		</div>
 
@@ -86,37 +88,43 @@
 
 		<div class="card card-body mb-3">
 			<h3>Address</h3>
-			{{> address prefix="" required=false data=event.Address }}
+			{{> address prefix="" required=false data=event.Address readOnly=session.user.IsNotAdmin }}
 		</div>
 
 		<div class='form-group mb-3'>
 			<label class='form-label' for='description'>Description</label>
-			<textarea type='text' class='form-control' id='description' name='description' placeholder='Description' rows=5>{{event.Description}}</textarea>
+			<textarea type='text' class='form-control' id='description' name='description' placeholder='Description' rows=5 {{#unless session.user.IsAdmin}}readonly{{/unless}}>{{event.Description}}</textarea>
 		</div>
 
+	{{#if session.user.IsAdmin}}
 		<div class='text-center'>
 			<button class='btn btn-default'>Save</button>
 		</div>
 	</form>
+	{{/if}}
 </div>
 
 <div class='card card-body mb-3'>
 	<h3 class='text-center'>Registration Details</h3>
 
+	{{#if session.user.IsAdmin}}
 	<form method='post' action='/event/{{event.id}}/registration'>
+	{{/if}}
 		<div class='row row-cols-1 row-cols-lg-2 form'>
 			<div class='col form-group mb-3'>
 				<label class='form-label' for='registrationCutoff'>Event Registration Cutoff Date</label>
-				<input type='date' class='form-control' id='registrationCutoff' name='registrationCutoff' placeholder='Registration Cutoff' value='{{event.EntryCutoffDate}}' />
+				<input type='date' class='form-control' id='registrationCutoff' name='registrationCutoff' placeholder='Registration Cutoff' value='{{event.EntryCutoffDate}}' {{#unless session.user.IsAdmin}}readonly{{/unless}}/>
 			</div>
 			<div class='col form-group mb-3'>
 				<label class='form-label' for='freeWithdrawalCutoff'>Free Event Withdrawal Cutoff Date</label>
-				<input type='date' class='form-control' id='freeWithdrawalCutoff' name='freeWithdrawalCutoff' placeholder='Free Withdrawal Cutoff' value='{{event.FreeWithdrawalCutoffDate}}' />
+				<input type='date' class='form-control' id='freeWithdrawalCutoff' name='freeWithdrawalCutoff' placeholder='Free Withdrawal Cutoff' value='{{event.FreeWithdrawalCutoffDate}}' {{#unless session.user.IsAdmin}}readonly{{/unless}}/>
 			</div>
 		</div>
 
+	{{#if session.user.IsAdmin}}
 		<div class='text-center'>
 			<input type='submit' class='btn btn-default' value='Save'/>
 		</div>
 	</form>
+	{{/if}}
 </div>

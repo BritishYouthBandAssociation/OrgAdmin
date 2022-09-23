@@ -5,10 +5,14 @@
 	<div class="alert alert-success text-center">Changes saved successfully</div>
 {{/if}}
 
+{{#if session.user.IsAdmin}}
 <form method="post">
+{{/if}}
 	<div id="app">
+		{{#if session.user.IsAdmin}}
 		<button type="button" class="btn btn-warning mb-3" id="useDefault">Use Default Captions</button>
 		<button type="button" class="btn btn-success mb-3" id="addCaption" {{#eq captions.length 0}}disabled{{/eq}}>Add Caption</button>
+		{{/if}}
 
 		<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 text-center">
 			{{#each event.EventCaptions}}
@@ -36,6 +40,7 @@
 			{{/each}}
 		</div>
 	</div>
+{{#if session.user.IsAdmin}}
 	<button type="submit" class="btn btn-lg btn-success mt-3">Save</button>
 </form>
 
@@ -102,3 +107,4 @@
 		})
 	});
 </script>
+{{/if}}
