@@ -66,27 +66,34 @@ router.get('/new', validator.query(Joi.object({
 		.email(),
 	org: Joi.number()
 })), async (req, res, next) => {
-	const types = await req.db.MembershipType.findAll({
-		where: {
-			IsActive: true
-		}
-	});
+	const promises = [
+		req.db.MembershipType.findAll({
+			where: {
+				IsActive: true
+			}
+		}),
+		req.db.Season.findOne({
+			where: {
+				Start: {
+					[Op.lte]: Date.now()
+				},
+				End: {
+					[Op.gte]: Date.now()
+				}
+			}
+		}),
+		req.db.Division.findAll({
+			where: {
+				IsActive: true
+			}
+		})
+	];
 
-	let member;
 	if (req.query.org) {
-		member = await req.db.Organisation.findByPk(req.query.org);
+		promises.push(req.db.Organisation.findByPk(req.query.org));
 	}
 
-	const season = await req.db.Season.findOne({
-		where: {
-			Start: {
-				[Op.lte]: Date.now()
-			},
-			End: {
-				[Op.gte]: Date.now()
-			}
-		}
-	});
+	const [ types, season, divisions, member ] = await Promise.all(promises);
 
 	if (!season){
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
@@ -94,11 +101,12 @@ router.get('/new', validator.query(Joi.object({
 
 	res.render('membership/add.hbs', {
 		title: 'Add Membership',
-		types: types,
 		type: req.query.type ?? '',
 		email: req.query.email ?? '',
-		member: member,
-		season: season
+		types,
+		member,
+		season,
+		divisions
 	});
 });
 
@@ -148,7 +156,8 @@ router.post('/new', async (req, res, next) => {
 		//add the band to the membership
 		await req.db.OrganisationMembership.create({
 			OrganisationId: req.body.organisation,
-			MembershipId: membership.id
+			MembershipId: membership.id,
+			DivisionId: req.body.division
 		});
 
 		//display it
@@ -198,7 +207,7 @@ router.post('/new', async (req, res, next) => {
 	});
 
 	//display it
-	return res.redirect(membership.id);
+	return res.redirect(`${membership.id}/`);
 });
 
 router.get('/:id', validator.params(Joi.object({
@@ -206,7 +215,7 @@ router.get('/:id', validator.params(Joi.object({
 })), validator.query(Joi.object({
 	saved: Joi.boolean()
 })), async (req, res, next) => {
-	const [membership, paymentTypes] = await Promise.all([
+	const [membership, paymentTypes, divisions] = await Promise.all([
 		req.db.Membership.findByPk(req.params.id, {
 			include: [
 				req.db.Label,
@@ -219,14 +228,22 @@ router.get('/:id', validator.params(Joi.object({
 				},
 				{
 					model: req.db.OrganisationMembership,
-					include: {
-						model: req.db.Organisation,
-						include: [req.db.OrganisationType]
-					}
+					include: [
+						{
+							model: req.db.Organisation,
+							include: [req.db.OrganisationType]
+						},
+						req.db.Division
+					]
 				}
 			]
 		}),
 		req.db.PaymentType.findAll({
+			where: {
+				IsActive: true
+			}
+		}),
+		req.db.Division.findAll({
 			where: {
 				IsActive: true
 			}
@@ -252,8 +269,31 @@ router.get('/:id', validator.params(Joi.object({
 		membership: membership,
 		entity: membership.Entity,
 		paymentTypes: paymentTypes,
+		divisions,
 		saved: req.query.saved ?? false
 	});
+});
+
+router.post('/:id/division', validator.params(Joi.object({
+	id: Joi.number()
+})), validator.body(Joi.object({
+	division: Joi.number()
+		.required()
+})), async (req, res, next) => {
+	const [ membership, division ] = await Promise.all([
+		req.db.Membership.findByPk(req.params.id, {
+			include: req.db.OrganisationMembership
+		}),
+		req.db.Division.findByPk(req.body.division)
+	]);
+
+	if (!membership | !division) {
+		return next();
+	}
+
+	await membership.OrganisationMembership.setDivision(division);
+
+	return res.redirect('./?saved=true');
 });
 
 module.exports = {
