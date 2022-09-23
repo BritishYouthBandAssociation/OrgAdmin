@@ -500,8 +500,9 @@ router.post('/:id/organisations/add', validator.params(idParamSchema), validator
 		return res.redirect(`./?error=${encodeURIComponent(errorMessage)}`);
 	}
 
-	if (event.MembersOnly) {
-		// TODO check membership of org
+	if (event.MembersOnly && !await org.hasCurrentMembership()) {
+		const errorMessage = `${event.Name} is a members only event, and ${org.Name} does not have a current membership, or the current membership has not yet been paid for`;
+		return res.redirect(`./?error=${encodeURIComponent(errorMessage)}`);
 	}
 
 	await req.db.EventRegistration.create({
@@ -509,7 +510,7 @@ router.post('/:id/organisations/add', validator.params(idParamSchema), validator
 		RegisteredById: req.session.user.id
 	});
 
-	res.redirect('.');
+	res.redirect('./');
 });
 
 module.exports = {
