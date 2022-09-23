@@ -26,7 +26,16 @@
 </div>
 {{/if}}
 
-<div class="accordion" id='accordion'>
+{{#if session.band}}
+<div class='my-3'>
+	<form action='add' method='post'>
+		<input type='hidden' name='organisation_search' value='{{session.band.Name}}' required></input>
+		<input type='hidden' name='organisation' value='{{session.band.id}}' required></input>
+		<button class="btn btn-success mt-3">Register my organisation: {{session.band.Name}} </button>
+	</form>
+</div>
+{{/if}}
+
 {{#each registrations}}
 	<div class="accordion-item">
 		{{#with Organisation}}

@@ -435,7 +435,7 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 			req.db.Organisation,
 			req.db.User,
 			req.db.Division
-		]
+		],
 	});
 
 	if (!registrations) {
@@ -486,6 +486,10 @@ router.post('/:id/organisations/add', validator.params(idParamSchema), validator
 
 	if (!org) {
 		return next();
+	}
+
+	if (req.session.band && req.session.band.id !== org.id) {
+		return res.redirect('/no-access');
 	}
 
 	const details = {
