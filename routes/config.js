@@ -161,12 +161,15 @@ router.post('/event-type', checkAdmin, validator.body(Joi.object({
 		.items(Joi.number()),
 	type: Joi.array()
 		.items(Joi.string()),
+	cost: Joi.array()
+		.items(Joi.number()),
 	isActive: Joi.array()
 		.items(Joi.boolean().falsy('0').truthy('1')),
 })), async (req, res, next) => {
 	await Promise.all(req.body.type.map((type, i) => {
 		const details = {
 			Name: req.body.type[i],
+			EntryCost: req.body.cost[i],
 			IsActive: req.body.isActive[i]
 		};
 
