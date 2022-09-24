@@ -337,10 +337,6 @@ router.post('/:id/judges', validator.params(idParamSchema), validator.body(Joi.o
 		return next();
 	}
 
-	if (!req.body.judge) {
-		return res.redirect('.');
-	}
-
 	await Promise.all(req.body.judge.map((j, index) => {
 		if (j.trim().length === 0){
 			return null;
@@ -439,10 +435,6 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 		],
 	});
 
-	if (!registrations) {
-		return next();
-	}
-
 	const promises = [];
 
 	promises.push(req.db.PaymentType.findAll({
@@ -477,6 +469,7 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 	});
 
 	res.render('event/organisations.hbs', {
+		title: 'Event Registrations',
 		registrations: sortedRegistrations,
 		org,
 		paymentTypes,
