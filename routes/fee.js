@@ -24,6 +24,10 @@ router.post('/:id', validator.query(Joi.object({
 		.integer()
 		.required()
 })), async (req, res, next) => {
+	if (!req.session.user.IsAdmin) {
+		return res.redirect('/no-access/');
+	}
+
 	const fee = await req.db.Fee.findByPk(req.params.id);
 	const redir = req.query.redirect ?? req.get('Referrer');
 
@@ -37,7 +41,7 @@ router.post('/:id', validator.query(Joi.object({
 
 	await fee.setPaymentType(req.body.paymentType);
 
-	return res.redirect(`${redir}?saved=true`);
+	return res.redirect(redir);
 });
 
 module.exports = {

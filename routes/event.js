@@ -434,7 +434,8 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 			},
 			req.db.Organisation,
 			req.db.User,
-			req.db.Division
+			req.db.Division,
+			req.db.Fee
 		],
 	});
 
@@ -442,10 +443,19 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 		return next();
 	}
 
-	let org;
+	const promises = [];
+
+	promises.push(req.db.PaymentType.findAll({
+		where: {
+			IsActive: true
+		}
+	}));
+
 	if (req.query.org) {
-		org = await req.db.Organisation.findByPk(req.query.org);
+		promises.push(req.db.Organisation.findByPk(req.query.org));
 	}
+
+	const [ paymentTypes, org ] = await Promise.all(promises);
 
 	if (typeof req.query.error === 'string') {
 		req.query.error = decodeURIComponent(req.query.error);
@@ -457,8 +467,11 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 
 	registrations.forEach(r => {
 		const divisionName = r.Division ? r.Division.Name : 'Unknown';
+
 		if (!sortedRegistrations[divisionName])
 		{sortedRegistrations[divisionName] = [];}
+
+		r.HasAdminAccess = req.session.user.IsAdmin || req.session.band?.id === r.Organisation.id;
 
 		sortedRegistrations[divisionName].push(r);
 	});
@@ -466,6 +479,7 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 	res.render('event/organisations.hbs', {
 		registrations: sortedRegistrations,
 		org,
+		paymentTypes,
 		error: req.query.error,
 		success: req.query.success
 	});

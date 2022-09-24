@@ -51,12 +51,63 @@
 		<div id="collapse-{{id}}" class="accordion-collapse collapse" aria-labelledby="heading-{{id}}" data-bs-parent="#accordion">
 		{{/with}}
 			<div class="accordion-body">
-				<p>
-					Division: {{Division.Name}}
-				</p>
-				<p>
-					Registered by: {{User.FullName}}
-				</p>
+				<div>
+					<p>
+						Division: {{Division.Name}}
+					</p>
+					<p>
+						Registered by: {{User.FullName}}
+					</p>
+					{{#if HasAdminAccess}}
+					<p>
+						Cost: &pound;{{Fee.Total}}
+						{{#unless Fee.IsPaid}}
+							<span class="text-danger">Fee Outstanding</span>
+						{{else}}
+							<span class="text-success">Fee Paid</span>
+						{{/unless}}
+					</p>
+
+					<div class="card card-body mb-3">
+						<h3>Fee Details</h3>
+
+						{{#if Fee.IsPaid}}
+						<p>This registration is fully paid, and no further action is required</p>
+						{{else}}
+						<p>The fee for this registration is outstanding.</p>
+
+						{{#if ../../session.user.IsAdmin}}
+						<form method="post" action="/fee/{{Fee.id}}" class="card card-body">
+							<div class="form-group mb-3">
+								<label for="paymentType">Payment Type</label>
+								<select class="form-control paymentType" name="paymentType" required>
+									<option value="">-- Please Select --</option>
+									{{#each ../../paymentTypes}}
+										<option value="{{id}}">{{Description}}</option>
+									{{/each}}
+								</select>
+							</div>
+							<button type="button" class="btn btn-success btnFee" disabled>Mark fee as paid</button>
+						</form>
+
+						{{else}}
+						<p>Please arrange for the sum of <b>&pound;{{Fee.Total}}</b> to be paid at your earliest convenience</p>
+
+						<section class="text-start mb-3">
+							<p><b>By Bank Transfer</b></p>
+							<p>Name: <b>British Youth Band Association</b>
+							<p>Sort Code: <b>51-70-06</b></p>
+							<p>Account Number: <b>83704035</b></p>
+						</section>
+
+						<section class="text-start mb-3">
+						<p><b>By Cheque</b></p>
+						<p>Please make all cheques payable to the <b>British Youth Band Association</b>.</p>
+					</section>
+					{{/if}}
+					{{/if}}
+					{{/if}}
+				</div>
 			</div>
 		</div>
 	</div>
@@ -67,10 +118,42 @@
 {{#if session.user.IsAdmin}}
 <script src="/js/vue.js"></script>
 <script src="/js/component/SearchBox.js"></script>
-
+<script src="/js/swal2.js"></script>
 <script>
 	const app = new Vue({
 		el: '#app',
-	})
+	});
+
+	let btnFees = document.querySelectorAll(".btnFee");
+	let paymentTypes = document.querySelectorAll(".paymentType");
+
+	for (let i = 0; i < btnFees.length; i++) {
+		const btnFee = btnFees[i];
+		const paymentType = paymentTypes[i];
+
+		paymentType.addEventListener('change', function (e) {
+			btnFee.disabled = (this.value === "");
+		});
+
+		btnFee.addEventListener('click', function (e) {
+			Swal.fire({
+				icon: 'question',
+				title: 'ARE YOU SURE?',
+				text: 'Are you sure you wish to mark this fee as paid? Please only continue if you are sure that {{Fee.Total}} pounds has been paid specifically for this fee.',
+				showCancelButton: true,
+				customClass: {
+					confirmButton: 'btn btn-lg btn-success mx-3',
+					cancelButton: 'btn btn-lg btn-danger mx-3'
+				},
+				buttonsStyling: false,
+				reverseButtons: true,
+				confirmButtonText: 'Yes, this fee has been paid'
+			}).then(res => {
+				if(res.isConfirmed){
+					this.form.submit();
+				}
+			})
+		});
+	}
 </script>
 {{/if}}
