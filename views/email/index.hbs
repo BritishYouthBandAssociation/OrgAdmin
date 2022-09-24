@@ -87,7 +87,7 @@
 					<div v-if="!isLoading">
 						<button type="button" class="btn btn-default mb-3" v-on:click="selectAll" v-if="results.length > 1">Select All</button>
 
-						<div class="alert alert-warning text-center">No members found for the current filters. You may need to <a href="/membership/">add them to the current season</a> before emailing.</div>
+						<div class="alert alert-warning text-center" v-if="results.length === 0">No members found for the current filters. You may need to <a href="/membership/">add them to the current season</a> before emailing.</div>
 
 						<div class="list-group">
 							<label class="list-group-item" v-for="result in results"
