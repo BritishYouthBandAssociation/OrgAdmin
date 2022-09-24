@@ -18,10 +18,11 @@
 
 			<p>Membership Number: {{membership.Number}}</p>
 			<p>Membership Type: {{membership.MembershipType.Name}}</p>
-			<p>Season: {{membership.Season}}</p>
+			<p>Season: {{membership.Season.Identifier}}</p>
 			<p>Cost: &pound;{{membership.Fee.Total}} {{#unless membership.Fee.IsPaid}}<span class="text-danger">Fee
 					Outstanding</span>{{else}}<span class="text-success">Fee Paid</span>{{/unless}}</p>
 			<p>Start Date: {{date membership.DateStarted}}</p>
+			<p>End Date: {{date membership.Season.End}}</p>
 		</div>
 
 		<div class="card card-body mb-3">
@@ -94,7 +95,7 @@
 	</div>
 
 	<div class="col-12 col-lg-6">
-		<div class="card card-body">
+		<div class="card card-body mb-3">
 			{{#if membership.MembershipType.IsOrganisation}}
 			<h3>Organisation Details</h3>
 
@@ -110,5 +111,29 @@
 			<p>{{entity.Email}}</p>
 			{{/if}}
 		</div>
+
+		{{#if membership.MembershipType.IsOrganisation}}
+		<div class="card card-body mb-3">
+			<h3>Division Details</h3>
+			{{#with membership.OrganisationMembership.Division}}
+
+			<form action='division' method='post'>
+				<div class="form-group mb-3">
+					<label for="division">Division Name</label>
+					<select name="division" id="division" class="form-control" required>
+						<option value="">-- Please Select --</option>
+						{{#each ../divisions}}
+							<option {{#eq id ../id}}selected{{/eq}} value="{{id}}">
+								{{Name}}
+							</option>
+						{{/each}}
+					</select>
+				</div>
+
+				<button class="btn btn-success">Save</button>
+			</form>
+			{{/with}}
+		</div>
+		{{/if}}
 	</div>
 </div>

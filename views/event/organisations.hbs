@@ -1,0 +1,159 @@
+<h2>Event Registrations</h2>
+
+{{#if error}}
+	<div class="alert alert-danger text-center">{{error}}</div>
+{{/if}}
+
+{{#if success}}
+	<div class="alert alert-success text-center">The organisation was successfully registered</div>
+{{/if}}
+
+{{#if session.user.IsAdmin}}
+<div class='p-5 my-4 bg-default text-light rounded-3 text-center'>
+	<p>Register an organistation for the event</p>
+	<form action='add' method='post' id='app'>
+		<search-box class='text-dark' name="organisation" placeholder="Start typing to search for an organisation"
+			url="/_api/organisation/search" text-prop="Name" value-prop="id"
+			text="{{org.Name}}" value="{{org.id}}">
+		</search-box>
+
+		<label for="organisation-not-found" class='d-flex my-3 justify-content-center align-items-center gap-2'>
+			<input type="checkbox" name="notFound" value="true">The organisation was not found</input>
+		</label>
+
+		<button class='btn btn-success mt-3'>+ Add</button>
+	</form>
+</div>
+{{/if}}
+
+{{#if session.band}}
+<div class='my-3'>
+	<form action='add' method='post'>
+		<input type='hidden' name='organisation_search' value='{{session.band.Name}}' required></input>
+		<input type='hidden' name='organisation' value='{{session.band.id}}' required></input>
+		<button class="btn btn-success mt-3">Register my organisation: {{session.band.Name}} </button>
+	</form>
+</div>
+{{/if}}
+
+{{#each registrations}}
+	<h2 class='my-3'>{{@key}}</h2>
+	<div class="accordion" id='accordion'>
+	{{#each this}}
+	<div class="accordion-item">
+		{{#with Organisation}}
+		<p class="accordion-header" id="heading-{{id}}">
+			<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{id}}" aria-expanded="false" aria-controls="collapse-{{id}}">
+				{{Name}}
+			</button>
+		</p>
+
+		<div id="collapse-{{id}}" class="accordion-collapse collapse" aria-labelledby="heading-{{id}}" data-bs-parent="#accordion">
+		{{/with}}
+			<div class="accordion-body">
+				<div>
+					<p>
+						Division: {{Division.Name}}
+					</p>
+					<p>
+						Registered by: {{User.FullName}}
+					</p>
+					{{#if HasAdminAccess}}
+					<p>
+						Cost: &pound;{{Fee.Total}}
+						{{#unless Fee.IsPaid}}
+							<span class="text-danger">Fee Outstanding</span>
+						{{else}}
+							<span class="text-success">Fee Paid</span>
+						{{/unless}}
+					</p>
+
+					<div class="card card-body mb-3">
+						<h3>Fee Details</h3>
+
+						{{#if Fee.IsPaid}}
+						<p>This registration is fully paid, and no further action is required</p>
+						{{else}}
+						<p>The fee for this registration is outstanding.</p>
+
+						{{#if ../../session.user.IsAdmin}}
+						<form method="post" action="/fee/{{Fee.id}}" class="card card-body">
+							<div class="form-group mb-3">
+								<label for="paymentType">Payment Type</label>
+								<select class="form-control paymentType" name="paymentType" required>
+									<option value="">-- Please Select --</option>
+									{{#each ../../paymentTypes}}
+										<option value="{{id}}">{{Description}}</option>
+									{{/each}}
+								</select>
+							</div>
+							<button type="button" class="btn btn-success btnFee" disabled>Mark fee as paid</button>
+						</form>
+
+						{{else}}
+						<p>Please arrange for the sum of <b>&pound;{{Fee.Total}}</b> to be paid at your earliest convenience</p>
+
+						<section class="text-start mb-3">
+							<p><b>By Bank Transfer</b></p>
+							<p>Name: <b>British Youth Band Association</b>
+							<p>Sort Code: <b>51-70-06</b></p>
+							<p>Account Number: <b>83704035</b></p>
+						</section>
+
+						<section class="text-start mb-3">
+						<p><b>By Cheque</b></p>
+						<p>Please make all cheques payable to the <b>British Youth Band Association</b>.</p>
+					</section>
+					{{/if}}
+					{{/if}}
+					{{/if}}
+				</div>
+			</div>
+		</div>
+	</div>
+	{{/each}}
+	</div>
+{{/each}}
+
+{{#if session.user.IsAdmin}}
+<script src="/js/vue.js"></script>
+<script src="/js/component/SearchBox.js"></script>
+<script src="/js/swal2.js"></script>
+<script>
+	const app = new Vue({
+		el: '#app',
+	});
+
+	let btnFees = document.querySelectorAll(".btnFee");
+	let paymentTypes = document.querySelectorAll(".paymentType");
+
+	for (let i = 0; i < btnFees.length; i++) {
+		const btnFee = btnFees[i];
+		const paymentType = paymentTypes[i];
+
+		paymentType.addEventListener('change', function (e) {
+			btnFee.disabled = (this.value === "");
+		});
+
+		btnFee.addEventListener('click', function (e) {
+			Swal.fire({
+				icon: 'question',
+				title: 'ARE YOU SURE?',
+				text: 'Are you sure you wish to mark this fee as paid? Please only continue if you are sure that {{Fee.Total}} pounds has been paid specifically for this fee.',
+				showCancelButton: true,
+				customClass: {
+					confirmButton: 'btn btn-lg btn-success mx-3',
+					cancelButton: 'btn btn-lg btn-danger mx-3'
+				},
+				buttonsStyling: false,
+				reverseButtons: true,
+				confirmButtonText: 'Yes, this fee has been paid'
+			}).then(res => {
+				if(res.isConfirmed){
+					this.form.submit();
+				}
+			})
+		});
+	}
+</script>
+{{/if}}

@@ -119,7 +119,7 @@ router.post('/new', validator.body(Joi.object({
 
 	await event.setEventType(eventType);
 
-	return res.redirect(event.id);
+	return res.redirect(`${event.id}/`);
 });
 
 router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
@@ -130,7 +130,8 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 			include: [
 				req.db.Address,
 				req.db.EventType,
-				req.db.EventCaption
+				req.db.EventCaption,
+				req.db.Organisation
 			]
 		}),
 		req.db.EventType.findAll({
@@ -150,6 +151,7 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 		types,
 		totalCaptions: event.EventCaptions?.length ?? 0,
 		judgesAssigned: event.EventCaptions?.filter(ec => ec.JudgeId != null).length ?? 0,
+		organisationsRegistered: event.Organisations?.length ?? 0,
 		saved: req.query.saved ?? false,
 	});
 });
@@ -221,7 +223,7 @@ router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
 		}
 	}
 
-	return res.redirect(`${req.params.id}?saved=true`);
+	return res.redirect('./?saved=true');
 });
 
 router.post('/:id/registration', validator.params(idParamSchema), validator.body(Joi.object({
@@ -241,7 +243,7 @@ router.post('/:id/registration', validator.params(idParamSchema), validator.body
 		FreeWithdrawalCutoffDate: req.body.freeWithdrawalCutoff,
 	});
 
-	return res.redirect(`/event/${req.params.id}?saved=true`);
+	return res.redirect('./?saved=true');
 });
 
 async function loadCaption(db, parent){
@@ -411,6 +413,128 @@ router.post('/:id/judges/reset', validator.params(idParamSchema), async (req, re
 			CaptionId: c.id
 		});
 	}));
+
+	res.redirect('./?success=true');
+});
+
+router.get('/:id/organisations', validator.params(idParamSchema), validator.query(Joi.object({
+	error: [ Joi.boolean(), Joi.string() ],
+	success: Joi.boolean(),
+	org: Joi.number()
+		.integer()
+})), async (req, res, next) => {
+	const registrations = await req.db.EventRegistration.findAll({
+		include: [
+			{
+				model: req.db.Event,
+				where: {
+					id: req.params.id
+				}
+			},
+			req.db.Organisation,
+			req.db.User,
+			req.db.Division,
+			req.db.Fee
+		],
+	});
+
+	const promises = [];
+
+	promises.push(req.db.PaymentType.findAll({
+		where: {
+			IsActive: true
+		}
+	}));
+
+	if (req.query.org) {
+		promises.push(req.db.Organisation.findByPk(req.query.org));
+	}
+
+	const [ paymentTypes, org ] = await Promise.all(promises);
+
+	if (typeof req.query.error === 'string') {
+		req.query.error = decodeURIComponent(req.query.error);
+	} else if (typeof req.query.error === 'boolean') {
+		req.query.error = 'An error has occurred while saving, please check the details and try again';
+	}
+
+	const sortedRegistrations = {};
+
+	registrations.forEach(r => {
+		const divisionName = r.Division ? r.Division.Name : 'Unknown';
+
+		if (!sortedRegistrations[divisionName])
+		{sortedRegistrations[divisionName] = [];}
+
+		r.HasAdminAccess = req.session.user.IsAdmin || req.session.band?.id === r.Organisation.id;
+
+		sortedRegistrations[divisionName].push(r);
+	});
+
+	res.render('event/organisations.hbs', {
+		title: 'Event Registrations',
+		registrations: sortedRegistrations,
+		org,
+		paymentTypes,
+		error: req.query.error,
+		success: req.query.success
+	});
+});
+
+router.post('/:id/organisations/add', validator.params(idParamSchema), validator.body(Joi.object({
+	// eslint-disable-next-line camelcase
+	organisation_search: Joi.string()
+		.allow('')
+		.required(),
+	organisation: Joi.number()
+		.integer()
+		.allow('')
+		.required(),
+	notFound: Joi.boolean()
+})), async (req, res, next) => {
+	const event = await req.db.Event.findByPk(req.params.id);
+
+	if (!event) {
+		return next();
+	}
+
+	if (req.body.notFound) {
+		return res.redirect(`/organisation/new?eventId=${req.params.id}`);
+	}
+
+	const org = await req.db.Organisation.findByPk(req.body.organisation);
+
+	if (!org) {
+		return next();
+	}
+
+	if (req.session.band && req.session.band.id !== org.id) {
+		return res.redirect('/no-access');
+	}
+
+	const details = {
+		OrganisationId: org.id,
+		EventId: event.id
+	};
+
+	const exists = (await req.db.EventRegistration.findAndCountAll({
+		where: details
+	})).count > 0;
+
+	if (exists) {
+		const errorMessage = `${org.Name} is already registered`;
+		return res.redirect(`./?error=${encodeURIComponent(errorMessage)}`);
+	}
+
+	if (event.MembersOnly && !await org.hasCurrentMembership()) {
+		const errorMessage = `${event.Name} is a members only event, and ${org.Name} does not have a current membership, or the current membership has not yet been paid for`;
+		return res.redirect(`./?error=${encodeURIComponent(errorMessage)}`);
+	}
+
+	await req.db.EventRegistration.create({
+		...details,
+		RegisteredById: req.session.user.id
+	});
 
 	res.redirect('./?success=true');
 });

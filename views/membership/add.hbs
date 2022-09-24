@@ -32,9 +32,21 @@
 		<search-box name="organisation" title="Please select the organisation that this membership is for" placeholder="Start typing to search..."
 			url="/_api/organisation/search" text-prop="Name" value-prop="id" text="{{member.Name}}" value="{{member.id}}"></search-box>
 
-		<label for="organisation-not-found">
-			<input type="checkbox" name="notFound" value="true">The organisation was not found
+		<label for="organisation-not-found" class='d-flex my-3 justify-content-center align-items-center gap-2'>
+			<input type="checkbox" name="notFound" value="true" />The organisation was not found
 		</label>
+
+		<div class="form-group mb-3">
+			<label for="division">Division</label>
+			<select name="division" id="division" class="form-control" required>
+				<option value="">-- Please Select --</option>
+				{{#each divisions}}
+					<option value="{{id}}">
+						{{Name}}
+					</option>
+				{{/each}}
+			</select>
+		</div>
 	</div>
 
 	<div class="card card-body mb-3" v-if="type != '' && !isOrg">

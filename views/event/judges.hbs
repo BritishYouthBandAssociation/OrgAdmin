@@ -5,10 +5,14 @@
 	<div class="alert alert-success text-center">Changes saved successfully</div>
 {{/if}}
 
+{{#if session.user.IsAdmin}}
 <form method="post">
+{{/if}}
 	<div id="app">
+		{{#if session.user.IsAdmin}}
 		<button type="button" class="btn btn-warning mb-3" id="useDefault">Use Default Captions</button>
 		<button type="button" class="btn btn-success mb-3" id="addCaption" {{#eq captions.length 0}}disabled{{/eq}}>Add Caption</button>
+		{{/if}}
 
 		{{#if noCaptions}}
 			<div class="alert alert-warning text-center">The caption structure has not yet been set up. {{#if session.user.IsAdmin}}<a href="/config/caption/">Configure this first</a> before adding judges to events.{{else}}Please contact your system administrator{{/if}}.</div>
@@ -40,6 +44,7 @@
 			{{/each}}
 		</div>
 	</div>
+{{#if session.user.IsAdmin}}
 	<button type="submit" class="btn btn-lg btn-success mt-3">Save</button>
 </form>
 
@@ -106,3 +111,4 @@
 		})
 	});
 </script>
+{{/if}}
