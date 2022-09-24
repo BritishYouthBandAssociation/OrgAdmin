@@ -5,10 +5,9 @@
 {{/if}}
 
 <form id="app" method="post">
-	<button type="button" class="btn btn-success btn-lg mb-3" @click="addDivision">+ Add</button>
 
 	<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3">
-		<div class="col mb-3" v-for="(division, index) in divisions" :key="division.id">
+		<div class="col mb-3" v-for="(division, index) in divisions" :id="'division-' + division.id" :key="division.id">
 			<input type="hidden" name="id[]" :value="division.id" />
 
 			<div class="card card-body">
@@ -55,7 +54,8 @@
 		</div>
 	</div>
 
-	<button class="btn btn-default btn-lg" id='save-button'>Save</button>
+	<button type="button" class="btn btn-success btn-lg" @click="addDivision">+ Add</button>
+	<button class="btn btn-default btn-lg" id='save-button' v-if="divisions.length > 0">Save</button>
 </form>
 
 <script src="/js/vue.js"></script>
@@ -80,7 +80,7 @@
 
 			// scroll to the bottom of the page
 			Vue.nextTick(() => {
-				document.getElementById('save-button').scrollIntoView(true);
+				document.getElementById(`division-${id}`).scrollIntoView(true);
 			});
 		}
 	}

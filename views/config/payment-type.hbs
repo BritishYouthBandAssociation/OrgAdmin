@@ -5,10 +5,8 @@
 {{/if}}
 
 <form id="app" method="post">
-	<button type="button" class="btn btn-success btn-lg mb-3" @click="addType">+ Add</button>
-
 	<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3">
-		<div class="col mb-3" v-for="(type, index) in types" :key="type.id">
+		<div class="col mb-3" v-for="(type, index) in types" :key="type.id" :id="'type-' + type.id">
 			<input type="hidden" name="id[]" :value="type.id" />
 
 			<div class="card card-body">
@@ -35,7 +33,8 @@
 		</div>
 	</div>
 
-	<button class="btn btn-default btn-lg" id='save-button'>Save</button>
+	<button type="button" class="btn btn-success btn-lg" @click="addType">+ Add</button>
+	<button class="btn btn-default btn-lg" id='save-button' v-if="types.length > 0">Save</button>
 </form>
 
 <script src="/js/vue.js"></script>
@@ -58,7 +57,7 @@
 
 			// scroll to the bottom of the page
 			Vue.nextTick(() => {
-				document.getElementById('save-button').scrollIntoView(true);
+				document.getElementById(`type-${id}`).scrollIntoView(true);
 			});
 		}
 	}

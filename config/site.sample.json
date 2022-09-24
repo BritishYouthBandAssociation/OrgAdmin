@@ -2,5 +2,6 @@
 	"title": "Website Name",
 	"frameworkURL": null,
 	"adminName": "Admin Team",
-	"adminEmail": "webmaster@example.com"
+	"adminEmail": "webmaster@example.com",
+	"version": "1.0.0"
 }
