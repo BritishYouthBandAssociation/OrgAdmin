@@ -63,6 +63,23 @@ router.get('/logout', (req, res, next) => {
 	return res.redirect('/');
 });
 
+router.get('/password-reset/:userId', validator.params(Joi.object({
+	userId: Joi.string()
+		.guid()
+		.required()
+})), async (req, res, next) => {
+	const user = await req.db.User.findByPk(req.params.userId);
+
+	if (!user) {
+		return next();
+	}
+
+	return res.render('passwordReset.hbs', {
+		title: 'Reset Password',
+		user
+	});
+});
+
 router.post('/change-band', validator.body(Joi.object({
 	changeBand: Joi.number()
 		.required()
