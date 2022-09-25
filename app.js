@@ -171,8 +171,9 @@ async function main() {
 				}
 			}
 
-			const resetPath = `/user/${req.session.user.id}`;
-			if (req.session.user.ForcePasswordReset && !req.path.startsWith(resetPath)){
+			const resetPath = `/password-reset/${req.session.user.id}`;
+			const resetAllowedPaths = /^\/(logout$|user\/.*\/password)/;
+			if (req.session.user.ForcePasswordReset && !req.path.startsWith(resetPath) && !resetAllowedPaths.test(req.path)){
 				res.redirect(resetPath);
 				return;
 			}

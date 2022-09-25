@@ -149,12 +149,9 @@ router.post('/:id/password', validator.params(idParamSchema), checkAccess, valid
 		return next();
 	}
 
-	await req.db.User.update({
+	await user.update({
 		Password: req.body.password,
-		ForcePasswordReset: req.session.user.id !== req.params.id
-	}, {
-		where: { id: req.params.id },
-		individualHooks: true
+		ForcePasswordReset: req.session.user.id !== user.id
 	});
 
 	return res.redirect('./?saved=true');
