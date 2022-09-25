@@ -55,7 +55,9 @@ router.get('/', async (req, res, next) => {
 	});
 });
 
-router.get('/new', async (req, res, next) => {
+router.get('/new', validator.query(Joi.object({
+	error: Joi.boolean()
+})), async (req, res, next) => {
 	const season = await req.db.Season.findOne({
 		where: {
 			Start: {
@@ -80,7 +82,8 @@ router.get('/new', async (req, res, next) => {
 	return res.render('event/add.hbs', {
 		title: 'Add New Event',
 		types,
-		season
+		season,
+		error: req.query.error
 	});
 });
 
@@ -96,6 +99,10 @@ router.post('/new', validator.body(Joi.object({
 	season: Joi.number()
 		.required()
 })), async (req, res, next) => {
+	if (req.body.end < req.body.start) {
+		return res.redirect('./new/?error=true');
+	}
+
 	const eventType = await req.db.EventType.findOne({
 		where: {
 			id: req.body.type
@@ -104,7 +111,7 @@ router.post('/new', validator.body(Joi.object({
 
 	if (!eventType) {
 		console.log('Invalid fields!');
-		return res.redirect();
+		return res.redirect('./new/?error=true');
 	}
 
 	const slug = formatSlug(`${req.body.start.getFullYear()}-${req.body.name}`);
