@@ -110,13 +110,18 @@ router.get('/new', validator.query(Joi.object({
 	});
 });
 
-router.post('/new/organisation', async (req, res) => {
+router.post('/new/organisation', validator.body(Joi.object({
+	type: Joi.string().required(),
+	organisation: Joi.string(),
+	notFound: Joi.string()
+})), async (req, res) => {
 	const [type, membership] = await Promise.all([
 		req.db.MembershipType.findOne({
 			where: {
 				id: req.body.type
 			}
 		}),
+
 		req.db.Membership.findOne({
 			where: {
 				SeasonId: req.body.season,
@@ -162,12 +167,23 @@ router.post('/new/organisation', async (req, res) => {
 
 });
 
-router.post('/new/individual', async (req, res, next) => {
-	const exists = await req.db.User.findOne({
-		where: {
-			Email: req.body.email
-		}
-	});
+router.post('/new/individual', validator.body(Joi.object({
+	email: Joi.string().email().required(),
+	type: Joi.string().required()
+})), async (req, res, next) => {
+
+	const [exists, type] = await Promise.all([
+		req.db.User.findOne({
+			where: {
+				Email: req.body.email
+			}
+		}),
+		req.db.MembershipType.findOne({
+			where: {
+				id: req.body.type
+			}
+		})
+	]);
 
 	if (!exists) {
 		//if not a current user, make them create one first
@@ -175,12 +191,7 @@ router.post('/new/individual', async (req, res, next) => {
 	}
 
 	//do they already have a membership for this season?
-	const [type, membership] = await Promise.all([
-		req.db.MembershipType.findOne({
-			where: {
-				id: req.body.type
-			}
-		}), req.db.Membership.findOne({
+	const membership = await req.db.Membership.findOne({
 		where: {
 			SeasonId: req.body.season,
 		},
@@ -191,8 +202,7 @@ router.post('/new/individual', async (req, res, next) => {
 			},
 			required: true
 		}]
-	})
-]);
+	});
 
 	if (membership) {
 		return res.redirect(`/membership/${membership.id}/`);
