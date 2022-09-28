@@ -25,7 +25,7 @@ router.get('/', async (req, res, next) => {
 		}
 	});
 
-	if (!season){
+	if (!season) {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
 	}
 
@@ -93,9 +93,9 @@ router.get('/new', validator.query(Joi.object({
 		promises.push(req.db.Organisation.findByPk(req.query.org));
 	}
 
-	const [ types, season, divisions, member ] = await Promise.all(promises);
+	const [types, season, divisions, member] = await Promise.all(promises);
 
-	if (!season){
+	if (!season) {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
 	}
 
@@ -110,26 +110,14 @@ router.get('/new', validator.query(Joi.object({
 	});
 });
 
-
-// TODO refactor into two routes - one for individual and one for org memberships
-// add validation
-router.post('/new', async (req, res, next) => {
-	const type = await req.db.MembershipType.findOne({
-		where: {
-			id: req.body.type
-		}
-	});
-
-	if (!type) {
-		return res.redirect();
-	}
-
-	if (type.IsOrganisation) {
-		if (req.body.notFound === 'true') {
-			return res.redirect(`/organisation/new?membershipType=${req.body.type}`);
-		}
-
-		const exists = await req.db.Membership.findOne({
+router.post('/new/organisation', async (req, res) => {
+	const [type, membership] = await Promise.all([
+		req.db.MembershipType.findOne({
+			where: {
+				id: req.body.type
+			}
+		}),
+		req.db.Membership.findOne({
 			where: {
 				SeasonId: req.body.season,
 			},
@@ -140,31 +128,41 @@ router.post('/new', async (req, res, next) => {
 				},
 				required: true
 			}]
-		});
+		})
+	]);
 
-		if (exists != null) {
-			//if this band already has a membership this season, display it
-			return res.redirect(exists.id);
-		}
-
-		//create the membership
-		const membership = await req.db.Membership.create({
-			SeasonId: req.body.season,
-			MembershipTypeId: req.body.type
-		});
-
-		//add the band to the membership
-		await req.db.OrganisationMembership.create({
-			OrganisationId: req.body.organisation,
-			MembershipId: membership.id,
-			DivisionId: req.body.division
-		});
-
-		//display it
-		return res.redirect(membership.id);
+	if (!type || !type.IsOrganisation) {
+		return next();
 	}
 
-	//we have an individual membership here
+	if (req.body.notFound === 'true') {
+		return res.redirect(`/organisation/new?membershipType=${req.body.type}`);
+	}
+
+	if (membership) {
+		//band already has a membership!
+		return res.redirect(`/membership/${membership.id}/`);
+	}
+
+	//create the membership
+	const newMembership = await req.db.Membership.create({
+		SeasonId: req.body.season,
+		MembershipTypeId: req.body.type
+	});
+
+	//add the band to the membership
+	await req.db.OrganisationMembership.create({
+		OrganisationId: req.body.organisation,
+		MembershipId: newMembership.id,
+		DivisionId: req.body.division
+	});
+
+	//display it
+	return res.redirect(newMembership.id);
+
+});
+
+router.post('/new/individual', async (req, res, next) => {
 	const exists = await req.db.User.findOne({
 		where: {
 			Email: req.body.email
@@ -177,7 +175,12 @@ router.post('/new', async (req, res, next) => {
 	}
 
 	//do they already have a membership for this season?
-	const eMemb = await req.db.Membership.findOne({
+	const [type, membership] = await Promise.all([
+		req.db.MembershipType.findOne({
+			where: {
+				id: req.body.type
+			}
+		}), req.db.Membership.findOne({
 		where: {
 			SeasonId: req.body.season,
 		},
@@ -188,14 +191,15 @@ router.post('/new', async (req, res, next) => {
 			},
 			required: true
 		}]
-	});
+	})
+]);
 
-	if (eMemb !== null) {
-		return res.redirect(eMemb.id);
+	if (membership) {
+		return res.redirect(`/membership/${membership.id}/`);
 	}
 
 	//create the membership
-	const membership = await req.db.Membership.create({
+	const newMembership = await req.db.Membership.create({
 		SeasonId: req.body.season,
 		MembershipTypeId: req.body.type
 	});
@@ -203,11 +207,11 @@ router.post('/new', async (req, res, next) => {
 	//add the individual to the membership
 	await req.db.IndividualMembership.create({
 		UserId: exists.id,
-		MembershipId: membership.id
+		MembershipId: newMembership.id
 	});
 
 	//display it
-	return res.redirect(`${membership.id}/`);
+	return res.redirect(`/membership/${newMembership.id}/`);
 });
 
 router.get('/:id', validator.params(Joi.object({
@@ -280,7 +284,7 @@ router.post('/:id/division', validator.params(Joi.object({
 	division: Joi.number()
 		.required()
 })), async (req, res, next) => {
-	const [ membership, division ] = await Promise.all([
+	const [membership, division] = await Promise.all([
 		req.db.Membership.findByPk(req.params.id, {
 			include: req.db.OrganisationMembership
 		}),
