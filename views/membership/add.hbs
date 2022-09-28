@@ -4,7 +4,7 @@
 	<div class="alert alert-warning text-center">There are no membership types currently configured. {{#if session.user.IsAdmin}}You must <a href="/config/membership-type/">create one</a> before creating a membership{{else}}Please contact your system administrator{{/if}}.</div>
 {{/eq}}
 
-<form method="post" id="app">
+<form method="post" id="app" :action="action">
 	<div class="card card-body mb-3">
 		<h3>Membership Details</h3>
 		<div class="form-group mb-3">
@@ -73,6 +73,11 @@
 		methods: {
 			changeType: function (e) {
 				this.isOrg = (e.target.options[e.target.selectedIndex].dataset.organisation.toLowerCase() === 'true');
+			}
+		},
+		computed: {
+			action(){
+				return this.isOrg ? "organisation" : "individual"
 			}
 		}
 	})
