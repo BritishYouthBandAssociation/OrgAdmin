@@ -218,13 +218,12 @@ router.post('/new/individual', validator.body(Joi.object({
 	//create the membership
 	const newMembership = await req.db.Membership.create({
 		SeasonId: req.body.season,
-		MembershipTypeId: req.body.type
-	});
-
-	//add the individual to the membership
-	await req.db.IndividualMembership.create({
-		UserId: exists.id,
-		MembershipId: newMembership.id
+		MembershipTypeId: req.body.type,
+		IndividualMembership: {
+			UserId: exists.id
+		}
+	}, {
+		include: [req.db.IndividualMembership]
 	});
 
 	//display it
