@@ -112,9 +112,13 @@ router.get('/new', validator.query(Joi.object({
 
 router.post('/new/organisation', validator.body(Joi.object({
 	type: Joi.string().required(),
-	organisation: Joi.string(),
-	notFound: Joi.string()
-})), async (req, res) => {
+	organisation: Joi.string().optional().allow('', null),
+	notFound: Joi.string(),
+	season: Joi.number().required(),
+	// eslint-disable-next-line camelcase
+	organisation_search: Joi.string().optional(),
+	division: Joi.number().optional().allow('', null)
+})), async (req, res, next) => {
 	const [type, membership] = await Promise.all([
 		req.db.MembershipType.findOne({
 			where: {
@@ -141,7 +145,7 @@ router.post('/new/organisation', validator.body(Joi.object({
 	}
 
 	if (req.body.notFound === 'true') {
-		return res.redirect(`/organisation/new?membershipType=${req.body.type}`);
+		return res.redirect(`/organisation/new?membershipType=${req.body.type}&name=${req.body.organisation_search}`);
 	}
 
 	if (membership) {
@@ -164,14 +168,12 @@ router.post('/new/organisation', validator.body(Joi.object({
 
 	//display it
 	return res.redirect(newMembership.id);
-
 });
 
 router.post('/new/individual', validator.body(Joi.object({
 	email: Joi.string().email().required(),
 	type: Joi.string().required()
 })), async (req, res, next) => {
-
 	const [exists, type] = await Promise.all([
 		req.db.User.findOne({
 			where: {
