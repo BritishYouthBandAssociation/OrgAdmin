@@ -176,7 +176,8 @@ router.post('/new/organisation', validator.body(Joi.object({
 
 router.post('/new/individual', validator.body(Joi.object({
 	email: Joi.string().email().required(),
-	type: Joi.string().required()
+	type: Joi.string().required(),
+	season: Joi.number().required()
 })), async (req, res, next) => {
 	const [exists, type] = await Promise.all([
 		req.db.User.findOne({
