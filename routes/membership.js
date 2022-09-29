@@ -153,21 +153,25 @@ router.post('/new/organisation', validator.body(Joi.object({
 		return res.redirect(`/membership/${membership.id}/`);
 	}
 
+	const orgMembership = {
+		OrganisationId: req.body.organisation,
+	};
+
+	if (req.body.division && req.body.division !== ''){
+		orgMembership.DivisionId = req.body.division;
+	}
+
 	//create the membership
 	const newMembership = await req.db.Membership.create({
 		SeasonId: req.body.season,
-		MembershipTypeId: req.body.type
-	});
-
-	//add the band to the membership
-	await req.db.OrganisationMembership.create({
-		OrganisationId: req.body.organisation,
-		MembershipId: newMembership.id,
-		DivisionId: req.body.division
+		MembershipTypeId: req.body.type,
+		OrganisationMembership: orgMembership
+	}, {
+		include: [req.db.OrganisationMembership]
 	});
 
 	//display it
-	return res.redirect(newMembership.id);
+	return res.redirect(`../${newMembership.id}`);
 });
 
 router.post('/new/individual', validator.body(Joi.object({
