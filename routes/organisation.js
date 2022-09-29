@@ -49,7 +49,9 @@ router.get('/new', checkAdmin, async (req, res, next) => {
 	return res.render('organisation/add.hbs', {
 		title: 'Add New Organisation',
 		types: types,
-		organisation: {}
+		organisation: {
+			Name: req.query.name ?? ''
+		}
 	});
 });
 
