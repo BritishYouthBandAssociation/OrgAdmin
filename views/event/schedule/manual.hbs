@@ -2,8 +2,6 @@
 <p class="mb-3"><a href="../">&lt; back to {{event.Name}}</a></p>
 
 <div id="app">
-
-	<p>Unallocated time: ${unallocated}</p>
 	<button class="btn btn-success mb-3 btn-lg" @click="addItem">+ Add</button>
 
 	<div class="card card-body bg-default text-center text-light fs-3">
@@ -26,8 +24,8 @@
 				</div>
 
 				<div class="col-12 col-lg-3 mb-3">
-					<label :for="'duration-' + index">Duration <small>(minutes)</small></label>
-					<input type="number" :id="'duration-' + index" class="form-control" v-model="item.Duration" required />
+					<p :for="'duration-' + index">Duration <small>(minutes)</small></p>
+					<span class="text-light">${calcDuration(index)}</span>
 				</div>
 			</div>
 		</div>
@@ -52,29 +50,42 @@
 			event: {{{ json event }}},
 			items: []
 		},
-		computed: {
-			unallocated(){
-				const start = new Date(this.event.Start);
-				const end = new Date(this.event.End);
-
-				let mins = ((end - start) / 1000) / 60;
-				if(mins < 60){
-					return `${mins} minutes`;
-				}
-
-				let hours = mins / 60;
-				mins = mins % 60;
-				return `${hours} hours, ${mins} mins`;
-			}
-		},
 		methods: {
 			addItem: function(){
 				this.items.push({
 					id: --id,
 					Start: '',
-					Description: '',
-					Duration: 0
+					Description: ''
 				});
+			},
+			calcDuration(index){
+				const item = new Date();
+				let vals = this.items[index].Start.split(":");
+				if(vals.length !== 2){
+					return;
+				}
+
+				item.setHours(vals[0]);
+				item.setMinutes(vals[1]);
+				item.setSeconds(0);
+
+				let next = null;
+				if(index >= this.items.length){
+					next = new Date();
+					vals = this.items[index + 1].Start.split(":");
+					if(vals.length !== 2){
+						return;
+					}
+
+					next.setHours(vals[0]);
+					next.setMinutes(vals[1]);
+					next.setSeconds(0);
+				} else {
+					next = new Date(this.event.End);
+				}
+
+				const mins = Math.round(((next - item) / 1000) / 60);
+				return `${mins} minutes`;
 			}
 		}
 	});
