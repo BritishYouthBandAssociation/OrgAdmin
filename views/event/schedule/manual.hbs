@@ -1,27 +1,81 @@
 <h2>Create Event Schedule</h2>
-<p><a href="../">&lt; back to {{event.Name}}</a></p>
-
-{{json event}}
+<p class="mb-3"><a href="../">&lt; back to {{event.Name}}</a></p>
 
 <div id="app">
 
-<div class="card card-body bg-default text-center text-light fs-3">
-	{{time event.Start}}
-	Event Start
-</div>
+	<p>Unallocated time: ${unallocated}</p>
+	<button class="btn btn-success mb-3 btn-lg" @click="addItem">+ Add</button>
 
-<div class="event-spacer"></div>
+	<div class="card card-body bg-default text-center text-light fs-3">
+		{{time event.Start}}: Event Start
+	</div>
 
-<div class="card card-body bg-default text-center text-light fs-3">
-	{{time event.End}}
-	Event End
-</div>
+	<div class="schedule-item" v-for="(item, index) in items" :key="item.id">
+		<div class="event-spacer"></div>
+
+		<div class="card card-body bg-dark text-light">
+			<div class="row">
+				<div class="col-12 col-lg-3 mb-3">
+					<label :for="'start-' + index">Start Time</label>
+					<input type="time" :id="'start-' + index" class="form-control" v-model="item.Start" required />
+				</div>
+
+				<div class="col-12 col-lg-6 mb-3">
+					<label :for="'name-' + index">Description</label>
+					<input type="text" :id="'name-' + index" class="form-control" v-model="item.Description" required />
+				</div>
+
+				<div class="col-12 col-lg-3 mb-3">
+					<label :for="'duration-' + index">Duration <small>(minutes)</small></label>
+					<input type="number" :id="'duration-' + index" class="form-control" v-model="item.Duration" required />
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="event-spacer"></div>
+
+	<div class="card card-body bg-default text-center text-light fs-3">
+		{{time event.End}}: Event End
+	</div>
 
 </div>
 
 <script src="/js/vue.js"></script>
 <script>
+	let id = -1;
+
 	const app = new Vue({
-		el: '#app'
+		el: '#app',
+		delimiters: ['${', '}'],
+		data: {
+			event: {{{ json event }}},
+			items: []
+		},
+		computed: {
+			unallocated(){
+				const start = new Date(this.event.Start);
+				const end = new Date(this.event.End);
+
+				let mins = ((end - start) / 1000) / 60;
+				if(mins < 60){
+					return `${mins} minutes`;
+				}
+
+				let hours = mins / 60;
+				mins = mins % 60;
+				return `${hours} hours, ${mins} mins`;
+			}
+		},
+		methods: {
+			addItem: function(){
+				this.items.push({
+					id: --id,
+					Start: '',
+					Description: '',
+					Duration: 0
+				});
+			}
+		}
 	});
 </script>
