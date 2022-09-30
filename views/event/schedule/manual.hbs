@@ -1,0 +1,27 @@
+<h2>Create Event Schedule</h2>
+<p><a href="../">&lt; back to {{event.Name}}</a></p>
+
+{{json event}}
+
+<div id="app">
+
+<div class="card card-body bg-default text-center text-light fs-3">
+	{{time event.Start}}
+	Event Start
+</div>
+
+<div class="event-spacer"></div>
+
+<div class="card card-body bg-default text-center text-light fs-3">
+	{{time event.End}}
+	Event End
+</div>
+
+</div>
+
+<script src="/js/vue.js"></script>
+<script>
+	const app = new Vue({
+		el: '#app'
+	});
+</script>

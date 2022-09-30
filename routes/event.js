@@ -160,6 +160,7 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 		judgesAssigned: event.EventCaptions?.filter(ec => ec.JudgeId != null).length ?? 0,
 		organisationsRegistered: event.Organisations?.length ?? 0,
 		saved: req.query.saved ?? false,
+		hasSchedule: false
 	});
 });
 
@@ -445,6 +446,10 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 		],
 	}), req.db.Event.findByPk(req.params.id)]);
 
+	if (!event){
+		return next();
+	}
+
 	const promises = [];
 
 	promises.push(req.db.PaymentType.findAll({
@@ -545,6 +550,28 @@ router.post('/:id/organisations/add', validator.params(idParamSchema), validator
 	});
 
 	res.redirect('./?success=true');
+});
+
+router.get('/:id/schedule', async (req, res, next) => {
+	const event = await req.db.Event.findByPk(req.params.id);
+	if (!event){
+		return next();
+	}
+
+	//temp
+	return res.redirect('manual');
+});
+
+router.get('/:id/schedule/manual', async (req, res, next) => {
+	const event = await req.db.Event.findByPk(req.params.id);
+	if (!event){
+		return next();
+	}
+
+	return res.render('event/schedule/manual.hbs', {
+		title: `Create Event Schedule | ${event.Name}`,
+		event
+	});
 });
 
 module.exports = {
