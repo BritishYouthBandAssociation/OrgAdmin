@@ -430,7 +430,7 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 	org: Joi.number()
 		.integer()
 })), async (req, res, next) => {
-	const registrations = await req.db.EventRegistration.findAll({
+	const [registrations, event] = await Promise.all([req.db.EventRegistration.findAll({
 		include: [
 			{
 				model: req.db.Event,
@@ -443,7 +443,7 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 			req.db.Division,
 			req.db.Fee
 		],
-	});
+	}), req.db.Event.findByPk(req.params.id)]);
 
 	const promises = [];
 
@@ -484,7 +484,8 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 		org,
 		paymentTypes,
 		error: req.query.error,
-		success: req.query.success
+		success: req.query.success,
+		event
 	});
 });
 
