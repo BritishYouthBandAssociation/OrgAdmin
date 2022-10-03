@@ -8,14 +8,15 @@
 		{{time event.Start}}: Event Start
 	</div>
 
-	<div class="schedule-item" v-for="(item, index) in items" :key="item.id">
+	<div class="schedule-item" v-for="(item, index) in items" :key="item.id" :id="'item-' + item.id">
 		<div class="event-spacer"></div>
 
 		<div class="card card-body bg-dark text-light">
-			<div class="row">
+			<div class="row mb-3">
 				<div class="col-12 col-lg-3 mb-3">
 					<label :for="'start-' + index">Start Time</label>
-					<input type="time" :id="'start-' + index" class="form-control" v-model="item.Start" required />
+					<input type="time" :id="'start-' + index" class="form-control" v-model="item.Start"
+						@change="updateTimes(index)" required />
 				</div>
 
 				<div class="col-12 col-lg-6 mb-3">
@@ -25,7 +26,8 @@
 
 				<div class="col-12 col-lg-3 mb-3">
 					<p :for="'duration-' + index">Duration <small>(minutes)</small></p>
-					<span class="text-light">${calcDuration(index)}</span>
+					<span class="text-light">${item.duration}</span>
+					<input type="hidden" name="dur[]" :value="item.duration" />
 				</div>
 			</div>
 		</div>
@@ -48,45 +50,70 @@
 		delimiters: ['${', '}'],
 		data: {
 			event: {{{ json event }}},
-			items: []
+	items: []
 		},
-		methods: {
-			addItem: function(){
-				this.items.push({
-					id: --id,
-					Start: '',
-					Description: ''
-				});
-			},
-			calcDuration(index){
-				const item = new Date();
-				let vals = this.items[index].Start.split(":");
-				if(vals.length !== 2){
-					return;
-				}
+	methods: {
+		addItem: function() {
+			const index = this.items.length;
+			this.items.push({
+				id: --id,
+				Start: index === 0 ? new Date(this.event.Start).toTimeString().substring(0, 5) : '',
+				Description: ''
+			});
 
-				item.setHours(vals[0]);
-				item.setMinutes(vals[1]);
-				item.setSeconds(0);
 
-				let next = null;
-				if(index >= this.items.length){
-					next = new Date();
-					vals = this.items[index + 1].Start.split(":");
-					if(vals.length !== 2){
-						return;
-					}
+			this.updateTimes(index);
 
-					next.setHours(vals[0]);
-					next.setMinutes(vals[1]);
-					next.setSeconds(0);
-				} else {
-					next = new Date(this.event.End);
-				}
+			Vue.nextTick(() => {
+				scroll();
+			});
+		},
+		updateTimes(index){
+			this.calcDuration(index);
 
-				const mins = Math.round(((next - item) / 1000) / 60);
-				return `${mins} minutes`;
+			if (index > 0) {
+				this.calcDuration(index - 1);
 			}
+		},
+
+		calcDuration(index){
+			const item = doTime(new Date(this.event.Start), this.items[index].Start);
+			let next = new Date(this.event.End);
+
+			if (index + 1 < this.items.length) {
+				next = doTime(next, this.items[index + 1].Start);
+			}
+
+			const mins = Math.abs(Math.round(((next - item) / 1000) / 60));
+			Vue.set(this.items[index], 'duration', mins);
+			return mins;
 		}
+	}
 	});
+
+	function doTime(date, time) {
+		const parts = time.split(":");
+		if (parts.length !== 2) {
+			return date;
+		}
+
+		date.setHours(parts[0]);
+		date.setMinutes(parts[1]);
+		date.setSeconds(0);
+
+		return date;
+	}
+
+	function scroll() {
+		const el = document.getElementById(`item-${id}`);
+		const rect = el.getBoundingClientRect();
+		if(!(rect.top >= 0 && rect.left >= 0 &&
+			rect.bottom <= (window.innerHeight || document.documentElement.clientHeight)
+			&& rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+		)){
+			el.scrollIntoView({
+				behavior: 'smooth'
+			});
+		}
+	}
 </script>
