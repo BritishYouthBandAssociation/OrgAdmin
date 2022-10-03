@@ -39,7 +39,7 @@
 		"joi": "^17.6.1",
 		"morgan": "^1.10.0",
 		"prompt-sync": "^4.2.0",
-		"sequelize": "^6.23.1",
+		"sequelize": "^6.23.2",
 		"serve-favicon": "^2.5.0"
 	},
 	"lint-staged": {
