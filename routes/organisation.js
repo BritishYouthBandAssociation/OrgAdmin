@@ -49,14 +49,17 @@ router.get('/new', checkAdmin, async (req, res, next) => {
 	return res.render('organisation/add.hbs', {
 		title: 'Add New Organisation',
 		types: types,
-		organisation: {}
+		organisation: {
+			Name: req.query.name ?? ''
+		}
 	});
 });
 
 router.post('/new', checkAdmin, validator.query(Joi.object({
 	membershipType: Joi.number(),
 	eventId: Joi.string()
-		.guid()
+		.guid(),
+	name: Joi.string().optional().allow('', null) //does nothing but may be carried over from get
 })), validator.body(Joi.object({
 	name: Joi.string()
 		.required(),
@@ -91,7 +94,7 @@ router.post('/new', checkAdmin, validator.query(Joi.object({
 	});
 
 	if (req.query.membershipType) {
-		return res.redirect(`/membership/new?org=${org.id}&type=${req.query.membershipType}`);
+		return res.redirect(`/membership/new/?org=${org.id}&type=${req.query.membershipType}`);
 	}
 
 	if (req.query.eventId) {

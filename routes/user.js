@@ -56,9 +56,9 @@ router.get('/', checkAdmin, async (req, res, next) => {
 
 router.get('/new', checkAdmin, validator.query(Joi.object({
 	orgID: Joi.number(),
-	email: Joi.string()
-		.email()
-})), (req, res, next) => {
+	email: Joi.string().email(),
+	membership: Joi.number().optional().allow('', null)
+})), (req, res) => {
 	const details = {
 		Email: req.query.email ?? '',
 		IsActive: true
@@ -132,7 +132,7 @@ router.post('/new', checkAdmin, validator.body(Joi.object({
 	}
 
 	if (req.query.membership){
-		return res.redirect(`/membership/new?email=${req.body.email}&type=${req.query.membership}`);
+		return res.redirect(`/membership/new/?email=${req.body.email}&type=${req.query.membership}`);
 	}
 
 	return res.redirect(user.id);

@@ -33,7 +33,13 @@
             .replace(/ +/g, '-');
 	}
 
-	document.getElementById("name").addEventListener("keyup", e => {
-		document.getElementById("slug").value = generateSlug(e.target.value);
+	const slug = document.getElementById("slug"); 
+	const name = document.getElementById("name");
+
+	//update initial value?
+	slug.value = generateSlug(name.value);
+
+	name.addEventListener("keyup", e => {
+		slug.value = generateSlug(name.value);
 	});
 </script>

@@ -15,7 +15,7 @@ Vue.component('search-box', {
 	<div>
 		<div class="form-group">
 			<label :for="getName('search')">{{title}}</label>
-			<input type="text" class="form-control" :name="getName('search')" :id="getName('search')" :placeholder="placeholder" @keyup="doSearch" v-model="$data._text" autocomplete="off" />
+			<input type="text" class="form-control" :name="getName('search')" :id="getName('search')" :placeholder="placeholder" v-on:keydown.enter.prevent @keyup="doSearch" v-model="$data._text" autocomplete="off" />
 
 			<input type="hidden" :name="getName()" v-model="$data._value" />
 		</div>
@@ -45,7 +45,6 @@ Vue.component('search-box', {
 		},
 
 		setResult(result){
-			console.log(result);
 			this.$data._value = result[this.valueProp];
 			this.$data._text = result[this.textProp];
 			this.results = [];
