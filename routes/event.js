@@ -138,7 +138,8 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 				req.db.Address,
 				req.db.EventType,
 				req.db.EventCaption,
-				req.db.Organisation
+				req.db.Organisation,
+				req.db.EventSchedule
 			]
 		}),
 		req.db.EventType.findAll({
@@ -160,7 +161,7 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 		judgesAssigned: event.EventCaptions?.filter(ec => ec.JudgeId != null).length ?? 0,
 		organisationsRegistered: event.Organisations?.length ?? 0,
 		saved: req.query.saved ?? false,
-		hasSchedule: false
+		hasSchedule: event.EventSchedules.length > 0
 	});
 });
 
@@ -563,15 +564,37 @@ router.get('/:id/schedule', async (req, res, next) => {
 });
 
 router.get('/:id/schedule/manual', async (req, res, next) => {
-	const event = await req.db.Event.findByPk(req.params.id);
+	const event = await req.db.Event.findByPk(req.params.id, {
+		include: [req.db.EventSchedule]
+	});
 	if (!event){
 		return next();
 	}
 
 	return res.render('event/schedule/manual.hbs', {
 		title: `Create Event Schedule | ${event.Name}`,
-		event
+		event,
+		saved: req.query.saved ?? false
 	});
+});
+
+router.post('/:id/schedule/manual', async (req, res, next) => {
+	const event = await req.db.Event.findByPk(req.params.id);
+	if (!event){
+		return next();
+	}
+
+	await event.setEventSchedules([]);
+
+	for (let i = 0; i < req.body.start.length; i++){
+		await event.createEventSchedule({
+			Start: req.body.start[i],
+			Description: req.body.name[i],
+			Duration: req.body.dur[i]
+		});
+	}
+
+	res.redirect('?saved=true');
 });
 
 module.exports = {

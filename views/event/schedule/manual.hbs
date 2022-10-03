@@ -1,9 +1,16 @@
 <h2>Create Event Schedule</h2>
 <p class="mb-3"><a href="../">&lt; back to {{event.Name}}</a></p>
 
+{{#if saved}}
+<div class="alert alert-success text-center">Schedule saved successfully!</div>
+{{/if}}
+
 <div id="app">
+	{{#if session.user.IsAdmin}}
 	<button class="btn btn-success mb-3 btn-lg" @click="addItem">+ Add</button>
 
+<form method="post">
+	{{/if}}
 	<div class="card card-body bg-default text-center text-light fs-3">
 		{{time event.Start}}: Event Start
 	</div>
@@ -15,19 +22,18 @@
 			<div class="row mb-3">
 				<div class="col-12 col-lg-3 mb-3">
 					<label :for="'start-' + index">Start Time</label>
-					<input type="time" :id="'start-' + index" class="form-control" v-model="item.Start"
-						@change="updateTimes(index)" required />
+					<input type="time" name="start[]" :id="'start-' + index" class="form-control" v-model="item.Start" @change="updateTimes(index)" required />
 				</div>
 
 				<div class="col-12 col-lg-6 mb-3">
 					<label :for="'name-' + index">Description</label>
-					<input type="text" :id="'name-' + index" class="form-control" v-model="item.Description" required />
+					<input type="text" name="name[]" :id="'name-' + index" class="form-control" v-model="item.Description" required />
 				</div>
 
 				<div class="col-12 col-lg-3 mb-3">
-					<p :for="'duration-' + index">Duration <small>(minutes)</small></p>
-					<span class="text-light">${item.duration}</span>
-					<input type="hidden" name="dur[]" :value="item.duration" />
+					<p :for="'duration-' + index">Duration</p>
+					<span class="text-light">${item.Duration} minutes</span>
+					<input type="hidden" name="dur[]" :value="item.Duration" />
 				</div>
 			</div>
 		</div>
@@ -35,10 +41,14 @@
 
 	<div class="event-spacer"></div>
 
-	<div class="card card-body bg-default text-center text-light fs-3">
+	<div class="card card-body bg-default text-center text-light fs-3 mb-3">
 		{{time event.End}}: Event End
 	</div>
 
+{{#if session.user.IsAdmin}}
+	<button class="btn btn-lg btn-default">Save</button>
+</form>
+{{/if}}
 </div>
 
 <script src="/js/vue.js"></script>
@@ -50,7 +60,7 @@
 		delimiters: ['${', '}'],
 		data: {
 			event: {{{ json event }}},
-	items: []
+			items: {{{json event.EventSchedules}}}
 		},
 	methods: {
 		addItem: function() {
@@ -85,7 +95,7 @@
 			}
 
 			const mins = Math.abs(Math.round(((next - item) / 1000) / 60));
-			Vue.set(this.items[index], 'duration', mins);
+			Vue.set(this.items[index], 'Duration', mins);
 			return mins;
 		}
 	}
