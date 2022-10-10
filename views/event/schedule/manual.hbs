@@ -18,8 +18,12 @@
 	<div class="schedule-item" v-for="(item, index) in items" :key="item.id" :id="'item-' + item.id">
 		<div class="event-spacer"></div>
 
-		<div class="card card-body bg-dark text-light">
-			<div class="row mb-3">
+		<div class="card bg-dark text-light">
+			<div class="card-header">
+				 <button type="button" class="btn-close btn-close-white d-block ms-auto" aria-label="Delete" @click="remove(index)"></button>
+			</div>
+			<div class="card-body">
+			<div class="row">
 				<div class="col-12 col-lg-3 mb-3">
 					<label :for="'start-' + index">Start Time</label>
 					<input type="time" name="start[]" :id="'start-' + index" class="form-control" v-model="item.Start" @change="updateTimes(index)" required />
@@ -32,9 +36,13 @@
 
 				<div class="col-12 col-lg-3 mb-3">
 					<p :for="'duration-' + index">Duration</p>
-					<span class="text-light">${item.Duration} minutes</span>
+					<span class="text-light">${friendlyDuration(item.Duration)}</span>
 					<input type="hidden" name="dur[]" :value="item.Duration" />
 				</div>
+			</div>
+
+			<div class="alert alert-warning text-center mt-3" v-if="item.invalid">This schedule item falls outside the time the event is running. Please double-check the assigned time before proceeding.</div>
+			<div class="alert alert-danger text-center mt-3" v-if="item.Duration === 0">This schedule item is at the same time as the next item</div>
 			</div>
 		</div>
 	</div>
@@ -60,7 +68,9 @@
 		delimiters: ['${', '}'],
 		data: {
 			event: {{{ json event }}},
-			items: {{{json event.EventSchedules}}}
+			items: {{{json event.EventSchedules}}},
+			start: null,
+			end: null
 		},
 	methods: {
 		addItem: function() {
@@ -79,6 +89,10 @@
 			});
 		},
 		updateTimes(index){
+			if(index >= this.items.length || index < 0){
+				return;
+			}
+
 			this.calcDuration(index);
 
 			if (index > 0) {
@@ -96,14 +110,50 @@
 
 			const mins = Math.abs(Math.round(((next - item) / 1000) / 60));
 			Vue.set(this.items[index], 'Duration', mins);
+
+			Vue.set(this.items[index], 'invalid', (item < this.start || item > this.end));
+
 			return mins;
+		},
+
+		friendlyDuration(minutes){
+			const mins = minutes % 60;
+			const hours = Math.floor(minutes / 60);
+
+			let text = "";
+			if(hours > 0){
+				text = `${hours} hours`;
+			}
+
+			if(mins > 0){
+				if(text.length > 0){
+					text += " and ";
+				}
+
+				text += `${mins} minutes`;
+			}
+
+			return (text.length === 0) ? "No time!" : text;
+		},
+
+		remove(index){
+			this.items.splice(index, 1);
+			this.updateTimes(index);
+		}
+	},
+	mounted: function(){
+		this.start = new Date(this.event.Start);
+		this.end = new Date(this.event.End);
+
+		for(let i = 0; i < this.items.length; i++){
+			this.calcDuration(i);
 		}
 	}
 	});
 
 	function doTime(date, time) {
 		const parts = time.split(":");
-		if (parts.length !== 2) {
+		if (parts.length < 2) {
 			return date;
 		}
 

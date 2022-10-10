@@ -8,7 +8,7 @@ const { Op } = require('sequelize');
 
 const validator = require('@byba/express-validator');
 
-const {helpers: {SlugHelper: {formatSlug}}} = require(__lib);
+const { helpers: { SlugHelper: { formatSlug } } } = require(__lib);
 
 const router = express.Router();
 
@@ -30,11 +30,11 @@ router.get('/', async (req, res, next) => {
 		}
 	});
 
-	if (!season){
+	if (!season) {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
 	}
 
-	const [ events, eventTypes] = await Promise.all([
+	const [events, eventTypes] = await Promise.all([
 		req.db.Event.findAll({
 			include: [
 				req.db.EventType
@@ -48,7 +48,7 @@ router.get('/', async (req, res, next) => {
 
 	return res.render('event/index.hbs', {
 		title: 'Events',
-		years: [ season.id ],
+		years: [season.id],
 		year: season.id,
 		events,
 		filters: eventTypes
@@ -69,7 +69,7 @@ router.get('/new', validator.query(Joi.object({
 		}
 	});
 
-	if (!season){
+	if (!season) {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
 	}
 
@@ -132,7 +132,7 @@ router.post('/new', validator.body(Joi.object({
 router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 	saved: Joi.boolean()
 })), async (req, res, next) => {
-	const [ event, types ] = await Promise.all([
+	const [event, types] = await Promise.all([
 		req.db.Event.findByPk(req.params.id, {
 			include: [
 				req.db.Address,
@@ -196,7 +196,7 @@ router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
 		.empty(''),
 })), async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id, {
-		include: [ req.db.Address ]
+		include: [req.db.Address]
 	});
 
 	if (!event) {
@@ -255,7 +255,7 @@ router.post('/:id/registration', validator.params(idParamSchema), validator.body
 	return res.redirect('./?saved=true');
 });
 
-async function loadCaption(db, parent){
+async function loadCaption(db, parent) {
 	parent.Subcaptions = await db.findAll({
 		where: {
 			ParentID: parent.id
@@ -269,8 +269,8 @@ async function loadCaption(db, parent){
 	return parent;
 }
 
-function filterCaptions(arr, caption){
-	if (caption.Subcaptions.length > 0 && caption.Subcaptions[0].Subcaptions.length === 0){
+function filterCaptions(arr, caption) {
+	if (caption.Subcaptions.length > 0 && caption.Subcaptions[0].Subcaptions.length === 0) {
 		//we have found our weird mid-level!
 		arr.push(caption);
 		return arr;
@@ -298,7 +298,7 @@ router.get('/:id/judges', validator.params(idParamSchema), validator.query(Joi.o
 		return next();
 	}
 
-	if (req.query.add && !event.EventCaptions.some(c => c.CaptionId === req.query.add)){
+	if (req.query.add && !event.EventCaptions.some(c => c.CaptionId === req.query.add)) {
 		req.db.EventCaption.create({
 			EventId: req.params.id,
 			CaptionId: req.query.add
@@ -350,7 +350,7 @@ router.post('/:id/judges', validator.params(idParamSchema), validator.body(Joi.o
 	}
 
 	await Promise.all(req.body.judge.map((j, index) => {
-		if (j.trim().length === 0){
+		if (j.trim().length === 0) {
 			return null;
 		}
 
@@ -375,7 +375,7 @@ router.post('/:id/judges/remove', validator.params(idParamSchema), validator.bod
 		req.db.Caption.findByPk(req.body.caption)
 	]);
 
-	if (!event || !caption){
+	if (!event || !caption) {
 		return next();
 	}
 
@@ -427,7 +427,7 @@ router.post('/:id/judges/reset', validator.params(idParamSchema), async (req, re
 });
 
 router.get('/:id/organisations', validator.params(idParamSchema), validator.query(Joi.object({
-	error: [ Joi.boolean(), Joi.string() ],
+	error: [Joi.boolean(), Joi.string()],
 	success: Joi.boolean(),
 	org: Joi.number()
 		.integer()
@@ -447,7 +447,7 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 		],
 	}), req.db.Event.findByPk(req.params.id)]);
 
-	if (!event){
+	if (!event) {
 		return next();
 	}
 
@@ -463,7 +463,7 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 		promises.push(req.db.Organisation.findByPk(req.query.org));
 	}
 
-	const [ paymentTypes, org ] = await Promise.all(promises);
+	const [paymentTypes, org] = await Promise.all(promises);
 
 	if (typeof req.query.error === 'string') {
 		req.query.error = decodeURIComponent(req.query.error);
@@ -476,8 +476,7 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 	registrations.forEach(r => {
 		const divisionName = r.Division ? r.Division.Name : 'Unknown';
 
-		if (!sortedRegistrations[divisionName])
-		{sortedRegistrations[divisionName] = [];}
+		if (!sortedRegistrations[divisionName]) { sortedRegistrations[divisionName] = []; }
 
 		r.HasAdminAccess = req.session.user.IsAdmin || req.session.band?.id === r.Organisation.id;
 
@@ -555,7 +554,7 @@ router.post('/:id/organisations/add', validator.params(idParamSchema), validator
 
 router.get('/:id/schedule', async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id);
-	if (!event){
+	if (!event) {
 		return next();
 	}
 
@@ -567,7 +566,7 @@ router.get('/:id/schedule/manual', async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id, {
 		include: [req.db.EventSchedule]
 	});
-	if (!event){
+	if (!event) {
 		return next();
 	}
 
@@ -580,18 +579,20 @@ router.get('/:id/schedule/manual', async (req, res, next) => {
 
 router.post('/:id/schedule/manual', async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id);
-	if (!event){
+	if (!event) {
 		return next();
 	}
 
 	await event.setEventSchedules([]);
 
-	for (let i = 0; i < req.body.start.length; i++){
-		await event.createEventSchedule({
-			Start: req.body.start[i],
-			Description: req.body.name[i],
-			Duration: req.body.dur[i]
-		});
+	if (req.body.start && req.body.start.length > 0) {
+		for (let i = 0; i < req.body.start.length; i++) {
+			await event.createEventSchedule({
+				Start: req.body.start[i],
+				Description: req.body.name[i],
+				Duration: req.body.dur[i]
+			});
+		}
 	}
 
 	res.redirect('?saved=true');
