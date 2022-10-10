@@ -1495,13 +1495,14 @@ expand-tilde@^2.0.0, expand-tilde@^2.0.2:
   dependencies:
     homedir-polyfill "^1.0.1"
 
-express-form-data@^2.0.18:
-  version "2.0.18"
-  resolved "https://registry.yarnpkg.com/express-form-data/-/express-form-data-2.0.18.tgz#0a850f82322c58af781ea0a031bef9af1c87e58b"
-  integrity sha512-UU6bHSqEdUeuhoIKFLF2ABXlCB5iM/AdRVmgdI1GsXc6S9Pnk4yD7S8B7pMFfAlUtIEWLpYW7AFsf4szEZxkeA==
+express-form-data@^2.0.19:
+  version "2.0.19"
+  resolved "https://registry.yarnpkg.com/express-form-data/-/express-form-data-2.0.19.tgz#66962157b0fec21b6a1f2d37d609cd4f87aa2978"
+  integrity sha512-QWulRIYvZV/ZOuO0+SNpCs9Gl0st9SssYtm5Icfm17p2MU4HASLpd4K5w8fwnXB/lPPskecVSeqjVWi2SwIb1A==
   dependencies:
     connect-multiparty "^2.2.0"
     fs-extra "^9.1.0"
+    signal-exit "^3.0.7"
 
 express-handlebars@^6.0.6:
   version "6.0.6"
