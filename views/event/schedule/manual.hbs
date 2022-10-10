@@ -143,7 +143,7 @@
 			const index = this.items.length;
 			this.items.push({
 				id: --id,
-				Start: index === 0 ? new Date(this.event.Start).toTimeString().substring(0, 5) : '',
+				Start: index === 0 ? extractTime(new Date(this.event.Start)) : '',
 				Description: ''
 			});
 
@@ -174,7 +174,7 @@
 				next = doTime(next, this.items[index + 1].Start);
 			}
 
-			const mins = Math.abs(Math.round(((next - item) / 1000) / 60));
+			const mins = Math.round(((next - item) / 1000) / 60);
 			Vue.set(this.items[index], 'Duration', mins);
 
 			Vue.set(this.items[index], 'invalid', (item < this.start || item > this.end));
@@ -258,16 +258,34 @@
 		},
 
 		generateSchedule(){
-			console.log(this.generationType);
-			console.log(this.divisions);
-		},
+			const time = new Date(this.event.Start);
 
-		chooseDivisions(){
-			this.modal.show();
+			this.divisions.forEach(d => {
+				let entries = this.entries[d.Name];
+
+				if(this.generationType === 'entry'){
+					
+				} else {
+					shuffleArray(entries);
+				}
+
+				entries.forEach(e => {
+					const item = {
+						id: --id,
+						Start: extractTime(time),
+						Description: e.Organisation.Name
+					};
+
+					this.items.push(item);
+					this.updateTimes(this.items.length - 1);
+
+					time.setMinutes(time.getMinutes() + d.PerformanceTime);
+				});
+			});
 		},
 
 		assignDivisions(){
-			this.loadDivisions().then(this.chooseDivisions);
+			this.loadDivisions().then(() => this.modal.show());
 		},
 
 		changeDivision(index, movement){
@@ -315,5 +333,16 @@
 				behavior: 'smooth'
 			});
 		}
+	}
+
+	function shuffleArray(array) {
+    	for (let i = array.length - 1; i > 0; i--) {
+    	    const j = Math.floor(Math.random() * (i + 1));
+    	    [array[i], array[j]] = [array[j], array[i]];
+    	}
+	}
+
+	function extractTime(date){
+		return date.toTimeString().substring(0, 5);
 	}
 </script>
