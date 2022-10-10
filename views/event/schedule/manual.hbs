@@ -8,58 +8,66 @@
 <div id="app">
 	{{#if session.user.IsAdmin}}
 	<button class="btn btn-success mb-3 btn-lg" @click="addItem">+ Add</button>
+	<button class="btn btn-default mb-3 btn-lg" @click="autoAssign">Auto-assign</button>
 
-<form method="post">
-	{{/if}}
-	<div class="card card-body bg-default text-center text-light fs-3">
-		{{time event.Start}}: Event Start
-	</div>
+	<form method="post">
+		{{/if}}
+		<div class="card card-body bg-default text-center text-light fs-3">
+			{{time event.Start}}: Event Start
+		</div>
 
-	<div class="schedule-item" v-for="(item, index) in items" :key="item.id" :id="'item-' + item.id">
-		<div class="event-spacer"></div>
+		<div class="schedule-item" v-for="(item, index) in items" :key="item.id" :id="'item-' + item.id">
+			<div class="event-spacer"></div>
 
-		<div class="card bg-dark text-light">
-			<div class="card-header">
-				 <button type="button" class="btn-close btn-close-white d-block ms-auto" aria-label="Delete" @click="remove(index)"></button>
-			</div>
-			<div class="card-body">
-			<div class="row">
-				<div class="col-12 col-lg-3 mb-3">
-					<label :for="'start-' + index">Start Time</label>
-					<input type="time" name="start[]" :id="'start-' + index" class="form-control" v-model="item.Start" @change="updateTimes(index)" required />
+			<div class="card bg-dark text-light">
+				<div class="card-header">
+					<button type="button" class="btn-close btn-close-white d-block ms-auto" aria-label="Delete"
+						@click="remove(index)"></button>
 				</div>
+				<div class="card-body">
+					<div class="row">
+						<div class="col-12 col-lg-3 mb-3">
+							<label :for="'start-' + index">Start Time</label>
+							<input type="time" name="start[]" :id="'start-' + index" class="form-control"
+								v-model="item.Start" @change="updateTimes(index)" required />
+						</div>
 
-				<div class="col-12 col-lg-6 mb-3">
-					<label :for="'name-' + index">Description</label>
-					<input type="text" name="name[]" :id="'name-' + index" class="form-control" v-model="item.Description" required />
+						<div class="col-12 col-lg-6 mb-3">
+							<label :for="'name-' + index">Description</label>
+							<input type="text" name="name[]" :id="'name-' + index" class="form-control"
+								v-model="item.Description" required />
+						</div>
+
+						<div class="col-12 col-lg-3 mb-3">
+							<p :for="'duration-' + index">Duration</p>
+							<span class="text-light">${friendlyDuration(item.Duration)}</span>
+							<input type="hidden" name="dur[]" :value="item.Duration" />
+						</div>
+					</div>
+
+					<div class="alert alert-warning text-center mt-3" v-if="item.invalid">This schedule item falls
+						outside the time the event is running. Please double-check the assigned time before proceeding.
+					</div>
+					<div class="alert alert-danger text-center mt-3" v-if="item.Duration === 0">This schedule item is at
+						the same time as the next item</div>
 				</div>
-
-				<div class="col-12 col-lg-3 mb-3">
-					<p :for="'duration-' + index">Duration</p>
-					<span class="text-light">${friendlyDuration(item.Duration)}</span>
-					<input type="hidden" name="dur[]" :value="item.Duration" />
-				</div>
-			</div>
-
-			<div class="alert alert-warning text-center mt-3" v-if="item.invalid">This schedule item falls outside the time the event is running. Please double-check the assigned time before proceeding.</div>
-			<div class="alert alert-danger text-center mt-3" v-if="item.Duration === 0">This schedule item is at the same time as the next item</div>
 			</div>
 		</div>
-	</div>
 
-	<div class="event-spacer"></div>
+		<div class="event-spacer"></div>
 
-	<div class="card card-body bg-default text-center text-light fs-3 mb-3">
-		{{time event.End}}: Event End
-	</div>
+		<div class="card card-body bg-default text-center text-light fs-3 mb-3">
+			{{time event.End}}: Event End
+		</div>
 
-{{#if session.user.IsAdmin}}
-	<button class="btn btn-lg btn-default">Save</button>
-</form>
-{{/if}}
+		{{#if session.user.IsAdmin}}
+		<button class="btn btn-lg btn-default">Save</button>
+	</form>
+	{{/if}}
 </div>
 
 <script src="/js/vue.js"></script>
+<script src="/js/swal2.js"></script>
 <script>
 	let id = -1;
 
@@ -68,9 +76,10 @@
 		delimiters: ['${', '}'],
 		data: {
 			event: {{{ json event }}},
-			items: {{{json event.EventSchedules}}},
-			start: null,
-			end: null
+	items: {{{ json event.EventSchedules }}},
+	start: null,
+		end: null,
+			entries: { }
 		},
 	methods: {
 		addItem: function() {
@@ -89,7 +98,7 @@
 			});
 		},
 		updateTimes(index){
-			if(index >= this.items.length || index < 0){
+			if (index >= this.items.length || index < 0) {
 				return;
 			}
 
@@ -121,12 +130,12 @@
 			const hours = Math.floor(minutes / 60);
 
 			let text = "";
-			if(hours > 0){
+			if (hours > 0) {
 				text = `${hours} hours`;
 			}
 
-			if(mins > 0){
-				if(text.length > 0){
+			if (mins > 0) {
+				if (text.length > 0) {
 					text += " and ";
 				}
 
@@ -139,13 +148,58 @@
 		remove(index){
 			this.items.splice(index, 1);
 			this.updateTimes(index);
+		},
+
+		autoAssign(){
+			Swal.fire({
+				title: 'ARE YOU SURE?',
+				icon: 'question',
+				html: `
+					<p>Are you sure you wish to auto-assign the schedule for this event?</p>
+					<p>Any already assigned schedule items will be removed.</p>
+				`,
+				showCancelButton: true,
+				customClass: {
+					confirmButton: 'btn btn-lg btn-success mx-3',
+					cancelButton: 'btn btn-lg btn-danger mx-3'
+				},
+				buttonsStyling: false,
+				reverseButtons: true,
+				confirmButtonText: 'Yes, auto-assign this schedule'
+			}).then(res => {
+				if (res.isConfirmed) {
+					this.assignDivisions();
+				}
+			})
+		},
+
+		loadDivisions(){
+			return fetch(`/_api/event/${this.event.id}`).then(res => res.json()).then(json => {
+				this.entries = {};
+
+				json.registration.forEach(r => {
+					const divisionName = r.Division ? r.Division.Name : 'Unknown';
+
+					if (!this.entries[divisionName]) { 
+						this.entries[divisionName] = [r]; 
+					} else {
+						this.entries[divisionName].push(r);
+					}
+				});
+			});
+		}
+
+		assignDivisions(){
+			this.loadDivisions().then(() => {
+				
+			});
 		}
 	},
-	mounted: function(){
+	mounted: function() {
 		this.start = new Date(this.event.Start);
 		this.end = new Date(this.event.End);
 
-		for(let i = 0; i < this.items.length; i++){
+		for (let i = 0; i < this.items.length; i++) {
 			this.calcDuration(i);
 		}
 	}
@@ -167,10 +221,10 @@
 	function scroll() {
 		const el = document.getElementById(`item-${id}`);
 		const rect = el.getBoundingClientRect();
-		if(!(rect.top >= 0 && rect.left >= 0 &&
+		if (!(rect.top >= 0 && rect.left >= 0 &&
 			rect.bottom <= (window.innerHeight || document.documentElement.clientHeight)
 			&& rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-		)){
+		)) {
 			el.scrollIntoView({
 				behavior: 'smooth'
 			});

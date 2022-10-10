@@ -61,7 +61,7 @@ router.get('/membership/:season', validator.query(Joi.object({
 		SeasonId: req.params.season
 	};
 
-	if (req.query.type){
+	if (req.query.type) {
 		where.MembershipTypeId = req.query.type;
 	}
 
@@ -96,7 +96,7 @@ router.get('/caption/:id/judges/search', validator.query(Joi.object({
 })), async (req, res, next) => {
 	const caption = await req.db.Caption.findByPk(req.params.id);
 
-	if (!caption){
+	if (!caption) {
 		return next();
 	}
 
@@ -120,6 +120,32 @@ router.get('/caption/:id/judges/search', validator.query(Joi.object({
 	});
 
 	res.json(judges);
+});
+
+router.get('/event/:id', validator.params(Joi.object({
+	id: Joi.string().guid().required()
+})), async (req, res, next) => {
+	const [event, registration] = await Promise.all([req.db.Event.findByPk(req.params.id),
+		req.db.EventRegistration.findAll({
+			include: [
+				req.db.Organisation,
+				req.db.User,
+				req.db.Division,
+				req.db.Fee
+			],
+			where: {
+				EventId: req.params.id
+			}
+		})]);
+
+	if (!event) {
+		return next();
+	}
+
+	res.json({
+		event,
+		registration
+	});
 });
 
 module.exports = {
