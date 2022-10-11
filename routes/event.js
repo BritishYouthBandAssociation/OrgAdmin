@@ -586,16 +586,52 @@ router.post('/:id/schedule/manual', async (req, res, next) => {
 	await event.setEventSchedules([]);
 
 	if (req.body.start && req.body.start.length > 0) {
-		for (let i = 0; i < req.body.start.length; i++) {
-			await event.createEventSchedule({
-				Start: req.body.start[i],
-				Description: req.body.name[i],
-				Duration: req.body.dur[i]
-			});
-		}
+		await Promise.all(req.body.start.map((_, index) =>
+			event.createEventSchedule({
+				Start: req.body.start[index],
+				Description: req.body.name[index],
+				Duration: req.body.dur[index]
+			})
+		));
 	}
 
 	res.redirect('?saved=true');
+});
+
+router.get('/:id/schedule/automatic', async (req, res, next) => {
+	const result = await Promise.all([req.db.Event.findByPk(req.params.id),
+		req.db.EventRegistration.findAll({
+			include: [{
+				model: req.db.Division,
+				attributes: ['Name']
+			}],
+			where: {
+				EventId: req.params.id
+			},
+			group: ['DivisionId']
+		}),
+		req.db.EventRegistration.count({
+			where: {
+				EventId: req.params.id
+			}
+		})]);
+
+	const [event, , entries] = result;
+	let [, divisions] = result;
+
+	if (!event) {
+		return next();
+	}
+
+	divisions = divisions.map(d => d.Division);
+
+	return res.render('event/schedule/automatic.hbs', {
+		title: `Generate Event Schedule | ${event.Name}`,
+		event,
+		divisions,
+		entries,
+		saved: req.query.saved ?? false
+	});
 });
 
 module.exports = {

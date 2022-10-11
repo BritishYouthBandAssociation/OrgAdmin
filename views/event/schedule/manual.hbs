@@ -64,59 +64,6 @@
 		<button class="btn btn-lg btn-default">Save</button>
 		</form>
 	{{/if}}
-
-	<div class="modal fade" id="divisionModal" tabindex="-1" aria-hidden="true">
-		<div class="modal-dialog modal-lg">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h2 class="modal-title fs-4">Schedule Config</h2>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
-				<div class="modal-body">
-					<h3 class="fs-5">Generation Type</h3>
-					<input type="radio" class="btn-check" name="options" id="randomGen" autocomplete="off" value="random" v-model="generationType">
-<label class="btn btn-outline-success" for="randomGen">Random</label>
-
-<input type="radio" class="btn-check" name="options" id="leagueGen" autocomplete="off" value="league" v-model="generationType">
-<label class="btn btn-outline-success" for="leagueGen">League Score</label>
-
-<input type="radio" class="btn-check" name="options" id="entryGen" autocomplete="off" value="entry" v-model="generationType">
-<label class="btn btn-outline-success" for="entryGen">Entry Order</label>
-					<hr />
-					<h3 class="fs-5">Division Order</h3>
-					<div class="list-group">
-						<div class="list-group-item fs-5" v-for="(division, index) in divisions" :key="division.id">
-							<div class="row">
-								<div class="col-10">${index + 1}. ${division.Name}</div>
-								<div class="col-1">
-									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-up-square-fill pointer" viewBox="0 0 16 16" v-if="index > 0" @click="changeDivision(index, -1)">
-										<path d="M2 16a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2zm6.5-4.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 1 0z" />
-									</svg>
-
-									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-up-square opacity-50" viewBox="0 0 16 16" v-if="index === 0">
-										<path fill-rule="evenodd" d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm8.5 9.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707V11.5z" />
-									</svg>
-								</div>
-								<div class="col-1">
-									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-down-square-fill pointer" viewBox="0 0 16 16" v-if="index < divisions.length - 1" @click="changeDivision(index, 1)">
-										<path d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm6.5 4.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5a.5.5 0 0 1 1 0z" />
-									</svg>
-
-									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-down-square opacity-50" viewBox="0 0 16 16" v-if="index >= divisions.length - 1">
-										<path fill-rule="evenodd" d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm8.5 2.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z" />
-									</svg>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-					<button type="button" class="btn btn-default" data-bs-dismiss="modal" @click="generateSchedule">Generate Schedule</button>
-				</div>
-			</div>
-		</div>
-	</div>
 </div>
 
 <script src="/js/bootstrap.min.js"></script>
@@ -132,11 +79,7 @@
 			event: {{{ json event }}},
 	items: {{{ json event.EventSchedules }}},
 	start: null,
-		end: null,
-			entries: { },
-			divisions: [],
-	modal: null,
-	generationType: 'random'
+		end: null
 		},
 	methods: {
 		addItem: function() {
@@ -225,73 +168,9 @@
 				confirmButtonText: 'Yes, auto-assign this schedule'
 			}).then(res => {
 				if (res.isConfirmed) {
-					this.assignDivisions();
+					window.location.href = "automatic";
 				}
 			})
-		},
-
-		loadDivisions(){
-			return fetch(`/_api/event/${this.event.id}`).then(res => res.json()).then(json => {
-				this.entries = {};
-				this.divisions = [];
-
-				json.registration.forEach(r => {
-					const divisionName = r.Division ? r.Division.Name : 'Unknown';
-
-					if (!this.entries[divisionName]) {
-						this.entries[divisionName] = [r];
-
-						if(r.Division){
-							this.divisions.push(r.Division)
-						} else {
-							this.divisions.push({
-								id: null,
-								Name: 'Unknown',
-								PerformanceTime: 20
-							});
-						}
-					} else {
-						this.entries[divisionName].push(r);
-					}
-				});
-			});
-		},
-
-		generateSchedule(){
-			const time = new Date(this.event.Start);
-
-			this.divisions.forEach(d => {
-				let entries = this.entries[d.Name];
-
-				if(this.generationType === 'entry'){
-					
-				} else {
-					shuffleArray(entries);
-				}
-
-				entries.forEach(e => {
-					const item = {
-						id: --id,
-						Start: extractTime(time),
-						Description: e.Organisation.Name
-					};
-
-					this.items.push(item);
-					this.updateTimes(this.items.length - 1);
-
-					time.setMinutes(time.getMinutes() + d.PerformanceTime);
-				});
-			});
-		},
-
-		assignDivisions(){
-			this.loadDivisions().then(() => this.modal.show());
-		},
-
-		changeDivision(index, movement){
-			const newPos = index + movement;
-			const el = this.divisions.splice(index, 1)[0];
-			this.divisions.splice(newPos, 0, el);
 		}
 	},
 	mounted: function() {
@@ -301,11 +180,6 @@
 		for (let i = 0; i < this.items.length; i++) {
 			this.calcDuration(i);
 		}
-
-		this.modal = new bootstrap.Modal('#divisionModal', {
-			keyboard: false,
-			backdrop: 'static'
-		});
 	}
 	});
 
@@ -333,13 +207,6 @@
 				behavior: 'smooth'
 			});
 		}
-	}
-
-	function shuffleArray(array) {
-    	for (let i = array.length - 1; i > 0; i--) {
-    	    const j = Math.floor(Math.random() * (i + 1));
-    	    [array[i], array[j]] = [array[j], array[i]];
-    	}
 	}
 
 	function extractTime(date){
