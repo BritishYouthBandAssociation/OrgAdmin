@@ -634,6 +634,29 @@ router.get('/:id/schedule/automatic', async (req, res, next) => {
 	});
 });
 
+function shuffleArray(array) {
+	for (let i = array.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[array[i], array[j]] = [array[j], array[i]];
+	}
+
+	return array;
+}
+
+function entrySort(array, direction){
+	array.sort((a, b) => {
+		const d1 = new Date(a.createdAt), d2 = new Date(b.createdAt);
+
+		if (direction === 'asc'){
+			return d1 - d2;
+		}
+
+		return d2 - d1;
+	});
+
+	return array;
+}
+
 router.post('/:id/schedule/automatic', async (req, res, next) => {
 	console.log(req.body);
 
@@ -667,23 +690,22 @@ router.post('/:id/schedule/automatic', async (req, res, next) => {
 
 	let bands = 0, minutes = 0;
 	const time = new Date(event.Start), parts = req.body.startTime.split(':');
-
-	console.log(time);
 	time.setHours(parts[0]);
 	time.setMinutes(parseInt(parts[1]) - time.getTimezoneOffset());
 	time.setSeconds(0);
-	console.log(time);
 
 	for (let i = 0; i < req.body.division.length; i++){
 		const div = registrations[req.body.division[i]];
 
+		if (req.body.type.indexOf('entry') > -1){
+			entrySort(div, req.body.type.split('-')[1]);
+		} else {
+			shuffleArray(div);
+		}
+
 		for (let j = 0; j < div.length; j++){
 			const d = div[j];
-
 			const perfTime = d.Division?.PerformanceTime ?? 20;
-
-			console.log(time);
-			console.log(`perfTime: ${perfTime}`);
 
 			await event.createEventSchedule({
 				Start: time,
@@ -692,8 +714,6 @@ router.post('/:id/schedule/automatic', async (req, res, next) => {
 			});
 
 			time.setMinutes(time.getMinutes() + perfTime);
-			console.log(time);
-
 			bands++;
 			minutes += perfTime;
 
