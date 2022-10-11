@@ -696,6 +696,20 @@ router.post('/:id/schedule/automatic', async (req, res, next) => {
 
 			bands++;
 			minutes += perfTime;
+
+			if (req.body.breaks == 1 && (req.body.breakFrequency === 'band' && bands >= req.body.breakNum || req.body.breakFrequency === 'minute' && minutes >= req.body.breakNum)){
+				const breakDur = parseInt(req.body.breakLength);
+
+				await event.createEventSchedule({
+					Start: time,
+					Description: 'Break',
+					Duration: breakDur
+				});
+
+				time.setMinutes(time.getMinutes() + breakDur);
+				bands = 0;
+				minutes = 0;
+			}
 		}
 	}
 

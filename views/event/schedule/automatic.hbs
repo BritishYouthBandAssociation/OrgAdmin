@@ -35,8 +35,8 @@
 			<div class="card h-100">
 				<div class="card-body">
 					<h3 class="fs-5">Generation Type</h3>
-					<input type="radio" class="btn-check" name="type" id="randomGen" autocomplete="off"
-						value="random"required checked>
+					<input type="radio" class="btn-check" name="type" id="randomGen" autocomplete="off" value="random"
+						required checked>
 					<label class="btn btn-outline-success mb-3" for="randomGen">Random</label>
 
 					<input type="radio" class="btn-check" name="type" id="entryAscGen" autocomplete="off"
@@ -65,22 +65,34 @@
 				<div class="form-group mb-3">
 					<label>Add Breaks?</label>
 					<div class="btn-group" role="group" aria-label="Add Breaks?">
-						<input type="radio" value="1" class="btn-check" name="breaks" id="breaks-y" autocomplete="off" v-model="addBreaks">
+						<input type="radio" value="1" class="btn-check" name="breaks" id="breaks-y" autocomplete="off"
+							v-model="addBreaks">
 						<label class="btn btn-outline-success" for="breaks-y">Yes</label>
 
-						<input type="radio" value="0" class="btn-check" name="breaks" id="breaks-n" autocomplete="off" v-model="addBreaks">
+						<input type="radio" value="0" class="btn-check" name="breaks" id="breaks-n" autocomplete="off"
+							v-model="addBreaks">
 						<label class="btn btn-outline-danger" for="breaks-n">No</label>
 					</div>
 				</div>
 
+				<div class="card" v-if="addBreaks == 1">
+					<div class="card-header">Break Config</div>
+					<div class="card-body">
+						<div class="form-group mb-3">
+							<label for="breakFrequency">Add breaks after <input type="number" name="breakNum" required
+									value="{{entries}}" />
+								<select name="breakFrequency" id="breakType" required>
+									<option value="">-- Please Select --</option>
+									<option value="band" selected>Bands</option>
+									<option value="minute">Minutes</option>
+								</select></label>
+						</div>
 
-				<div class="form-group mb-3" v-if="addBreaks == 1">
-					<label for="breakFrequency">Add breaks after <input type="number" required value="{{entries}}" />
-						<select name="breakFrequency" id="breakFrequency" required>
-							<option value="">-- Please Select --</option>
-							<option value="band" selected>Bands</option>
-							<option value="minute">Minutes</option>
-						</select></label>
+						<div class="form-group mb-3">
+							<label for="breakLength">Break Length <small>(minutes)</small></label>
+							<input type="number" name="breakLength" id="breakLength" class="form-control" value="15" required />
+						</div>
+					</div>
 				</div>
 
 			</div>
@@ -94,7 +106,7 @@
 						<div class="row">
 							<div class="col-10">
 								${index + 1}. ${division?.Name ?? 'Unknown'}
-								<input type="hidden" name="division[]" :value="division?.id ?? -1" /> 
+								<input type="hidden" name="division[]" :value="division?.id ?? -1" />
 							</div>
 							<div class="col-1">
 								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
@@ -141,18 +153,18 @@
 <script>
 	const app = new Vue({
 		el: '#app',
-		delimiters: ['${','}'],
+		delimiters: ['${', '}'],
 		data: {
-			divisions: {{{json divisions}}},
-			addBreaks: 0
+			divisions: {{{ json divisions }}},
+	addBreaks: 0
 		},
-		methods: {
-			changeDivision(index, movement) {
-				const newPos = index + movement;
-				const el = this.divisions.splice(index, 1)[0];
-				this.divisions.splice(newPos, 0, el);
-			}
+	methods: {
+		changeDivision(index, movement) {
+			const newPos = index + movement;
+			const el = this.divisions.splice(index, 1)[0];
+			this.divisions.splice(newPos, 0, el);
 		}
+	}
 	});
 </script>
 {{/eq}}
