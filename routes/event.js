@@ -502,6 +502,126 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 	});
 });
 
+function shuffleArray(array) {
+	for (let i = array.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[array[i], array[j]] = [array[j], array[i]];
+	}
+
+	return array;
+}
+
+function entrySort(array, direction) {
+	array.sort((a, b) => {
+		const d1 = new Date(a.createdAt), d2 = new Date(b.createdAt);
+
+		if (direction === 'asc') {
+			return d1 - d2;
+		}
+
+		return d2 - d1;
+	});
+
+	return array;
+}
+
+async function generateSchedule(req, next, eventID, config, divisionOrder) {
+	if (config.EventId){
+		delete config.EventId; //appears this interferes with other Sequelize bits...
+	}
+
+	const [event, entries] = await Promise.all([req.db.Event.findByPk(req.params.id),
+		req.db.EventRegistration.findAll({
+			include: [
+				req.db.Organisation,
+				req.db.Division
+			],
+			where: {
+				EventId: eventID
+			}
+		})
+	]);
+
+	if (!event) {
+		return next();
+	}
+
+	const registrations = {};
+	entries.forEach(e => {
+		const div = e.DivisionId ?? -1;
+		if (!registrations[div]) {
+			registrations[div] = [e];
+		} else {
+			registrations[div].push(e);
+		}
+	});
+
+	//clear data
+	await Promise.all([req.db.EventSchedule.destroy({
+		where: {
+			EventId: eventID
+		}
+	}), req.db.ScheduleGeneration.destroy({
+		where: {
+			EventId: eventID
+		}
+	})]);
+
+	const gen = await event.createScheduleGeneration(config);
+
+	let bands = 0, minutes = 0;
+	const time = new Date(event.Start), parts = config.StartTime.split(':');
+	time.setHours(parts[0]);
+	time.setMinutes(parseInt(parts[1]) - time.getTimezoneOffset());
+	time.setSeconds(0);
+
+	for (let i = 0; i < divisionOrder.length; i++) {
+		const div = registrations[divisionOrder[i]];
+		if (!div || div.length === 0){
+			//we may have withdrawn the last band for this division
+			continue;
+		}
+
+		if (config.Type.indexOf('entry') > -1) {
+			entrySort(div, config.Type.split('-')[1]);
+		} else {
+			shuffleArray(div);
+		}
+
+		await gen.createScheduleDivision({
+			DivisionId: divisionOrder[i] == -1 ? null : divisionOrder[i],
+			Order: i
+		});
+
+		for (let j = 0; j < div.length; j++) {
+			const d = div[j];
+			const perfTime = d.Division?.PerformanceTime ?? 20;
+
+			await event.createEventSchedule({
+				Start: time,
+				Description: d.Organisation.Name,
+				Duration: perfTime
+			});
+
+			time.setMinutes(time.getMinutes() + perfTime);
+			bands++;
+			minutes += perfTime;
+
+			if (config.AddBreaks && (config.BreakType === 'band' && bands >= config.BreakNum || config.BreakType === 'minute' && minutes >= config.BreakNum)) {
+				await event.createEventSchedule({
+					Start: time,
+					Description: 'Break',
+					Duration: config.BreakLength
+				});
+
+				time.setMinutes(time.getMinutes() + config.BreakLength);
+				bands = 0;
+				minutes = 0;
+			}
+		}
+	}
+}
+
 router.post('/:id/organisations/add', validator.params(idParamSchema), validator.body(Joi.object({
 	// eslint-disable-next-line camelcase
 	organisation_search: Joi.string()
@@ -552,10 +672,31 @@ router.post('/:id/organisations/add', validator.params(idParamSchema), validator
 		return res.redirect(`./?error=${encodeURIComponent(errorMessage)}`);
 	}
 
-	await req.db.EventRegistration.create({
+	const [reg, gen] = await Promise.all([req.db.EventRegistration.create({
 		...details,
 		RegisteredById: req.session.user.id
-	});
+	}),
+	event.getScheduleGeneration()]);
+
+	if (gen && gen.Type && gen.Type !== 'manual') {
+		const divs = await gen.getScheduleDivisions({
+			order: [['Order', 'ASC']]
+		});
+
+		const divId = reg.DivisionId ?? null;
+		const exists = divs.filter(g => g.DivisionId == divId);
+
+		if (!exists || exists.length === 0){
+			const newDiv = await gen.createScheduleDivision({
+				DivisionId: divId,
+				Order: -1
+			});
+
+			divs.push(newDiv);
+		}
+
+		await generateSchedule(req, next, event.id, gen.dataValues, divs.map(d => d.DivisionId ?? -1));
+	}
 
 	res.redirect('./?success=true');
 });
@@ -591,7 +732,11 @@ router.post('/:id/schedule/manual', async (req, res, next) => {
 		return next();
 	}
 
-	await event.setEventSchedules([]);
+	await req.db.EventSchedule.destroy({
+		where: {
+			EventId: req.params.id
+		}
+	});
 
 	if (req.body.start && req.body.start.length > 0) {
 		await Promise.all(req.body.start.map((_, index) =>
@@ -642,29 +787,6 @@ router.get('/:id/schedule/automatic', checkAdmin, async (req, res, next) => {
 	});
 });
 
-function shuffleArray(array) {
-	for (let i = array.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
-		[array[i], array[j]] = [array[j], array[i]];
-	}
-
-	return array;
-}
-
-function entrySort(array, direction){
-	array.sort((a, b) => {
-		const d1 = new Date(a.createdAt), d2 = new Date(b.createdAt);
-
-		if (direction === 'asc'){
-			return d1 - d2;
-		}
-
-		return d2 - d1;
-	});
-
-	return array;
-}
-
 router.post('/:id/schedule/automatic', checkAdmin, validator.body(Joi.object({
 	type: Joi.string().required(),
 	startTime: Joi.string().required(), //TODO: validate hh:mm format timestring
@@ -674,78 +796,14 @@ router.post('/:id/schedule/automatic', checkAdmin, validator.body(Joi.object({
 	breakFrequency: Joi.string(),
 	breakLength: Joi.number()
 })), async (req, res, next) => {
-	const [event, entries] = await Promise.all([req.db.Event.findByPk(req.params.id),
-		req.db.EventRegistration.findAll({
-			include: [
-				req.db.Organisation,
-				req.db.Division
-			],
-			where: {
-				EventId: req.params.id
-			}
-		})
-	]);
-
-	if (!event) {
-		return next();
-	}
-
-	const registrations = {};
-	entries.forEach(e => {
-		const div = e.DivisionId ?? -1;
-		if (!registrations[div]) {
-			registrations[div] = [e];
-		} else {
-			registrations[div].push(e);
-		}
-	});
-
-	await event.setEventSchedules([]);
-
-	let bands = 0, minutes = 0;
-	const time = new Date(event.Start), parts = req.body.startTime.split(':');
-	time.setHours(parts[0]);
-	time.setMinutes(parseInt(parts[1]) - time.getTimezoneOffset());
-	time.setSeconds(0);
-
-	for (let i = 0; i < req.body.division.length; i++){
-		const div = registrations[req.body.division[i]];
-
-		if (req.body.type.indexOf('entry') > -1){
-			entrySort(div, req.body.type.split('-')[1]);
-		} else {
-			shuffleArray(div);
-		}
-
-		for (let j = 0; j < div.length; j++){
-			const d = div[j];
-			const perfTime = d.Division?.PerformanceTime ?? 20;
-
-			await event.createEventSchedule({
-				Start: time,
-				Description: d.Organisation.Name,
-				Duration: perfTime
-			});
-
-			time.setMinutes(time.getMinutes() + perfTime);
-			bands++;
-			minutes += perfTime;
-
-			if (req.body.breaks == 1 && (req.body.breakFrequency === 'band' && bands >= req.body.breakNum || req.body.breakFrequency === 'minute' && minutes >= req.body.breakNum)){
-				const breakDur = parseInt(req.body.breakLength);
-
-				await event.createEventSchedule({
-					Start: time,
-					Description: 'Break',
-					Duration: breakDur
-				});
-
-				time.setMinutes(time.getMinutes() + breakDur);
-				bands = 0;
-				minutes = 0;
-			}
-		}
-	}
+	await generateSchedule(req, next, req.params.id, {
+		Type: req.body.type,
+		StartTime: req.body.startTime,
+		AddBreaks: req.body.breaks == 1,
+		BreakNum: req.body.breakNum,
+		BreakType: req.body.breakFrequency,
+		BreakLength: parseInt(req.body.breakLength)
+	}, req.body.division);
 
 	return res.redirect('manual?saved=true');
 });
