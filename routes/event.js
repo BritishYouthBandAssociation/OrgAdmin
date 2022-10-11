@@ -603,7 +603,7 @@ router.get('/:id/schedule/automatic', async (req, res, next) => {
 		req.db.EventRegistration.findAll({
 			include: [{
 				model: req.db.Division,
-				attributes: ['Name']
+				attributes: ['Name', 'id']
 			}],
 			where: {
 				EventId: req.params.id
@@ -632,6 +632,74 @@ router.get('/:id/schedule/automatic', async (req, res, next) => {
 		entries,
 		saved: req.query.saved ?? false
 	});
+});
+
+router.post('/:id/schedule/automatic', async (req, res, next) => {
+	console.log(req.body);
+
+	const [event, entries] = await Promise.all([req.db.Event.findByPk(req.params.id),
+		req.db.EventRegistration.findAll({
+			include: [
+				req.db.Organisation,
+				req.db.Division
+			],
+			where: {
+				EventId: req.params.id
+			}
+		})
+	]);
+
+	if (!event) {
+		return next();
+	}
+
+	const registrations = {};
+	entries.forEach(e => {
+		const div = e.DivisionId ?? -1;
+		if (!registrations[div]) {
+			registrations[div] = [e];
+		} else {
+			registrations[div].push(e);
+		}
+	});
+
+	await event.setEventSchedules([]);
+
+	let bands = 0, minutes = 0;
+	const time = new Date(event.Start), parts = req.body.startTime.split(':');
+
+	console.log(time);
+	time.setHours(parts[0]);
+	time.setMinutes(parseInt(parts[1]) - time.getTimezoneOffset());
+	time.setSeconds(0);
+	console.log(time);
+
+	for (let i = 0; i < req.body.division.length; i++){
+		const div = registrations[req.body.division[i]];
+
+		for (let j = 0; j < div.length; j++){
+			const d = div[j];
+
+			const perfTime = d.Division?.PerformanceTime ?? 20;
+
+			console.log(time);
+			console.log(`perfTime: ${perfTime}`);
+
+			await event.createEventSchedule({
+				Start: time,
+				Description: d.Organisation.Name,
+				Duration: perfTime
+			});
+
+			time.setMinutes(time.getMinutes() + perfTime);
+			console.log(time);
+
+			bands++;
+			minutes += perfTime;
+		}
+	}
+
+	return res.redirect('manual?saved=true');
 });
 
 module.exports = {

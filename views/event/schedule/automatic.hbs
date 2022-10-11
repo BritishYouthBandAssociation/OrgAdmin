@@ -90,9 +90,12 @@
 			<div class="card card-body h-100">
 				<h3 class="fs-5">Division Order</h3>
 				<div class="list-group list-group-flush">
-					<div class="list-group-item fs-5" v-for="(division, index) in divisions" :key="division?.id ?? index">
+					<div class="list-group-item fs-5" v-for="(division, index) in divisions" :key="division?.id ?? -1">
 						<div class="row">
-							<div class="col-10">${index + 1}. ${division?.Name ?? 'Unknown'}</div>
+							<div class="col-10">
+								${index + 1}. ${division?.Name ?? 'Unknown'}
+								<input type="hidden" name="division[]" :value="division?.id ?? -1" /> 
+							</div>
 							<div class="col-1">
 								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
 									class="bi bi-arrow-up-square-fill pointer" viewBox="0 0 16 16" v-if="index > 0"
