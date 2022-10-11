@@ -18,6 +18,14 @@ const idParamSchema = Joi.object({
 		.required()
 });
 
+const checkAdmin = (req, res, next) => {
+	if (!req.session.user.IsAdmin) {
+		return res.redirect('/no-access');
+	}
+
+	next();
+};
+
 router.get('/', async (req, res, next) => {
 	const season = await req.db.Season.findOne({
 		where: {
@@ -598,7 +606,7 @@ router.post('/:id/schedule/manual', async (req, res, next) => {
 	res.redirect('?saved=true');
 });
 
-router.get('/:id/schedule/automatic', async (req, res, next) => {
+router.get('/:id/schedule/automatic', checkAdmin, async (req, res, next) => {
 	const result = await Promise.all([req.db.Event.findByPk(req.params.id),
 		req.db.EventRegistration.findAll({
 			include: [{
@@ -657,9 +665,15 @@ function entrySort(array, direction){
 	return array;
 }
 
-router.post('/:id/schedule/automatic', async (req, res, next) => {
-	console.log(req.body);
-
+router.post('/:id/schedule/automatic', checkAdmin, validator.body(Joi.object({
+	type: Joi.string().required(),
+	startTime: Joi.string().required(), //TODO: validate hh:mm format timestring
+	division: Joi.array().items(Joi.number()).required(),
+	breaks: Joi.number(),
+	breakNum: Joi.number(),
+	breakFrequency: Joi.string(),
+	breakLength: Joi.number()
+})), async (req, res, next) => {
 	const [event, entries] = await Promise.all([req.db.Event.findByPk(req.params.id),
 		req.db.EventRegistration.findAll({
 			include: [
