@@ -250,13 +250,15 @@ router.post('/division', checkAdmin, validator.body(Joi.object({
 		.items(Joi.number().allow('null')),
 	isActive: Joi.array()
 		.items(Joi.boolean().falsy('0').truthy('1')),
+	time: Joi.array().items(Joi.number())
 })), async (req, res, next) => {
 	await Promise.all(req.body.division.map((d, i) => {
 		const details = {
 			Name: req.body.division[i],
 			IsActive: req.body.isActive[i],
 			PromotionDivisionID: req.body.promotion[i] === 'null' ? null : req.body.promotion[i],
-			RelegationDivisionID: req.body.relegation[i] === 'null' ? null : req.body.relegation[i]
+			RelegationDivisionID: req.body.relegation[i] === 'null' ? null : req.body.relegation[i],
+			PerformanceTime: req.body.time[i]
 		};
 
 		if (req.body.id[i] < 0) {

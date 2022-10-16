@@ -10,7 +10,7 @@
 {{/if}}
 	<div id="app">
 		{{#if session.user.IsAdmin}}
-		<button type="button" class="btn btn-warning mb-3" id="useDefault">Use Default Captions</button>
+		<button type="button" class="btn btn-warning mb-3" id="useDefault" {{#if noCaptions}}disabled{{/if}}>Use Default Captions</button>
 		<button type="button" class="btn btn-success mb-3" id="addCaption" {{#eq captions.length 0}}disabled{{/eq}}>Add Caption</button>
 		{{/if}}
 

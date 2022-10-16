@@ -115,15 +115,14 @@
 		{{#if membership.MembershipType.IsOrganisation}}
 		<div class="card card-body mb-3">
 			<h3>Division Details</h3>
-			{{#with membership.OrganisationMembership.Division}}
 
 			<form action='division' method='post'>
 				<div class="form-group mb-3">
 					<label for="division">Division Name</label>
 					<select name="division" id="division" class="form-control" required>
 						<option value="">-- Please Select --</option>
-						{{#each ../divisions}}
-							<option {{#eq id ../id}}selected{{/eq}} value="{{id}}">
+						{{#each divisions}}
+							<option {{#eq id ../membership.OrganisationMembership.Division.id}}selected{{/eq}} value="{{id}}">
 								{{Name}}
 							</option>
 						{{/each}}
@@ -132,7 +131,7 @@
 
 				<button class="btn btn-success">Save</button>
 			</form>
-			{{/with}}
+			
 		</div>
 		{{/if}}
 	</div>

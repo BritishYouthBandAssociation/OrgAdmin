@@ -1,0 +1,170 @@
+<h2>Generate Event Schedule</h2>
+<p class="mb-3"><a href="../">&lt; back to {{event.Name}}</a></p>
+
+{{#eq entries 0}}
+<div class="alert alert-danger text-center">Automatic schedule generation is only supported for events with entries.
+	Please use the <a href="manual">manual schedule generation tool</a> instead</div>
+{{else}}
+<form method="post" id="app">
+	<div class="row row-cols-1 row-cols-lg-2">
+		<div class="col mb-3">
+			<div class="card card-body h-100">
+				<h3 class="fs-5">Event Details</h3>
+
+				<div class="row row-cols-1 row-cols-lg-2">
+					<div class="col">
+						<p>Name: <b>{{event.Name}}</b></p>
+					</div>
+
+					<div class="col">
+						<p>Total Entries: <b>{{entries}}</b></p>
+					</div>
+
+					<div class="col">
+						<p>Start: <b>{{datetime event.Start}}</b></p>
+					</div>
+
+					<div class="col">
+						<p>End: <b>{{datetime event.End}}</b></p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col mb-3">
+			<div class="card h-100">
+				<div class="card-body">
+					<h3 class="fs-5">Generation Type</h3>
+					<input type="radio" class="btn-check" name="type" id="randomGen" autocomplete="off" value="random"
+						required checked>
+					<label class="btn btn-outline-success mb-3" for="randomGen">Random</label>
+
+					<input type="radio" class="btn-check" name="type" id="entryAscGen" autocomplete="off"
+						value="entry-asc" required>
+					<label class="btn btn-outline-success mb-3" for="entryAscGen">Entry Order (First Entry
+						First)</label>
+
+					<input type="radio" class="btn-check" name="type" id="entryDescGen" autocomplete="off"
+						value="entry-desc" required>
+					<label class="btn btn-outline-success mb-3" for="entryDescGen">Entry Order (Last Entry
+						First)</label>
+				</div>
+			</div>
+		</div>
+
+		<div class="col mb-3">
+			<div class="card card-body h-100">
+				<h3 class="fs-5">Config</h3>
+
+				<div class="form-group mb-3">
+					<label for="startTime">Start Time</label>
+					<input type="time" name="startTime" id="startTime" class="form-control" value="{{time event.Start}}"
+						required />
+				</div>
+
+				<div class="form-group mb-3">
+					<label>Add Breaks?</label>
+					<div class="btn-group" role="group" aria-label="Add Breaks?">
+						<input type="radio" value="1" class="btn-check" name="breaks" id="breaks-y" autocomplete="off"
+							v-model="addBreaks">
+						<label class="btn btn-outline-success" for="breaks-y">Yes</label>
+
+						<input type="radio" value="0" class="btn-check" name="breaks" id="breaks-n" autocomplete="off"
+							v-model="addBreaks">
+						<label class="btn btn-outline-danger" for="breaks-n">No</label>
+					</div>
+				</div>
+
+				<div class="card" v-if="addBreaks == 1">
+					<div class="card-header">Break Config</div>
+					<div class="card-body">
+						<div class="form-group mb-3">
+							<label for="breakFrequency">Add breaks after <input type="number" name="breakNum" required
+									value="{{entries}}" />
+								<select name="breakFrequency" id="breakType" required>
+									<option value="">-- Please Select --</option>
+									<option value="band" selected>Bands</option>
+									<option value="minute">Minutes</option>
+								</select></label>
+						</div>
+
+						<div class="form-group mb-3">
+							<label for="breakLength">Break Length <small>(minutes)</small></label>
+							<input type="number" name="breakLength" id="breakLength" class="form-control" value="15" required />
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+		<div class="col mb-3">
+			<div class="card card-body h-100">
+				<h3 class="fs-5">Division Order</h3>
+				<div class="list-group list-group-flush">
+					<div class="list-group-item fs-5" v-for="(division, index) in divisions" :key="division?.id ?? -1">
+						<div class="row">
+							<div class="col-10">
+								${index + 1}. ${division?.Name ?? 'Unknown'}
+								<input type="hidden" name="division[]" :value="division?.id ?? -1" />
+							</div>
+							<div class="col-1">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+									class="bi bi-arrow-up-square-fill pointer" viewBox="0 0 16 16" v-if="index > 0"
+									@click="changeDivision(index, -1)">
+									<path
+										d="M2 16a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2zm6.5-4.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 1 0z" />
+								</svg>
+
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+									class="bi bi-arrow-up-square opacity-50" viewBox="0 0 16 16" v-if="index === 0">
+									<path fill-rule="evenodd"
+										d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm8.5 9.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707V11.5z" />
+								</svg>
+							</div>
+							<div class="col-1">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+									class="bi bi-arrow-down-square-fill pointer" viewBox="0 0 16 16"
+									v-if="index < divisions.length - 1" @click="changeDivision(index, 1)">
+									<path
+										d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm6.5 4.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5a.5.5 0 0 1 1 0z" />
+								</svg>
+
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+									class="bi bi-arrow-down-square opacity-50" viewBox="0 0 16 16"
+									v-if="index >= divisions.length - 1">
+									<path fill-rule="evenodd"
+										d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm8.5 2.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z" />
+								</svg>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="text-center">
+		<button type="submit" class="btn btn-lg btn-default">Generate Schedule</button>
+	</div>
+</form>
+
+<script src="/js/vue.js"></script>
+<script>
+	const app = new Vue({
+		el: '#app',
+		delimiters: ['${', '}'],
+		data: {
+			divisions: {{{ json divisions }}},
+	addBreaks: 0
+		},
+	methods: {
+		changeDivision(index, movement) {
+			const newPos = index + movement;
+			const el = this.divisions.splice(index, 1)[0];
+			this.divisions.splice(newPos, 0, el);
+		}
+	}
+	});
+</script>
+{{/eq}}
