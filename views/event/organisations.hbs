@@ -2,11 +2,11 @@
 <p><a href="../">&lt; back to {{event.Name}}</a></p>
 
 {{#if error}}
-	<div class="alert alert-danger text-center">{{error}}</div>
+<div class="alert alert-danger text-center">{{error}}</div>
 {{/if}}
 
 {{#if success}}
-	<div class="alert alert-success text-center">The organisation was successfully registered</div>
+<div class="alert alert-success text-center">The organisation was successfully registered</div>
 {{/if}}
 
 {{#if session.user.IsAdmin}}
@@ -14,8 +14,7 @@
 	<p>Register an organistation for the event</p>
 	<form action='add' method='post' id='app'>
 		<search-box class='text-dark' name="organisation" placeholder="Start typing to search for an organisation"
-			url="/_api/organisation/search" text-prop="Name" value-prop="id"
-			text="{{org.Name}}" value="{{org.id}}">
+			url="/_api/organisation/search" text-prop="Name" value-prop="id" text="{{org.Name}}" value="{{org.id}}">
 		</search-box>
 
 		<label for="organisation-not-found" class='d-flex my-3 justify-content-center align-items-center gap-2'>
@@ -38,17 +37,19 @@
 {{/if}}
 
 {{#each registrations}}
-	<h2 class='my-3'>{{@key}}</h2>
-	<div class="accordion" id='accordion'>
+<h2 class='my-3'>{{@key}}</h2>
+<div class="accordion" id='accordion'>
 	{{#each this}}
 	<div class="accordion-item">
 		{{#with Organisation}}
-			<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{id}}" aria-expanded="false" aria-controls="collapse-{{id}}">
-				<span class="accordion-header header" id="heading-{{id}}">{{Name}}</span>
-			</button>
+		<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+			data-bs-target="#collapse-{{id}}" aria-expanded="false" aria-controls="collapse-{{id}}">
+			<span class="accordion-header header" id="heading-{{id}}">{{Name}}</span>
+		</button>
 
-		<div id="collapse-{{id}}" class="accordion-collapse collapse" aria-labelledby="heading-{{id}}" data-bs-parent="#accordion">
-		{{/with}}
+		<div id="collapse-{{id}}" class="accordion-collapse collapse" aria-labelledby="heading-{{id}}"
+			data-bs-parent="#accordion">
+			{{/with}}
 			<div class="accordion-body">
 				<div>
 					<p>
@@ -61,9 +62,9 @@
 					<p>
 						Cost: &pound;{{Fee.Total}}
 						{{#unless Fee.IsPaid}}
-							<span class="text-danger">Fee Outstanding</span>
+						<span class="text-danger">Fee Outstanding</span>
 						{{else}}
-							<span class="text-success">Fee Paid</span>
+						<span class="text-success">Fee Paid</span>
 						{{/unless}}
 					</p>
 
@@ -82,7 +83,7 @@
 								<select class="form-control paymentType" name="paymentType" required>
 									<option value="">-- Please Select --</option>
 									{{#each ../../paymentTypes}}
-										<option value="{{id}}">{{Description}}</option>
+									<option value="{{id}}">{{Description}}</option>
 									{{/each}}
 								</select>
 							</div>
@@ -90,7 +91,8 @@
 						</form>
 
 						{{else}}
-						<p>Please arrange for the sum of <b>&pound;{{Fee.Total}}</b> to be paid at your earliest convenience</p>
+						<p>Please arrange for the sum of <b>&pound;{{Fee.Total}}</b> to be paid at your earliest
+							convenience</p>
 
 						<section class="text-start mb-3">
 							<p><b>By Bank Transfer</b></p>
@@ -100,19 +102,19 @@
 						</section>
 
 						<section class="text-start mb-3">
-						<p><b>By Cheque</b></p>
-						<p>Please make all cheques payable to the <b>British Youth Band Association</b>.</p>
-					</section>
+							<p><b>By Cheque</b></p>
+							<p>Please make all cheques payable to the <b>British Youth Band Association</b>.</p>
+						</section>
 					{{/if}}
 					{{/if}}
+					</div>
 					{{/if}}
 				</div>
 			</div>
 		</div>
 	</div>
-	</div>
 	{{/each}}
-	</div>
+</div>
 {{/each}}
 
 {{#if session.user.IsAdmin}}
@@ -149,7 +151,7 @@
 				reverseButtons: true,
 				confirmButtonText: 'Yes, this fee has been paid'
 			}).then(res => {
-				if(res.isConfirmed){
+				if (res.isConfirmed) {
 					this.form.submit();
 				}
 			})
