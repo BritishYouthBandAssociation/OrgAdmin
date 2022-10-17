@@ -498,7 +498,8 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 		paymentTypes,
 		error: req.query.error,
 		success: req.query.success,
-		event
+		event,
+		canAddBand: req.session.band && registrations.filter(r => r.Organisation.id === req.session.band.id).length === 0
 	});
 });
 

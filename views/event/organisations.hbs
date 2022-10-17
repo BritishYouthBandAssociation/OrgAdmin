@@ -27,7 +27,7 @@
 </div>
 {{/if}}
 
-{{#if session.band}}
+{{#if canAddBand}}
 <div class='my-3'>
 	<form action='add' method='post'>
 		<input type='hidden' name='organisation_search' value='{{session.band.Name}}' required></input>
