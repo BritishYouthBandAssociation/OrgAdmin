@@ -15,7 +15,7 @@ const replaceMessageTokens = (msg, user, org) => {
 		bandName: org?.Name ?? 'your band'
 	};
 
-	for (const [k,v] of Object.entries(tokens)){
+	for (const [k, v] of Object.entries(tokens)) {
 		msg = msg.replaceAll(`{${k}}`, v);
 	}
 
@@ -44,7 +44,7 @@ router.get('/', validator.query(Joi.object({
 		}
 	})]);
 
-	if (!season){
+	if (!season) {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
 	}
 
@@ -52,6 +52,7 @@ router.get('/', validator.query(Joi.object({
 		title: 'Bulk Emailer',
 		types: types,
 		season: season.id,
+		recipients: [],
 		success: req.query.success ?? false
 	});
 });
@@ -90,7 +91,7 @@ router.post('/test', validator.body(Joi.object({
 
 	await t.commit();
 
-	const [types, season] = await Promise.all([req.db.MembershipType.findAll({
+	const [types, season, rawMember] = await Promise.all([req.db.MembershipType.findAll({
 		where: {
 			IsActive: true
 		}
@@ -103,18 +104,51 @@ router.post('/test', validator.body(Joi.object({
 				[Op.gte]: Date.now()
 			}
 		}
-	})]);
+	}),
+	req.db.Membership.findAll({
+		include: [
+			req.db.Label,
+			req.db.MembershipType,
+			{
+				model: req.db.IndividualMembership,
+				include: [req.db.User]
+			},
+			{
+				model: req.db.OrganisationMembership,
+				include: {
+					model: req.db.Organisation,
+					include: [req.db.OrganisationType]
+				}
+			}
+		],
+		where: {
+			id: {
+				[Op.in]: req.body.membership
+			}
+		}
+	})
+	]);
 
-	if (!season){
+	if (!season) {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
 	}
 
+	const recipients = rawMember.map(m => {
+		return {
+			MembershipID: m.id,
+			DisplayName: m.Name,
+			IsSelected: true,
+			IsSelectable: false
+		};
+	});
+
 	return res.render('email/index.hbs', {
 		title: 'Bulk Emailer',
-		types: types,
+		types,
 		season: season.id,
 		subject: req.body.subject,
 		message: req.body.message,
+		recipients,
 		success: true
 	});
 });
@@ -139,10 +173,24 @@ router.post('/send', validator.body(Joi.object({
 	try {
 		await Promise.all(req.body.membership.map(async m => {
 			const member = await req.db.Membership.findByPk(m, {
-				include: {
-					all: true,
-					nested: true
-				}
+				include: [
+					req.db.Label,
+					req.db.MembershipType,
+					{
+						model: req.db.IndividualMembership,
+						include: [req.db.User]
+					},
+					{
+						model: req.db.OrganisationMembership,
+						include: {
+							model: req.db.Organisation,
+							include: [req.db.OrganisationType, {
+								model: req.db.OrganisationUser,
+								include: [req.db.User]
+							}]
+						}
+					}
+				]
 			});
 
 			const contacts = member.OrganisationMembership?.Organisation?.OrganisationUsers
@@ -171,6 +219,8 @@ router.post('/send', validator.body(Joi.object({
 
 		res.redirect('./?success=true');
 	} catch (ex) {
+		console.log(ex);
+
 		t.rollback();
 
 		const [types, season] = await Promise.all([req.db.MembershipType.findAll({
@@ -188,7 +238,7 @@ router.post('/send', validator.body(Joi.object({
 			}
 		})]);
 
-		if (!season){
+		if (!season) {
 			return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
 		}
 
