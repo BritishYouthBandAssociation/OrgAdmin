@@ -43,11 +43,9 @@
 	{{#each this}}
 	<div class="accordion-item">
 		{{#with Organisation}}
-		<p class="accordion-header" id="heading-{{id}}">
 			<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{id}}" aria-expanded="false" aria-controls="collapse-{{id}}">
-				{{Name}}
+				<span class="accordion-header header" id="heading-{{id}}">{{Name}}</span>
 			</button>
-		</p>
 
 		<div id="collapse-{{id}}" class="accordion-collapse collapse" aria-labelledby="heading-{{id}}" data-bs-parent="#accordion">
 		{{/with}}
@@ -111,6 +109,7 @@
 				</div>
 			</div>
 		</div>
+	</div>
 	</div>
 	{{/each}}
 	</div>
