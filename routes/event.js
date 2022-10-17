@@ -649,7 +649,7 @@ router.post('/:id/organisations/add', validator.params(idParamSchema), validator
 		return next();
 	}
 
-	if (req.session.band && req.session.band.id !== org.id) {
+	if (!req.session.user.IsAdmin && (!req.session.band || req.session.band.id !== org.id)) {
 		return res.redirect('/no-access');
 	}
 
