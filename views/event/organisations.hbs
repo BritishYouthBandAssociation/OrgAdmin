@@ -44,8 +44,8 @@
 	<div class="accordion-item">
 		{{#with Organisation}}
 		<p class="accordion-header" id="heading-{{id}}">
-			<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{id}}" aria-expanded="false" aria-controls="collapse-{{id}}">
-				{{Name}}
+			<button class="accordion-button collapsed{{#if ../IsWithdrawn}} bg-danger text-light{{/if}}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{id}}" aria-expanded="false" aria-controls="collapse-{{id}}">
+				{{Name}} {{#if ../IsWithdrawn}}(Withdrawn){{/if}}
 			</button>
 		</p>
 
@@ -109,6 +109,11 @@
 					{{/if}}
 					{{/if}}
 				</div>
+
+				<p>Entry Status: <span class="{{#if IsWithdrawn}}text-danger{{else}}text-success{{/if}}">{{#if IsWithdrawn}}Withdrawn{{else}}Entered{{/if}}</span> 
+				{{#if HasAdminAccess}}<button class="btn {{#if IsWithdrawn}}btn-success{{else}}btn-danger{{/if}}">{{#if IsWithdrawn}}Reinstate{{else}}Withdraw{{/if}}</button>{{/if}}
+				</p>
+
 			</div>
 		</div>
 	</div>

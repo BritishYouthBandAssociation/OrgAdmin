@@ -453,6 +453,7 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 			req.db.Division,
 			req.db.Fee
 		],
+		order: [['IsWithdrawn', 'ASC']]
 	}), req.db.Event.findByPk(req.params.id)]);
 
 	if (!event) {
