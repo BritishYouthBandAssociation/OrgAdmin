@@ -61,8 +61,8 @@
 					</p>
 					{{#if HasAdminAccess}}
 					<p>
-						Cost: &pound;{{Fee.Total}}
-						{{#unless Fee.IsPaid}}
+						Cost: &pound;{{RegistrationFee.Total}}
+						{{#unless RegistrationFee.IsPaid}}
 							<span class="text-danger">Fee Outstanding</span>
 						{{else}}
 							<span class="text-success">Fee Paid</span>
@@ -72,13 +72,13 @@
 					<div class="card card-body mb-3">
 						<h3>Fee Details</h3>
 
-						{{#if Fee.IsPaid}}
+						{{#if RegistrationFee.IsPaid}}
 						<p>This registration is fully paid, and no further action is required</p>
 						{{else}}
 						<p>The fee for this registration is outstanding.</p>
 
 						{{#if ../../session.user.IsAdmin}}
-						<form method="post" action="/fee/{{Fee.id}}" class="card card-body">
+						<form method="post" action="/fee/{{RegistrationFee.id}}" class="card card-body">
 							<div class="form-group mb-3">
 								<label for="paymentType">Payment Type</label>
 								<select class="form-control paymentType" name="paymentType" required>
@@ -88,11 +88,11 @@
 									{{/each}}
 								</select>
 							</div>
-							<button type="button" class="btn btn-success btnFee" disabled>Mark fee as paid</button>
+							<button type="button" class="btn btn-success btnFee" data-cost="{{RegistrationFee.Total}}" disabled>Mark fee as paid</button>
 						</form>
 
 						{{else}}
-						<p>Please arrange for the sum of <b>&pound;{{Fee.Total}}</b> to be paid at your earliest convenience</p>
+						<p>Please arrange for the sum of <b>&pound;{{RegistrationFee.Total}}</b> to be paid at your earliest convenience</p>
 
 						<section class="text-start mb-3">
 							<p><b>By Bank Transfer</b></p>
@@ -110,10 +110,54 @@
 					{{/if}}
 				</div>
 
-				<p>Entry Status: <span class="{{#if IsWithdrawn}}text-danger{{else}}text-success{{/if}}">{{#if IsWithdrawn}}Withdrawn{{else}}Entered{{/if}}</span> 
-				{{#if HasAdminAccess}}<button class="btn {{#if IsWithdrawn}}btn-success{{else}}btn-danger{{/if}}">{{#if IsWithdrawn}}Reinstate{{else}}Withdraw{{/if}}</button>{{/if}}
-				</p>
+				<form action="withdraw/{{OrganisationId}}" method="post">
+					<p>Entry Status: 
+						<span class="{{#if IsWithdrawn}}text-danger{{else}}text-success{{/if}}">{{#if IsWithdrawn}}Withdrawn{{else}}Entered{{/if}}</span> 
+						{{#if HasAdminAccess}}<button class="btn {{#if IsWithdrawn}}btn-success{{else}}btn-danger{{/if}}">{{#if IsWithdrawn}}Reinstate{{else}}Withdraw{{/if}}</button>{{/if}}
+					</p>
+				</form>
 
+				{{#if HasAdminAccess}}
+				<div class="card card-body mb-3">
+						<h3>Fee Details</h3>
+
+						{{#if WithdrawalFee.IsPaid}}
+						<p>This withdrawal is fully paid, and no further action is required</p>
+						{{else}}
+						<p>The fee for this withdrawal is outstanding.</p>
+
+						{{#if ../../session.user.IsAdmin}}
+						<form method="post" action="/fee/{{WithdrawalFee.id}}" class="card card-body">
+							<div class="form-group mb-3">
+								<label for="paymentType">Payment Type</label>
+								<select class="form-control paymentType" name="paymentType" required>
+									<option value="">-- Please Select --</option>
+									{{#each ../../paymentTypes}}
+										<option value="{{id}}">{{Description}}</option>
+									{{/each}}
+								</select>
+							</div>
+							<button type="button" class="btn btn-success btnFee" data-cost="{{WithdrawalFee.Total}}" disabled>Mark fee as paid</button>
+						</form>
+
+						{{else}}
+						<p>Please arrange for the sum of <b>&pound;{{Fee.Total}}</b> to be paid at your earliest convenience</p>
+
+						<section class="text-start mb-3">
+							<p><b>By Bank Transfer</b></p>
+							<p>Name: <b>British Youth Band Association</b>
+							<p>Sort Code: <b>51-70-06</b></p>
+							<p>Account Number: <b>83704035</b></p>
+						</section>
+
+						<section class="text-start mb-3">
+						<p><b>By Cheque</b></p>
+						<p>Please make all cheques payable to the <b>British Youth Band Association</b>.</p>
+					</section>
+				</div>
+					{{/if}}
+					{{/if}}
+					{{/if}}
 			</div>
 		</div>
 	</div>
@@ -142,10 +186,11 @@
 		});
 
 		btnFee.addEventListener('click', function (e) {
+			console.log(btnFee.dataset);
 			Swal.fire({
 				icon: 'question',
 				title: 'ARE YOU SURE?',
-				text: 'Are you sure you wish to mark this fee as paid? Please only continue if you are sure that {{Fee.Total}} pounds has been paid specifically for this fee.',
+				text: `Are you sure you wish to mark this fee as paid? Please only continue if you are sure that ${btnFee.dataset.cost} pounds has been paid specifically for this fee.`,
 				showCancelButton: true,
 				customClass: {
 					confirmButton: 'btn btn-lg btn-success mx-3',

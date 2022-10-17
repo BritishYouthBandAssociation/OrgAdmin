@@ -451,7 +451,8 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 			req.db.Organisation,
 			req.db.User,
 			req.db.Division,
-			req.db.Fee
+			'RegistrationFee',
+			'WithdrawalFee'
 		],
 		order: [['IsWithdrawn', 'ASC']]
 	}), req.db.Event.findByPk(req.params.id)]);
@@ -503,6 +504,51 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 	});
 });
 
+router.post('/:id/organisations/withdraw/:orgID', async (req, res, next) => {
+	const [event, org, reg] = await Promise.all([req.db.Event.findByPk(req.params.id),
+		req.db.Organisation.findByPk(req.params.orgID),
+		req.db.EventRegistration.findOne({
+			include: ['RegistrationFee', 'WithdrawalFee'],
+			where: {
+				EventId: req.params.id,
+				OrganisationId: req.params.orgID
+			}
+		})
+	]);
+
+	if (!event || !org || !reg) {
+		return next();
+	}
+
+	const withdraw = !reg.IsWithdrawn;
+
+	if (withdraw) {
+		const today = new Date();
+		const freeWithdrawal = new Date(event.FreeWithdrawalCutoffDate);
+
+		if (today > freeWithdrawal) {
+			const fee = await req.db.Fee.create({
+				Total: reg.RegistrationFee.Total * 1.5
+			});
+
+			reg.WithdrawalFeeId = fee.id;
+		}
+	} else if (!reg.WithdrawalFee.IsPaid) {
+		await req.db.Fee.destroy({
+			where: {
+				id: reg.WithdrawalFeeId
+			}
+		});
+
+		reg.WithdrawalFeeId = null;
+	}
+
+	reg.IsWithdrawn = withdraw;
+	await reg.save();
+
+	return res.redirect('../');
+});
+
 function shuffleArray(array) {
 	for (let i = array.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * (i + 1));
@@ -527,7 +573,7 @@ function entrySort(array, direction) {
 }
 
 async function generateSchedule(req, next, eventID, config, divisionOrder) {
-	if (config.EventId){
+	if (config.EventId) {
 		delete config.EventId; //appears this interferes with other Sequelize bits...
 	}
 
@@ -578,7 +624,7 @@ async function generateSchedule(req, next, eventID, config, divisionOrder) {
 
 	for (let i = 0; i < divisionOrder.length; i++) {
 		const div = registrations[divisionOrder[i]];
-		if (!div || div.length === 0){
+		if (!div || div.length === 0) {
 			//we may have withdrawn the last band for this division
 			continue;
 		}
@@ -687,7 +733,7 @@ router.post('/:id/organisations/add', validator.params(idParamSchema), validator
 		const divId = reg.DivisionId ?? null;
 		const exists = divs.filter(g => g.DivisionId == divId);
 
-		if (!exists || exists.length === 0){
+		if (!exists || exists.length === 0) {
 			const newDiv = await gen.createScheduleDivision({
 				DivisionId: divId,
 				Order: -1
