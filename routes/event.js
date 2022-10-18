@@ -454,7 +454,7 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 			'RegistrationFee',
 			'WithdrawalFee'
 		],
-		order: [['IsWithdrawn', 'ASC']]
+		order: [['IsWithdrawn', 'ASC'], ['EntryDate', 'ASC']]
 	}), req.db.Event.findByPk(req.params.id)]);
 
 	if (!event) {
@@ -508,7 +508,10 @@ router.post('/:id/organisations/withdraw/:orgID', async (req, res, next) => {
 	const [event, org, reg] = await Promise.all([req.db.Event.findByPk(req.params.id),
 		req.db.Organisation.findByPk(req.params.orgID),
 		req.db.EventRegistration.findOne({
-			include: ['RegistrationFee', 'WithdrawalFee'],
+			include: ['RegistrationFee', 'WithdrawalFee', {
+				model: req.db.Event,
+				include: [req.db.EventType]
+			}],
 			where: {
 				EventId: req.params.id,
 				OrganisationId: req.params.orgID
@@ -526,21 +529,25 @@ router.post('/:id/organisations/withdraw/:orgID', async (req, res, next) => {
 		const today = new Date();
 		const freeWithdrawal = new Date(event.FreeWithdrawalCutoffDate);
 
-		if (today > freeWithdrawal) {
+		if (today > freeWithdrawal && !reg.WithdrawalFeeId) {
 			const fee = await req.db.Fee.create({
-				Total: reg.RegistrationFee.Total * 1.5
+				Total: reg.Event.EventType.EntryCost * 1.5
 			});
 
 			reg.WithdrawalFeeId = fee.id;
 		}
-	} else if (!reg.WithdrawalFee.IsPaid) {
-		await req.db.Fee.destroy({
-			where: {
-				id: reg.WithdrawalFeeId
-			}
-		});
+	} else {
+		reg.EntryDate = new Date();
 
-		reg.WithdrawalFeeId = null;
+		if (reg.WithdrawalFee && !reg.WithdrawalFee.IsPaid) {
+			await req.db.Fee.destroy({
+				where: {
+					id: reg.WithdrawalFeeId
+				}
+			});
+
+			reg.WithdrawalFeeId = null;
+		}
 	}
 
 	reg.IsWithdrawn = withdraw;
