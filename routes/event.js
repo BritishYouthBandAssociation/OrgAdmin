@@ -567,7 +567,7 @@ function shuffleArray(array) {
 
 function entrySort(array, direction) {
 	array.sort((a, b) => {
-		const d1 = new Date(a.createdAt), d2 = new Date(b.createdAt);
+		const d1 = new Date(a.EntryDate), d2 = new Date(b.EntryDate);
 
 		if (direction === 'asc') {
 			return d1 - d2;
@@ -591,7 +591,8 @@ async function generateSchedule(req, next, eventID, config, divisionOrder) {
 				req.db.Division
 			],
 			where: {
-				EventId: eventID
+				EventId: eventID,
+				IsWithdrawn: false
 			}
 		})
 	]);
