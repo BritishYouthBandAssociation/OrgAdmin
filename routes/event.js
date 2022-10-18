@@ -26,6 +26,127 @@ const checkAdmin = (req, res, next) => {
 	next();
 };
 
+function shuffleArray(array) {
+	for (let i = array.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[array[i], array[j]] = [array[j], array[i]];
+	}
+
+	return array;
+}
+
+function entrySort(array, direction) {
+	array.sort((a, b) => {
+		const d1 = new Date(a.EntryDate), d2 = new Date(b.EntryDate);
+
+		if (direction === 'asc') {
+			return d1 - d2;
+		}
+
+		return d2 - d1;
+	});
+
+	return array;
+}
+
+async function generateSchedule(req, next, eventID, config, divisionOrder) {
+	if (config.EventId) {
+		delete config.EventId; //appears this interferes with other Sequelize bits...
+	}
+
+	const [event, entries] = await Promise.all([req.db.Event.findByPk(req.params.id),
+		req.db.EventRegistration.findAll({
+			include: [
+				req.db.Organisation,
+				req.db.Division
+			],
+			where: {
+				EventId: eventID,
+				IsWithdrawn: false
+			}
+		})
+	]);
+
+	if (!event) {
+		return next();
+	}
+
+	const registrations = {};
+	entries.forEach(e => {
+		const div = e.DivisionId ?? -1;
+		if (!registrations[div]) {
+			registrations[div] = [e];
+		} else {
+			registrations[div].push(e);
+		}
+	});
+
+	//clear data
+	await Promise.all([req.db.EventSchedule.destroy({
+		where: {
+			EventId: eventID
+		}
+	}), req.db.ScheduleGeneration.destroy({
+		where: {
+			EventId: eventID
+		}
+	})]);
+
+	const gen = await event.createScheduleGeneration(config);
+
+	let bands = 0, minutes = 0;
+	const time = new Date(event.Start), parts = config.StartTime.split(':');
+	time.setHours(parts[0]);
+	time.setMinutes(parseInt(parts[1]) - time.getTimezoneOffset());
+	time.setSeconds(0);
+
+	for (let i = 0; i < divisionOrder.length; i++) {
+		const div = registrations[divisionOrder[i]];
+		if (!div || div.length === 0) {
+			//we may have withdrawn the last band for this division
+			continue;
+		}
+
+		if (config.Type.indexOf('entry') > -1) {
+			entrySort(div, config.Type.split('-')[1]);
+		} else {
+			shuffleArray(div);
+		}
+
+		await gen.createScheduleDivision({
+			DivisionId: divisionOrder[i] == -1 ? null : divisionOrder[i],
+			Order: i
+		});
+
+		for (let j = 0; j < div.length; j++) {
+			const d = div[j];
+			const perfTime = d.Division?.PerformanceTime ?? 20;
+
+			await event.createEventSchedule({
+				Start: time,
+				Description: d.Organisation.Name,
+				Duration: perfTime
+			});
+
+			time.setMinutes(time.getMinutes() + perfTime);
+			bands++;
+			minutes += perfTime;
+
+			if (config.AddBreaks && (config.BreakType === 'band' && bands >= config.BreakNum || config.BreakType === 'minute' && minutes >= config.BreakNum)) {
+				await event.createEventSchedule({
+					Start: time,
+					Description: 'Break',
+					Duration: config.BreakLength
+				});
+
+				time.setMinutes(time.getMinutes() + config.BreakLength);
+				bands = 0;
+				minutes = 0;
+			}
+		}
+	}
+}
+
 router.get('/', async (req, res, next) => {
 	const season = await req.db.Season.findOne({
 		where: {
@@ -140,7 +261,7 @@ router.post('/new', validator.body(Joi.object({
 router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 	saved: Joi.boolean()
 })), async (req, res, next) => {
-	const [event, types] = await Promise.all([
+	const [event, types, entries] = await Promise.all([
 		req.db.Event.findByPk(req.params.id, {
 			include: [
 				req.db.Address,
@@ -153,6 +274,12 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 		req.db.EventType.findAll({
 			where: {
 				IsActive: true
+			}
+		}),
+		req.db.EventRegistration.count({
+			where: {
+				EventId: req.params.id,
+				IsWithdrawn: false
 			}
 		})
 	]);
@@ -167,7 +294,7 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 		types,
 		totalCaptions: event.EventCaptions?.length ?? 0,
 		judgesAssigned: event.EventCaptions?.filter(ec => ec.JudgeId != null).length ?? 0,
-		organisationsRegistered: event.Organisations?.length ?? 0,
+		organisationsRegistered: entries,
 		saved: req.query.saved ?? false,
 		hasSchedule: event.EventSchedules.length > 0
 	});
@@ -483,12 +610,16 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 
 	const sortedRegistrations = {};
 
+	const now = new Date();
+
 	registrations.forEach(r => {
 		const divisionName = r.Division ? r.Division.Name : 'Unknown';
 
 		if (!sortedRegistrations[divisionName]) { sortedRegistrations[divisionName] = []; }
 
 		r.HasAdminAccess = req.session.user.IsAdmin || req.session.band?.id === r.Organisation.id;
+		r.CanWithdraw = now < event.Start;
+		r.CanReinstate = now < (event.EntryCutoffDate ?? event.Start);
 
 		sortedRegistrations[divisionName].push(r);
 	});
@@ -553,129 +684,18 @@ router.post('/:id/organisations/withdraw/:orgID', async (req, res, next) => {
 	reg.IsWithdrawn = withdraw;
 	await reg.save();
 
-	return res.redirect('../');
-});
+	const gen = await event.getScheduleGeneration();
 
-function shuffleArray(array) {
-	for (let i = array.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
-		[array[i], array[j]] = [array[j], array[i]];
-	}
-
-	return array;
-}
-
-function entrySort(array, direction) {
-	array.sort((a, b) => {
-		const d1 = new Date(a.EntryDate), d2 = new Date(b.EntryDate);
-
-		if (direction === 'asc') {
-			return d1 - d2;
-		}
-
-		return d2 - d1;
-	});
-
-	return array;
-}
-
-async function generateSchedule(req, next, eventID, config, divisionOrder) {
-	if (config.EventId) {
-		delete config.EventId; //appears this interferes with other Sequelize bits...
-	}
-
-	const [event, entries] = await Promise.all([req.db.Event.findByPk(req.params.id),
-		req.db.EventRegistration.findAll({
-			include: [
-				req.db.Organisation,
-				req.db.Division
-			],
-			where: {
-				EventId: eventID,
-				IsWithdrawn: false
-			}
-		})
-	]);
-
-	if (!event) {
-		return next();
-	}
-
-	const registrations = {};
-	entries.forEach(e => {
-		const div = e.DivisionId ?? -1;
-		if (!registrations[div]) {
-			registrations[div] = [e];
-		} else {
-			registrations[div].push(e);
-		}
-	});
-
-	//clear data
-	await Promise.all([req.db.EventSchedule.destroy({
-		where: {
-			EventId: eventID
-		}
-	}), req.db.ScheduleGeneration.destroy({
-		where: {
-			EventId: eventID
-		}
-	})]);
-
-	const gen = await event.createScheduleGeneration(config);
-
-	let bands = 0, minutes = 0;
-	const time = new Date(event.Start), parts = config.StartTime.split(':');
-	time.setHours(parts[0]);
-	time.setMinutes(parseInt(parts[1]) - time.getTimezoneOffset());
-	time.setSeconds(0);
-
-	for (let i = 0; i < divisionOrder.length; i++) {
-		const div = registrations[divisionOrder[i]];
-		if (!div || div.length === 0) {
-			//we may have withdrawn the last band for this division
-			continue;
-		}
-
-		if (config.Type.indexOf('entry') > -1) {
-			entrySort(div, config.Type.split('-')[1]);
-		} else {
-			shuffleArray(div);
-		}
-
-		await gen.createScheduleDivision({
-			DivisionId: divisionOrder[i] == -1 ? null : divisionOrder[i],
-			Order: i
+	if (gen && gen.Type && gen.Type !== 'manual') {
+		const divs = await gen.getScheduleDivisions({
+			order: [['Order', 'ASC']]
 		});
 
-		for (let j = 0; j < div.length; j++) {
-			const d = div[j];
-			const perfTime = d.Division?.PerformanceTime ?? 20;
-
-			await event.createEventSchedule({
-				Start: time,
-				Description: d.Organisation.Name,
-				Duration: perfTime
-			});
-
-			time.setMinutes(time.getMinutes() + perfTime);
-			bands++;
-			minutes += perfTime;
-
-			if (config.AddBreaks && (config.BreakType === 'band' && bands >= config.BreakNum || config.BreakType === 'minute' && minutes >= config.BreakNum)) {
-				await event.createEventSchedule({
-					Start: time,
-					Description: 'Break',
-					Duration: config.BreakLength
-				});
-
-				time.setMinutes(time.getMinutes() + config.BreakLength);
-				bands = 0;
-				minutes = 0;
-			}
-		}
+		await generateSchedule(req, next, event.id, gen.dataValues, divs.map(d => d.DivisionId ?? -1));
 	}
-}
+
+	return res.redirect('../');
+});
 
 router.post('/:id/organisations/add', validator.params(idParamSchema), validator.body(Joi.object({
 	// eslint-disable-next-line camelcase

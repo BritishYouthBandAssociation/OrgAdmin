@@ -8,7 +8,8 @@
 	<div class="col mb-3">
 		<div class="card text-center bg-dark text-white h-100">
 			<div class="card-body">
-				<a class="stretched-link fs-1 text-white text-decoration-none" href="judges/">{{judgesAssigned}} / {{totalCaptions}}</a>
+				<a class="stretched-link fs-1 text-white text-decoration-none" href="judges/">{{judgesAssigned}} /
+					{{totalCaptions}}</a>
 			</div>
 			<div class="card-footer">
 				Judges Assigned &gt;
@@ -18,7 +19,8 @@
 	<div class="col mb-3">
 		<div class="card text-center bg-dark text-white h-100">
 			<div class="card-body">
-				<a class="stretched-link fs-1 text-white text-decoration-none" href="organisations/">{{organisationsRegistered}}</a>
+				<a class="stretched-link fs-1 text-white text-decoration-none"
+					href="organisations/">{{organisationsRegistered}}</a>
 			</div>
 			<div class="card-footer">
 				Organisations Registered &gt;
@@ -37,104 +39,129 @@
 	</div>
 </div>
 
-<div class='card card-body mb-3'>
-	<h3 class='text-center'>Event Details</h3>
+<div class="row">
+	<div class="col-12 col-lg-8">
 
-	{{#if session.user.IsAdmin}}
-	<form method='post'>
-	{{/if}}
-		<div class='row row-cols-1 row-cols-lg-2 form'>
-			<div class='col form-group mb-3'>
-				<label class='form-label' for='name'>Name</label>
-				<input type='text' class='form-control' id='name' name='name' placeholder='Name' value='{{event.Name}}' {{#unless session.user.IsAdmin}}readonly{{/unless}} required />
-			</div>
-			<div class='col form-group text-start mb-3'>
-				<label class='form-label' for='type'>Event Type</label>
-				<select id='type' class='form-control' name='type' {{#unless session.user.IsAdmin}}readonly{{/unless}} required>
-					{{#each types}}
-						<option value='{{this.id}}' {{#eq ../event.EventType.id this.id}} selected {{/eq}}>{{this.Name}}</option>
-					{{/each}}
-				</select>
-			</div>
-		</div>
-		<div class='form-group mb-3'>
-			<label class='form-label' for='slug'>Slug</label>
-			<input type='text' class='form-control' id='slug' name='slug' placeholder='Slug' value='{{event.Slug}}' {{#unless session.user.IsAdmin}}readonly{{/unless}} required />
-		</div>
-		<div class='row row-cols-1 row-cols-lg-2 form mb-3'>
-			<div class='col form-group mb-3'>
-				<label class='form-label' for='start'>Start</label>
-				<input type='datetime-local' class='form-control' id='start' name='start' value='{{datetimeFieldValue event.Start}}' {{#unless session.user.IsAdmin}}readonly{{/unless}} required \>
-			</div>
-			<div class='col form-group mb-3'>
-				<label class='form-label' for='end'>End Time</label>
-				<input type='datetime-local' class='form-control' id='end' name='end' value='{{datetimeFieldValue event.End}}' {{#unless session.user.IsAdmin}}readonly{{/unless}} required \>
-			</div>
-		</div>
+		<div class='card card-body mb-3'>
+			<h3 class='text-center'>Event Details</h3>
 
-	<div class="row row-cols-1 row-cols-md-2 text-center">
-		<div class="col mb-3">
-			<p>Members Only?</p>
-			<div class="btn-group" role="group" aria-label="Members Only?">
-				<input type="radio" value="1" class="btn-check" name="membersOnly" id="membersOnly-y" autocomplete="off" {{#if event.MembersOnly}}checked{{/if}}>
-				<label class="btn btn-outline-success" for="membersOnly-y">Yes</label>
+			{{#if session.user.IsAdmin}}
+			<form method='post'>
+				{{/if}}
+				<div class='row row-cols-1 row-cols-lg-2 form'>
+					<div class='col form-group mb-3'>
+						<label class='form-label' for='name'>Name</label>
+						<input type='text' class='form-control' id='name' name='name' placeholder='Name'
+							value='{{event.Name}}' {{#unless session.user.IsAdmin}}readonly{{/unless}} required />
+					</div>
+					<div class='col form-group text-start mb-3'>
+						<label class='form-label' for='type'>Event Type</label>
+						<select id='type' class='form-control' name='type' {{#unless
+							session.user.IsAdmin}}readonly{{/unless}} required>
+							{{#each types}}
+							<option value='{{this.id}}' {{#eq ../event.EventType.id this.id}} selected {{/eq}}>
+								{{this.Name}}</option>
+							{{/each}}
+						</select>
+					</div>
+				</div>
+				<div class='form-group mb-3'>
+					<label class='form-label' for='slug'>Slug</label>
+					<input type='text' class='form-control' id='slug' name='slug' placeholder='Slug'
+						value='{{event.Slug}}' {{#unless session.user.IsAdmin}}readonly{{/unless}} required />
+				</div>
+				<div class='row row-cols-1 row-cols-lg-2 form mb-3'>
+					<div class='col form-group mb-3'>
+						<label class='form-label' for='start'>Start</label>
+						<input type='datetime-local' class='form-control' id='start' name='start'
+							value='{{datetimeFieldValue event.Start}}' {{#unless
+							session.user.IsAdmin}}readonly{{/unless}} required \>
+					</div>
+					<div class='col form-group mb-3'>
+						<label class='form-label' for='end'>End Time</label>
+						<input type='datetime-local' class='form-control' id='end' name='end'
+							value='{{datetimeFieldValue event.End}}' {{#unless session.user.IsAdmin}}readonly{{/unless}}
+							required \>
+					</div>
+				</div>
 
-				<input type="radio" value="0" class="btn-check" name="membersOnly" id="membersOnly-n" autocomplete="off" {{#unless event.MembersOnly}}checked{{/unless}}>
-				<label class="btn btn-outline-danger" for="membersOnly-n">No</label>
-			</div>
-		</div>
+				<div class="row row-cols-1 row-cols-md-2 text-center">
+					<div class="col mb-3">
+						<p>Members Only?</p>
+						<div class="btn-group" role="group" aria-label="Members Only?">
+							<input type="radio" value="1" class="btn-check" name="membersOnly" id="membersOnly-y"
+								autocomplete="off" {{#if event.MembersOnly}}checked{{/if}}>
+							<label class="btn btn-outline-success" for="membersOnly-y">Yes</label>
 
-		<div class="col mb-3">
-			<p>Scores released?</p>
-			<div class="btn-group" role="group" aria-label="Scores released?">
-				<input type="radio" value="1" class="btn-check" name="scoresReleased" id="scoresReleased-y" autocomplete="off" {{#if event.ScoresReleased}}checked{{/if}}>
-				<label class="btn btn-outline-success" for="scoresReleased-y">Yes</label>
+							<input type="radio" value="0" class="btn-check" name="membersOnly" id="membersOnly-n"
+								autocomplete="off" {{#unless event.MembersOnly}}checked{{/unless}}>
+							<label class="btn btn-outline-danger" for="membersOnly-n">No</label>
+						</div>
+					</div>
 
-				<input type="radio" value="0" class="btn-check" name="scoresReleased" id="scoresReleased-n" autocomplete="off" {{#unless event.ScoresReleased}}checked{{/unless}}>
-				<label class="btn btn-outline-danger" for="scoresReleased-n">No</label>
-			</div>
+					<div class="col mb-3">
+						<p>Scores released?</p>
+						<div class="btn-group" role="group" aria-label="Scores released?">
+							<input type="radio" value="1" class="btn-check" name="scoresReleased" id="scoresReleased-y"
+								autocomplete="off" {{#if event.ScoresReleased}}checked{{/if}}>
+							<label class="btn btn-outline-success" for="scoresReleased-y">Yes</label>
+
+							<input type="radio" value="0" class="btn-check" name="scoresReleased" id="scoresReleased-n"
+								autocomplete="off" {{#unless event.ScoresReleased}}checked{{/unless}}>
+							<label class="btn btn-outline-danger" for="scoresReleased-n">No</label>
+						</div>
+					</div>
+				</div>
+
+				<div class="card card-body mb-3">
+					<h3>Address</h3>
+					{{> address prefix="" required=false data=event.Address readOnly=session.user.IsNotAdmin }}
+				</div>
+
+				<div class='form-group mb-3'>
+					<label class='form-label' for='description'>Description</label>
+					<textarea type='text' class='form-control' id='description' name='description'
+						placeholder='Description' rows=5 {{#unless
+						session.user.IsAdmin}}readonly{{/unless}}>{{event.Description}}</textarea>
+				</div>
+
+				{{#if session.user.IsAdmin}}
+				<div class='text-center'>
+					<button class='btn btn-default'>Save</button>
+				</div>
+			</form>
+			{{/if}}
 		</div>
 	</div>
 
-		<div class="card card-body mb-3">
-			<h3>Address</h3>
-			{{> address prefix="" required=false data=event.Address readOnly=session.user.IsNotAdmin }}
-		</div>
+	<div class="col-12 col-lg-4">
 
-		<div class='form-group mb-3'>
-			<label class='form-label' for='description'>Description</label>
-			<textarea type='text' class='form-control' id='description' name='description' placeholder='Description' rows=5 {{#unless session.user.IsAdmin}}readonly{{/unless}}>{{event.Description}}</textarea>
-		</div>
 
-	{{#if session.user.IsAdmin}}
-		<div class='text-center'>
-			<button class='btn btn-default'>Save</button>
-		</div>
-	</form>
-	{{/if}}
-</div>
+		<div class='card card-body mb-3'>
+			<h3 class='text-center'>Registration Details</h3>
 
-<div class='card card-body mb-3'>
-	<h3 class='text-center'>Registration Details</h3>
+			{{#if session.user.IsAdmin}}
+			<form method='post' action='/event/{{event.id}}/registration'>
+				{{/if}}
+				<div class='form-group mb-3'>
+					<label class='form-label' for='registrationCutoff'>Event Registration Cutoff Date</label>
+					<input type='date' class='form-control' id='registrationCutoff' name='registrationCutoff'
+						placeholder='Registration Cutoff' value='{{event.EntryCutoffDate}}' {{#unless
+						session.user.IsAdmin}}readonly{{/unless}} />
+				</div>
+				<div class='form-group mb-3'>
+					<label class='form-label' for='freeWithdrawalCutoff'>Free Event Withdrawal Cutoff Date</label>
+					<input type='date' class='form-control' id='freeWithdrawalCutoff' name='freeWithdrawalCutoff'
+						placeholder='Free Withdrawal Cutoff' value='{{event.FreeWithdrawalCutoffDate}}' {{#unless
+						session.user.IsAdmin}}readonly{{/unless}} />
+				</div>
 
-	{{#if session.user.IsAdmin}}
-	<form method='post' action='/event/{{event.id}}/registration'>
-	{{/if}}
-		<div class='row row-cols-1 row-cols-lg-2 form'>
-			<div class='col form-group mb-3'>
-				<label class='form-label' for='registrationCutoff'>Event Registration Cutoff Date</label>
-				<input type='date' class='form-control' id='registrationCutoff' name='registrationCutoff' placeholder='Registration Cutoff' value='{{event.EntryCutoffDate}}' {{#unless session.user.IsAdmin}}readonly{{/unless}}/>
-			</div>
-			<div class='col form-group mb-3'>
-				<label class='form-label' for='freeWithdrawalCutoff'>Free Event Withdrawal Cutoff Date</label>
-				<input type='date' class='form-control' id='freeWithdrawalCutoff' name='freeWithdrawalCutoff' placeholder='Free Withdrawal Cutoff' value='{{event.FreeWithdrawalCutoffDate}}' {{#unless session.user.IsAdmin}}readonly{{/unless}}/>
-			</div>
+				{{#if session.user.IsAdmin}}
+				<div class='text-center'>
+					<input type='submit' class='btn btn-default' value='Save' />
+				</div>
+			</form>
+			{{/if}}
 		</div>
-
-	{{#if session.user.IsAdmin}}
-		<div class='text-center'>
-			<input type='submit' class='btn btn-default' value='Save'/>
-		</div>
-	</form>
-	{{/if}}
+	</div>
 </div>

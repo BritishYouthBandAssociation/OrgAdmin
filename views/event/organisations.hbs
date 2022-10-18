@@ -75,7 +75,17 @@
 				<form action="withdraw/{{OrganisationId}}" method="post">
 					<p>Entry Status: 
 						<span class="{{#if IsWithdrawn}}text-danger{{else}}text-success{{/if}}">{{#if IsWithdrawn}}Withdrawn{{else}}Entered{{/if}}</span> 
-						{{#if HasAdminAccess}}<button class="btn {{#if IsWithdrawn}}btn-success{{else}}btn-danger{{/if}}">{{#if IsWithdrawn}}Reinstate{{else}}Withdraw{{/if}}</button>{{/if}}
+						{{#if HasAdminAccess}}
+							{{#if IsWithdrawn}}
+								{{#if CanReinstate}}
+									<button class="btn btn-success">Reinstate</button>
+								{{/if}}
+							{{else}}
+								{{#if CanWithdraw}}
+									<button class="btn btn-danger">Withdraw</button>
+								{{/if}}
+							{{/if}}
+						{{/if}}
 					</p>
 				</form>
 
