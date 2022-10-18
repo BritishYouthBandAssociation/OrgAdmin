@@ -1,10 +1,11 @@
+{{#if fee}}
 <div class="card card-body mb-3">
 	<h3>Fee Details</h3>
 
 	{{#if fee.IsPaid}}
-		<p>This {{type}} is fully paid, and no further action is required</p>
+		<p>This {{type}} of <b>&pound;{{fee.Total}}</b> is fully paid, and no further action is required</p>
 	{{else}}
-		<p>The fee for this {{type}} is outstanding.</p>
+		<p><b>&pound;{{fee.Total}}</b> for this {{type}} is outstanding.</p>
 
 		{{#if isAdmin}}
 			<form method="post" action="/fee/{{fee.id}}" class="card card-body">
@@ -36,3 +37,4 @@
 		{{/if}}
 	{{/if}}
 </div>
+{{/if}}
