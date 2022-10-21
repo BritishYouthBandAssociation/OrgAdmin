@@ -32,6 +32,61 @@ const checkAccess = (req, res, next) => {
 	next();
 };
 
+async function getImageToken(config){
+	console.log('Requesting token');
+
+	const details = await fetch(`${config.uploadServer}upload/token`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			'Origin': 'localhost'
+		},
+		body: JSON.stringify({ secret: config.uploadSecret })
+	}).then(res => res.json());
+
+	return details.Value;
+}
+
+async function commitImage(config, id, origin, token = null, isRetry = false){
+	console.log(`Committing image ${id}`);
+	if (!token){
+		token = await getImageToken(config);
+	}
+
+	const details = await fetch(`${config.uploadServer}${id}/commit`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			'Origin': origin,
+			'Authorization': `Bearer ${token}`
+		}
+	}).then(res => res.json());
+
+	console.log(details);
+
+	if (details.IsError && !isRetry){
+		await commitImage(config, id, null, true);
+	}
+}
+
+async function removeImage(config, id, origin, token = null){
+	console.log(`Removing image ${id}`);
+	if (!token){
+		token = await getImageToken(config);
+	}
+
+	const details = await fetch(`${config.uploadServer}${id}`, {
+		method: 'DELETE',
+		headers: {
+			'Content-Type': 'application/json',
+			'Origin': origin,
+			'Authorization': `Bearer ${token}`
+		}
+	}).then(res => res.json());
+
+	console.log(details);
+}
+
 router.get('/', checkAdmin, async (req, res, next) => {
 	const orgs = await req.db.Organisation.findAll({
 		include: [req.db.OrganisationType]
@@ -104,11 +159,6 @@ router.post('/new', checkAdmin, validator.query(Joi.object({
 	res.redirect(`${org.id}/`);
 });
 
-function fileUploaded(base, id, type) {
-	const file = path.resolve(base, 'organisations', id, type);
-	return fs.existsSync(file);
-}
-
 router.get('/:orgID', validator.params(idParamSchema), checkAccess, validator.query(Joi.object({
 	saved: Joi.boolean(),
 	error: [Joi.boolean(), Joi.string()],
@@ -131,33 +181,6 @@ router.get('/:orgID', validator.params(idParamSchema), checkAccess, validator.qu
 		return next();
 	}
 
-	const config = ConfigHelper.importJSON(path.join(global.__approot, 'config'), 'server');
-	const id = String(org.id);
-
-	const buildFileURL = (filename) => {
-		try {
-			if (!fileUploaded(config.uploadPath, id, `${filename}.png`)) {
-				return '';
-			}
-
-			let baseURL;
-			if (config.serveUploads) {
-				const protocol = 'http';
-				const host = req.headers.host;
-
-				baseURL = `${protocol}://${host}/uploads`;
-			} else {
-				baseURL = config.uploadURL;
-			}
-
-			const url = new URL(`${baseURL}/organisations/${id}/${filename}.png`);
-			url.searchParams.append('v', new Date().getTime());
-
-			return url;
-		} catch (ex) {
-			return '';
-		}
-	};
 
 	if (typeof req.query.error === 'string') {
 		req.query.error = decodeURIComponent(req.query.error);
@@ -165,18 +188,21 @@ router.get('/:orgID', validator.params(idParamSchema), checkAccess, validator.qu
 		req.query.error = 'An error has occurred while saving, please check the details and try again';
 	}
 
+	const config = ConfigHelper.importJSON(path.join(global.__approot, 'config'), 'server');
+	const token = await getImageToken(config);
+
 	return res.render('organisation/view.hbs', {
 		title: org.Name,
 		organisation: org,
 		types: types,
 		saved: req.query.saved ?? false,
 		error: req.query.error ?? false,
-		logo: buildFileURL('logo'),
-		header: buildFileURL('header'),
-		enableUpload: config.uploadPath != null
+		enableUpload: config.uploadPath != null,
+		uploadToken: token
 	});
 });
 
+//TODO: allow colours to be rgb() as well as hex
 router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.object({
 	name: Joi.string()
 		.required(),
@@ -184,89 +210,56 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 		.required(),
 	description: Joi.string()
 		.required(),
-})), checkAccess, async (req, res, next) => {
-	const org = await req.db.Organisation.findByPk(req.params.orgID);
-
-	if (!org) {
-		return next();
-	}
-
-	try {
-		await req.db.sequelize.transaction(async (t) => {
-			await org.setOrganisationType(req.body.type, {
-				transaction: t
-			});
-
-			await req.db.Organisation.update({
-				Name: req.body.name,
-				Slug: req.body.slug,
-				Description: req.body.description,
-			}, {
-				where: { id: req.params.orgID },
-				transaction: t
-			});
-		});
-
-		// Transaction succeeded and committed
-	} catch (e) {
-		// Transaction has been rolled back, error in try block
-		console.error(e);
-	}
-
-	return res.redirect('?saved=true');
-});
-
-// TODO validate req.files?
-router.post('/:orgID/branding', validator.params(idParamSchema), checkAccess, validator.body(Joi.object({
 	primary: Joi.string()
 		.regex(/#([\da-fA-F]{3}){1,2}/)
 		.required(),
 	secondary: Joi.string()
 		.regex(/#([\da-fA-F]{3}){1,2}/)
 		.required(),
-})), async (req, res, next) => {
+	logo: Joi.string().guid().allow(''),
+	header: Joi.string().guid().allow('')
+})), checkAccess, async (req, res, next) => {
+	console.log(req.body);
+
 	const org = await req.db.Organisation.findByPk(req.params.orgID);
 
 	if (!org) {
 		return next();
 	}
 
-	await org.update({
-		PrimaryColour: req.body.primary,
-		SecondaryColour: req.body.secondary
-	});
+	org.Name = req.body.name;
+	org.Slug = req.body.slug;
+	org.Description = req.body.description;
+	org.PrimaryColour = req.body.primary;
+	org.SecondaryColour = req.body.secondary;
 
+	let token = null;
+	const origin = req.headers.host;
 	const config = ConfigHelper.importJSON(path.join(global.__approot, 'config'), 'server');
 
-	if (config.uploadPath) {
-		try {
-			const uploadBase = path.resolve(config.uploadPath, 'organisations', String(org.id));
+	if (req.body.logo && req.body.logo != org.LogoId){
+		token = await getImageToken(config);
 
-			if (!fs.existsSync()) {
-				fs.mkdirSync(uploadBase, { recursive: true });
-			}
+		await commitImage(config, req.body.logo, origin, token);
+		await removeImage(config, org.LogoId, origin, token);
 
-			for (const [filename, file] of Object.entries(req.files)) {
-				const newName = `${filename}.png`;
-
-				const uploadPath = path.join(uploadBase, newName);
-
-				let img;
-				try {
-					img = await jimp.read(file.path);
-				} catch (e) {
-					console.error(e);
-					return res.redirect(`./?error=${encodeURIComponent(e.message)}`);
-				}
-
-				await img.writeAsync(uploadPath);
-			}
-		} catch (ex) {
-			return res.redirect(`./?error=${encodeURIComponent(ex.message)}`);
-		}
+		org.LogoId = req.body.logo;
 	}
 
-	return res.redirect('./?saved=true');
+	if (req.body.header && req.body.header != org.HeaderId){
+		if (!token){
+			token = await getImageToken(config);
+		}
+
+		await commitImage(config, req.body.header, origin, token);
+		await removeImage(config, org.HeaderId, origin, token);
+
+		org.HeaderId = req.body.header;
+	}
+
+	await org.save();
+
+	return res.redirect('?saved=true');
 });
 
 router.post('/:orgID/address', validator.params(idParamSchema), checkAccess, validator.body(Joi.object({

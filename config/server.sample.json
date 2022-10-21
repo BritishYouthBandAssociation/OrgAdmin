@@ -5,5 +5,6 @@
 	"uploadURL": "",
 	"serveUploads": true,
 	"logging": true,
-	"uploadServer": ""
+	"uploadServer": "",
+	"uploadSecret": ""
 }
