@@ -54,6 +54,10 @@
 
 	<hr class="my-4" />
 
+	{{#gt organisation.OrgChangeRequests.length 0}}
+		<div class="alert alert-warning text-center">There are <b>{{organisation.OrgChangeRequests.length}}</b> change requests awaiting approval. <a href="changes">View Change Requests</a></div>
+	{{/gt}}
+
 	<form class="row" method="post">
 		<div class="col-12 col-lg-8">
 			<div class="card card-body mb-3">

@@ -4,7 +4,6 @@
 const express = require('express');
 const fs = require('fs');
 const Joi = require('joi');
-const jimp = require('jimp');
 const path = require('path');
 
 const validator = require('@byba/express-validator');
@@ -32,9 +31,7 @@ const checkAccess = (req, res, next) => {
 	next();
 };
 
-async function getImageToken(config){
-	console.log('Requesting token');
-
+async function getImageToken(config) {
 	const details = await fetch(`${config.uploadServer}upload/token`, {
 		method: 'POST',
 		headers: {
@@ -47,31 +44,28 @@ async function getImageToken(config){
 	return details.Value;
 }
 
-async function commitImage(config, id, origin, token = null, isRetry = false){
-	console.log(`Committing image ${id}`);
-	if (!token){
+async function commitImage(config, data, origin, token = null, isRetry = false) {
+	if (!token) {
 		token = await getImageToken(config);
 	}
 
-	const details = await fetch(`${config.uploadServer}${id}/commit`, {
+	const details = await fetch(`${config.uploadServer}${data.id}/commit`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
 			'Origin': origin,
 			'Authorization': `Bearer ${token}`
-		}
+		},
+		body: JSON.stringify(data)
 	}).then(res => res.json());
 
-	console.log(details);
-
-	if (details.IsError && !isRetry){
-		await commitImage(config, id, null, true);
+	if (details.IsError && !isRetry) {
+		await commitImage(config, data, origin, null, true);
 	}
 }
 
-async function removeImage(config, id, origin, token = null){
-	console.log(`Removing image ${id}`);
-	if (!token){
+async function removeImage(config, id, origin, token = null) {
+	if (!token) {
 		token = await getImageToken(config);
 	}
 
@@ -83,8 +77,6 @@ async function removeImage(config, id, origin, token = null){
 			'Authorization': `Bearer ${token}`
 		}
 	}).then(res => res.json());
-
-	console.log(details);
 }
 
 router.get('/', checkAdmin, async (req, res, next) => {
@@ -171,7 +163,8 @@ router.get('/:orgID', validator.params(idParamSchema), checkAccess, validator.qu
 				{
 					model: req.db.OrganisationUser,
 					include: [req.db.User]
-				}
+				},
+				req.db.OrgChangeRequest
 			]
 		}),
 		req.db.OrganisationType.findAll()
@@ -180,7 +173,6 @@ router.get('/:orgID', validator.params(idParamSchema), checkAccess, validator.qu
 	if (!org) {
 		return next();
 	}
-
 
 	if (typeof req.query.error === 'string') {
 		req.query.error = decodeURIComponent(req.query.error);
@@ -219,17 +211,53 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 	logo: Joi.string().guid().allow(''),
 	header: Joi.string().guid().allow('')
 })), checkAccess, async (req, res, next) => {
-	console.log(req.body);
-
 	const org = await req.db.Organisation.findByPk(req.params.orgID);
 
 	if (!org) {
 		return next();
 	}
 
-	org.Name = req.body.name;
-	org.Slug = req.body.slug;
-	org.Description = req.body.description;
+	const changeRequests = [];
+	if (org.Name != req.body.name) {
+		changeRequests.push({
+			Field: 'Name',
+			OldValue: org.Name,
+			NewValue: req.body.name
+		});
+	}
+
+	if (org.Description != req.body.description) {
+		changeRequests.push({
+			Field: 'Description',
+			OldValue: org.Description,
+			NewValue: req.body.description
+		});
+	}
+
+	if (req.body.logo && req.body.logo != org.LogoId) {
+		changeRequests.push({
+			Field: 'LogoId',
+			OldValue: org.LogoId,
+			NewValue: req.body.logo
+		});
+	}
+
+	if (req.body.header && req.body.header != org.HeaderId) {
+		changeRequests.push({
+			Field: 'HeaderId',
+			OldValue: org.HeaderId,
+			NewValue: req.body.header
+		});
+	}
+
+	if (req.session.user.IsAdmin) {
+		org.Name = req.body.name;
+		org.Slug = req.body.slug;
+		org.Description = req.body.description;
+		org.LogoId = req.body.logo;
+		org.HeaderId = req.body.header;
+	}
+
 	org.PrimaryColour = req.body.primary;
 	org.SecondaryColour = req.body.secondary;
 
@@ -237,27 +265,43 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 	const origin = req.headers.host;
 	const config = ConfigHelper.importJSON(path.join(global.__approot, 'config'), 'server');
 
-	if (req.body.logo && req.body.logo != org.LogoId){
+	const basePath = `org/${org.id}/`;
+	const logoPath = basePath + (req.session.user.IsAdmin ? 'logo' : 'logo-request');
+	const headerPath = basePath + (req.session.user.IsAdmin ? 'header' : 'header-request');
+
+	if (req.body.logo && req.body.logo != org.LogoId) {
 		token = await getImageToken(config);
 
-		await commitImage(config, req.body.logo, origin, token);
+		await commitImage(config, {
+			id: req.body.logo,
+			path: logoPath
+		}, origin, token);
 		await removeImage(config, org.LogoId, origin, token);
-
-		org.LogoId = req.body.logo;
 	}
 
-	if (req.body.header && req.body.header != org.HeaderId){
-		if (!token){
+	if (req.body.header && req.body.header != org.HeaderId) {
+		if (!token) {
 			token = await getImageToken(config);
 		}
 
-		await commitImage(config, req.body.header, origin, token);
+		await commitImage(config, {
+			id: req.body.header,
+			path: headerPath
+		}, origin, token);
 		await removeImage(config, org.HeaderId, origin, token);
-
-		org.HeaderId = req.body.header;
 	}
 
 	await org.save();
+
+
+	await Promise.all(changeRequests.map((cr) => {
+		return org.createOrgChangeRequest({
+			...cr,
+			RequesterId: req.session.user.id,
+			IsApproved: req.session.user.IsAdmin,
+			ApproverId: req.session.user.IsAdmin ? req.session.user.id : null
+		});
+	}));
 
 	return res.redirect('?saved=true');
 });
