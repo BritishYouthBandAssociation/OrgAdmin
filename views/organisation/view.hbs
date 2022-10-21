@@ -65,9 +65,9 @@
 		<div class="col-12 col-lg-4">
 			<div class="card card-body mb-3">
 				<h3 class="text-center">Images</h3>
-				<file-upload title="Logo" name="logo" accept="image/*" src="{{uploadServer}}{{organisation.LogoId}}" token="{{uploadToken}}"
+				<file-upload title="Logo" name="logo" accept="image/*" src="{{organisation.LogoId}}" token="{{uploadToken}}"
 					v-on:start="addUpload" v-on:cancel="completeUpload" v-on:complete="completeUpload"></file-upload>
-				<file-upload title="Header Image" name="header" accept="image/*" src="{{uploadServer}}{{organisation.HeaderId}}"
+				<file-upload title="Header Image" name="header" accept="image/*" src="{{organisation.HeaderId}}"
 					token="{{uploadToken}}" v-on:start="addUpload" v-on:cancel="completeUpload"
 					v-on:complete="completeUpload"></file-upload>
 			</div>

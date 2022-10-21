@@ -76,7 +76,10 @@ Vue.component('file-upload', {
 		};
 	},
 	mounted: function() {
-		this.url = this.src;
+		if (this.src != null && this.src.trim().length){
+			this.url = `${window.uploadServer}${this.src}`;
+		}
+
 		this.fileType = this.accept ?? '*';
 	}
 });
