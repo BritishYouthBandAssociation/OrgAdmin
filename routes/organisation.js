@@ -164,7 +164,12 @@ router.get('/:orgID', validator.params(idParamSchema), checkAccess, validator.qu
 					model: req.db.OrganisationUser,
 					include: [req.db.User]
 				},
-				req.db.OrgChangeRequest
+				{
+					model: req.db.OrgChangeRequest,
+					where: {
+						IsApproved: false
+					}
+				}
 			]
 		}),
 		req.db.OrganisationType.findAll()
@@ -276,7 +281,7 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 			id: req.body.logo,
 			path: logoPath
 		}, origin, token);
-		await removeImage(config, org.LogoId, origin, token);
+		await removeImage(config, logoPath, origin, token);
 	}
 
 	if (req.body.header && req.body.header != org.HeaderId) {
@@ -288,7 +293,7 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 			id: req.body.header,
 			path: headerPath
 		}, origin, token);
-		await removeImage(config, org.HeaderId, origin, token);
+		await removeImage(config, headerPath, origin, token);
 	}
 
 	await org.save();
