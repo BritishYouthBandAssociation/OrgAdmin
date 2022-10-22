@@ -168,7 +168,8 @@ router.get('/:orgID', validator.params(idParamSchema), checkAccess, validator.qu
 					model: req.db.OrgChangeRequest,
 					where: {
 						IsApproved: false
-					}
+					},
+					required: false
 				}
 			]
 		}),
@@ -340,6 +341,27 @@ router.post('/:orgID/address', validator.params(idParamSchema), checkAccess, val
 	await org.setAddress(addr);
 
 	res.redirect('./?saved=true');
+});
+
+router.get('/:orgID/changes', validator.params(idParamSchema), checkAccess, async (req, res, next) => {
+	const org = await req.db.Organisation.findByPk(req.params.orgID, {
+		include: [{
+			model: req.db.OrgChangeRequest,
+			include: ['Requester'],
+			where: {
+				IsApproved: false,
+			}
+		}]
+	});
+
+	if (!org){
+		return next();
+	}
+
+	res.render('organisation/changes.hbs', {
+		title: `Change Requests for ${org.Name}`,
+		organisation: org
+	});
 });
 
 router.get('/:orgID/contacts', validator.params(idParamSchema), checkAccess, validator.query(Joi.object({
