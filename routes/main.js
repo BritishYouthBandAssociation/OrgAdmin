@@ -9,7 +9,7 @@ const validator = require('@byba/express-validator');
 
 router.get('/', (req, res, next) => {
 	if (req.session.user) {
-		return res.redirect('home');
+		return res.redirect(req.query.next ?? 'home');
 	}
 
 	return res.render('login', {
@@ -47,8 +47,15 @@ router.post('/', validator.body(Joi.object({
 	}
 
 	req.session.user = user.dataValues;
-	const nextPage = req.query.next ?? 'home';
-	return res.redirect(nextPage);
+
+	//noticed we don't always redirect to the ?next= page
+	//logs show that it gets to next, gets bounced back here,
+	//automagically bounces back again and so on, until the
+	//session actually saves!
+	req.session.save(() => {
+		const nextPage = req.query.next ?? 'home';
+		res.redirect(nextPage);
+	});
 });
 
 router.get('/home', (req, res, next) => {
@@ -59,8 +66,11 @@ router.get('/home', (req, res, next) => {
 });
 
 router.get('/logout', (req, res, next) => {
-	req.session.destroy();
-	return res.redirect('/');
+	req.session.user = null;
+	req.session.band = null;
+	req.session.destroy(() => {
+		res.redirect('/');
+	});
 });
 
 router.get('/password-reset/:userId', validator.params(Joi.object({
