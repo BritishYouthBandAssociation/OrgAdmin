@@ -1,23 +1,89 @@
 <h2>Bandmaster</h2>
-<p>Welcome back, {{name}}</p>
+<p>Welcome back, {{session.user.FirstName}}</p>
 
-{{#if session.user.IsAdmin}}
+{{#each messages}}
+	<div class="alert alert-{{level}} text-center">
+		{{text}}
+		{{#if link}}
+			<a href="{{link}}" class="stretched-link">View details</a>
+		{{/if}}
+	</div>
+{{/each}}
 
-{{else}}
-{{#eq session.band null}}
+{{#gt captions.length 0}}
+<div class="card">
+	<div class="card-body">
+		<h3>Judging</h3>
+		<p>You have been made available to judge the following caption(s):</p>
+		<div class="list-group mb-3">
+			{{#each captions}}
+			<div class="list-group-item">{{Name}}</div>
+			{{/each}}
+		</div>
 
+		<div class="row row-cols-1 row-cols-lg-2">
+			<div class="col mb-3">
+				<div class="card h-100">
+					<div class="card-header">Your Upcoming Events</div>
+					<div class="card-body">
+						{{#eq judgeEvents.length 0}}
+						<div class="alert alert-info text-center">You have not been assigned to the judging panel for
+							any upcoming events</div>
+						{{else}}
+						<div class="list-group mb-3">
+							{{#each judgeEvents}}
+							<div class="list-group-item list-group-item-action">
+								<div class="row row-cols-1 row-cols-lg-2">
+									<div class="col mb-3">
+										<p>{{date Event.Start}} - {{Event.Name}}</p>
+										{{#with Event.Address}}
+										<p>{{Line1}}, {{City}}</p>
+										{{/with}}
+										<p>Judging {{Caption.Name}}</p>
+									</div>
+									<div class="col mb-3 d-flex align-items-center justify-content-center">
+										<a class="stretched-link" href="event/{{Event.id}}/">View Event Details</a>
+									</div>
+								</div>
+							</div>
+							{{/each}}
+						</div>
+						{{/eq}}
+						<a class="btn btn-default" href="/event/">View all events</a>
+					</div>
+				</div>
+			</div>
+
+			<div class="col mb-3">
+				<div class="card h-100">
+					<div class="card-header">Your Recent Results</div>
+					<div class="card-body">
+						<div class="alert alert-info text-center">You have not recorded any results in the current
+							season</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{{/gt}}
+
+{{#unless hasFunctionality}}
 <div class="p-5 mb-4 bg-warning rounded-3 text-center">
 	<div class="container-fluid py-5">
 		<h2>Limited Access</h2>
-		<svg xmlns="http://www.w3.org/2000/svg" height="10rem" fill="currentColor"
-			class="bi bi-person-x-fill" viewBox="0 0 16 16">
+		<svg xmlns="http://www.w3.org/2000/svg" height="10rem" fill="currentColor" class="bi bi-person-x-fill"
+			viewBox="0 0 16 16">
 			<path fill-rule="evenodd"
 				d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm6.146-2.854a.5.5 0 0 1 .708 0L14 6.293l1.146-1.147a.5.5 0 0 1 .708.708L14.707 7l1.147 1.146a.5.5 0 0 1-.708.708L14 7.707l-1.146 1.147a.5.5 0 0 1-.708-.708L13.293 7l-1.147-1.146a.5.5 0 0 1 0-.708z" />
 		</svg>
-		<p>Your account is not linked to a band. This severely reduces the functions you are able to perform on this site.</p>
-		<p>If you believe this is incorrect, please speak to your bandmaster in the first instance as they should be able to grant you access.</p>
-		<p>If you are still unable to access the site, please contact {{getConfigValue "config/site" "adminName" "AdminTeam" }} at <a href='mailto:{{getConfigValue "config/site" "adminEmail" "#" }}' class="text-dark">{{getConfigValue "config/site" "adminEmail" "" }}</a></p>
+		<p>Your account is not linked to a band. This severely reduces the functions you are able to perform on this
+			site.</p>
+		<p>If you believe this is incorrect, please speak to your bandmaster in the first instance as they should be
+			able to grant you access.</p>
+		<p>If you are still unable to access the site, please contact {{getConfigValue "config/site" "adminName"
+			"AdminTeam" }} at <a href='mailto:{{getConfigValue "config/site" "adminEmail" "#" }}'
+				class="text-dark">{{getConfigValue "config/site" "adminEmail" "" }}</a></p>
 	</div>
 </div>
-{{/eq}}
-{{/if}}
+{{/unless}}

@@ -5,6 +5,8 @@ const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
 
+const { Op } = require('sequelize');
+
 const validator = require('@byba/express-validator');
 
 router.get('/', (req, res, next) => {
@@ -51,10 +53,95 @@ router.post('/', validator.body(Joi.object({
 	return res.redirect(nextPage);
 });
 
-router.get('/home', (req, res, next) => {
+router.get('/home', async (req, res) => {
+	//set up various different bits
+	const messages = [];
+
+	const [captions, judgeEvents] = await Promise.all([req.db.Caption.findAll({
+		include: [{
+			model: req.db.User,
+			where: {
+				id: req.session.user.id
+			}
+		}]
+	}),
+	req.db.EventCaption.findAll({
+		include: [req.db.Caption,
+			{
+				model: req.db.User,
+				where: {
+					id: req.session.user.id
+				}
+			}, {
+				model: req.db.Event,
+				where: {
+					Start: {
+						[Op.gt]: new Date()
+					}
+				},
+				include: [req.db.Address],
+				order: [['Start']]
+			}]
+	})]);
+
+	if (req.session.user.IsAdmin){
+		const season = await req.db.Season.findOne({
+			where: {
+				Start: {
+					[Op.lte]: Date.now()
+				},
+				End: {
+					[Op.gte]: Date.now()
+				}
+			}
+		});
+
+		if (season){
+			const nextSeason = await req.db.Season.findOne({
+				where: {
+					Start: {
+						[Op.gt]: season.End
+					}
+				},
+				order: [['Start']]
+			});
+
+			if (nextSeason){
+				const diffDays = Math.ceil((nextSeason.Start - season.End) / (1000 * 60 * 60 * 24));
+				if (diffDays > 1){
+					messages.push({
+						text: `There is a gap of ${diffDays} days between the end of the current season and the start of the next one. Most pages require an active season.`,
+						link: '/config/season/',
+						level: 'warning'
+					});
+				}
+			} else {
+				const diffDays = Math.ceil((season.End - new Date()) / (1000 * 60 * 60 * 24));
+				if (diffDays < 30){
+					messages.push({
+						text: `The current season ends in ${diffDays} days, and there is no next season configured. Most pages require an active season.`,
+						link: '/config/season/',
+						level: 'warning'
+					});
+				}
+			}
+		} else {
+			messages.push({
+				text: 'There is no current season configured. Most pages require an active season!',
+				link: '/config/season/',
+				level: 'danger'
+			});
+		}
+	}
+
+	const hasFunctionality = req.session.user.IsAdmin || req.session.band != null || captions.length > 0;
+
 	return res.render('index', {
 		title: 'Home',
-		name: req.session.user.FirstName
+		hasFunctionality,
+		captions,
+		judgeEvents,
+		messages
 	});
 });
 
@@ -86,7 +173,7 @@ router.post('/change-band', validator.body(Joi.object({
 })), (req, res, next) => {
 	const band = req.session.user.bands.filter(b => b.id === req.body.changeBand);
 
-	if (band.length > 0){
+	if (band.length > 0) {
 		req.session.band = band[0];
 	}
 
