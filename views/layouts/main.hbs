@@ -19,6 +19,9 @@
 				<img src="/assets/logo.png" class="mx-auto d-none d-lg-block" height="142" width="150" />
 				<h1 class="fs-4 text-center mt-2">{{getConfigValue 'config/site' 'title' 'Org' }}</h1>
 			</a>
+			{{#if session.user.IsAdmin}}
+				<span class="badge bg-danger fs-5">Admin Access</span>
+			{{/if}}
 			{{#gt session.user.bands.length 0}}
 			<p class="mb-0 text-center">Logged in on behalf of <b id="band">{{session.band.Name}}</b></p>
 			{{#gt session.user.bands.length 1}}
@@ -26,7 +29,9 @@
 					data-bs-target="#changeBandModal">Change Band</a></p>
 			{{/gt}}
 			{{else}}
-			<p class="mb-0 text-center">Your account is not currently connected to a band</p>
+				{{#unless session.user.IsAdmin}}
+					<p class="mb-0 text-center">Your account is not currently connected to a band</p>
+				{{/unless}}
 			{{/gt}}
 			<hr>
 			<ul class="nav nav-pills flex-column mb-auto">
