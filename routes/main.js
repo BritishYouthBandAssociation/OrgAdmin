@@ -58,7 +58,7 @@ router.get('/home', async (req, res) => {
 	const messages = [];
 	const adminStats = [];
 
-	const [captions, judgeEvents] = await Promise.all([req.db.Caption.findAll({
+	const [captions, judgeEvents, events, season] = await Promise.all([req.db.Caption.findAll({
 		include: [{
 			model: req.db.User,
 			where: {
@@ -83,26 +83,61 @@ router.get('/home', async (req, res) => {
 				include: [req.db.Address],
 				order: [['Start']]
 			}]
+	}),
+	req.db.Event.findAll({
+		where: {
+			Start: {
+				[Op.gte]: new Date()
+			}
+		},
+		include: [req.db.Address, req.db.Organisation]
+	}), req.db.Season.findOne({
+		where: {
+			Start: {
+				[Op.lte]: Date.now()
+			},
+			End: {
+				[Op.gte]: Date.now()
+			}
+		}
 	})]);
 
-	if (req.session.user.IsAdmin) {
-		const [season, bands, adminUsers, totalUsers] = await Promise.all([req.db.Season.findOne({
+	if (req.session.band){
+		const membership = await req.db.OrganisationMembership.findOne({
 			where: {
-				Start: {
-					[Op.lte]: Date.now()
-				},
-				End: {
-					[Op.gte]: Date.now()
+				OrganisationId: req.session.band.id
+			},
+			include: [{
+				model: req.db.Membership,
+				where: {
+					SeasonId: season?.id
 				}
-			}
-		}),
-		req.db.Organisation.count(),
-		req.db.User.count({
-			where: {
-				IsAdmin: true
-			}
-		}),
-		req.db.User.count()]);
+			}]
+		});
+
+		if (!membership){
+			messages.push({
+				text: 'Your band is not currently in membership!',
+				level: 'warning'
+			});
+
+			events.forEach(e => {
+				e.canEnter = !e.MembersOnly;
+				e.hasEntered = e.Organisations.filter(o => o.id === req.session.band.id).length > 0;
+				e.canView = e.canEnter || e.hasEntered;
+			});
+		}
+	}
+
+	if (req.session.user.IsAdmin) {
+		const [bands, adminUsers, totalUsers] = await Promise.all([
+			req.db.Organisation.count(),
+			req.db.User.count({
+				where: {
+					IsAdmin: true
+				}
+			}),
+			req.db.User.count()]);
 
 		adminStats.push({
 			title: 'Total Organisations',
@@ -190,6 +225,7 @@ router.get('/home', async (req, res) => {
 		hasFunctionality,
 		captions,
 		judgeEvents,
+		events,
 		messages,
 		adminStats
 	});
