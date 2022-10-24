@@ -1,6 +1,10 @@
 <h2>{{organisation.Name}} Change Requests</h2>
 <p><a href="./">&lt; back to {{organisation.Name}}</a></p>
 
+{{#eq organisation.OrgChangeRequests.length 0}}
+	<div class="alert alert-info text-center">There are no outstanding change requests that require your attention</div>
+{{/eq}}
+
 {{#each organisation.OrgChangeRequests}}
 <div class="card mb-3">
 	<div class="card-header fs-4">{{replace Field "Id" ""}}</div>
@@ -8,13 +12,25 @@
 		<div class="row row-cols-2 mb-3">
 			<div class="col">
 				<div class="card h-100">
-					<div class="card-body">{{{OldValue}}}</div>
+					<div class="card-body">
+						{{#contains Field "HeaderId" "LogoId"}}
+							<img src="{{../uploadServer}}{{OldValue}}" class="img-fluid" />
+						{{else}}
+							{{{OldValue}}}
+						{{/contains}}
+						</div>
 					<div class="card-footer small">Old Value</div>
 				</div>
 			</div>
 			<div class="col">
 				<div class="card h-100">
-					<div class="card-body">{{{NewValue}}}</div>
+					<div class="card-body">
+						{{#contains Field "HeaderId" "LogoId"}}
+							<img src="{{../uploadServer}}{{NewValue}}" class="img-fluid" />
+						{{else}}
+							{{{NewValue}}}
+						{{/contains}}
+					</div>
 					<div class="card-footer small">New Value</div>
 				</div>
 			</div>
@@ -23,10 +39,10 @@
 		{{#if ../session.user.IsAdmin}}
 			<p class="mt-4">Requested by {{Requester.FullName}}</p>
 
-			<div>
-				<button class="btn btn-success">Approve</button>
-				<button class="btn btn-danger">Reject</button>
-			</div>
+			<form method="post" action="changes/{{id}}">
+				<button class="btn btn-success" name="approve" value="true">Approve</button>
+				<button class="btn btn-danger" name="approve" value="false">Reject</button>
+			</form>
 		{{/if}}
 	</div>
 </div>

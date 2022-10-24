@@ -167,7 +167,7 @@ router.get('/:orgID', validator.params(idParamSchema), checkAccess, validator.qu
 				{
 					model: req.db.OrgChangeRequest,
 					where: {
-						IsApproved: false
+						IsApproved: null
 					},
 					required: false
 				}
@@ -232,7 +232,7 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 		});
 	}
 
-	if (org.Description != req.body.description) {
+	if (org.Description.replaceAll(/\s/g, '').toLowerCase() != req.body.description.replaceAll(/\s/g, '').toLowerCase()) {
 		changeRequests.push({
 			Field: 'Description',
 			OldValue: org.Description,
@@ -278,11 +278,11 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 	if (req.body.logo && req.body.logo != org.LogoId) {
 		token = await getImageToken(config);
 
+		await removeImage(config, logoPath, origin, token);
 		await commitImage(config, {
 			id: req.body.logo,
 			path: logoPath
 		}, origin, token);
-		await removeImage(config, logoPath, origin, token);
 	}
 
 	if (req.body.header && req.body.header != org.HeaderId) {
@@ -290,11 +290,11 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 			token = await getImageToken(config);
 		}
 
+		await removeImage(config, headerPath, origin, token);
 		await commitImage(config, {
 			id: req.body.header,
 			path: headerPath
 		}, origin, token);
-		await removeImage(config, headerPath, origin, token);
 	}
 
 	await org.save();
@@ -304,7 +304,7 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 		return org.createOrgChangeRequest({
 			...cr,
 			RequesterId: req.session.user.id,
-			IsApproved: req.session.user.IsAdmin,
+			IsApproved: req.session.user.IsAdmin ? true : null,
 			ApproverId: req.session.user.IsAdmin ? req.session.user.id : null
 		});
 	}));
@@ -349,8 +349,9 @@ router.get('/:orgID/changes', validator.params(idParamSchema), checkAccess, asyn
 			model: req.db.OrgChangeRequest,
 			include: ['Requester'],
 			where: {
-				IsApproved: false,
-			}
+				IsApproved: null,
+			},
+			required: false
 		}]
 	});
 
@@ -362,6 +363,33 @@ router.get('/:orgID/changes', validator.params(idParamSchema), checkAccess, asyn
 		title: `Change Requests for ${org.Name}`,
 		organisation: org
 	});
+});
+
+router.post('/:orgID/changes/:changeID', validator.params(Joi.object({
+	orgID: Joi.number()
+		.required(),
+	changeID: Joi.number()
+		.required()
+})), validator.body(Joi.object({
+	approve: Joi.boolean()
+		.required()
+})), checkAccess, async (req, res, next) => {
+	const [org, change] = await Promise.all([req.db.Organisation.findByPk(req.params.orgID), req.db.OrgChangeRequest.findByPk(req.params.changeID)]);
+
+	if (!org || !change || change.IsApproved){
+		return next();
+	}
+
+	change.IsApproved = req.body.approve;
+	change.setApprover(req.session.user);
+
+	if (change.IsApproved){
+		org[change.Field] = change.NewValue;
+	}
+
+	await Promise.all([change.save(), org.save()]);
+
+	res.redirect('../changes?saved=true');
 });
 
 router.get('/:orgID/contacts', validator.params(idParamSchema), checkAccess, validator.query(Joi.object({
