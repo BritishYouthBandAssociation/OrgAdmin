@@ -1,42 +1,112 @@
-{{#with organisation}}
-<div class="row">
-	<div class="col-12 col-lg-6">
-		<div class="form-group mb-3">
-			<label class="form-label" for="name">Name</label>
-			<input type="text" class="form-control" id="name" name="name" placeholder="Name" value="{{Name}}" @keyUp="generateSlug"
-				required />
+<form method="post" id="app">
+	<div class="row">
+		<div class="col-12 col-lg-8">
+			<div class="card card-body mb-3">
+				<h3 class="text-center">Organisation Details</h3>
+
+				{{#with organisation}}
+				<div class="row">
+					<div class="col-12 col-lg-6">
+						<div class="form-group mb-3">
+							<label class="form-label" for="name">Name</label>
+							<input type="text" class="form-control" id="name" name="name" placeholder="Name"
+								value="{{Name}}" @keyUp="generateSlug" required />
+						</div>
+					</div>
+					<div class="col-12 col-lg-6">
+						<div class="form-group mb-3">
+							<label class="form-label" for="slug">URL Slug</label>
+							<input type="text" class="form-control" id="slug" name="slug" placeholder="URL Slug"
+								:value="slug" {{#unless ../session.user.IsAdmin}} readonly{{/unless}} />
+						</div>
+					</div>
+
+					<div class="col-12 col-lg-6">
+						<colour-picker title="Primary Colour" name="primary" value="{{isNull PrimaryColour '#000000'}}">
+						</colour-picker>
+					</div>
+					<div class="col-12 col-lg-6">
+						<colour-picker title="Secondary Colour" name="secondary"
+							value="{{isNull SecondaryColour '#FFFFFF'}}"></colour-picker>
+					</div>
+				</div>
+
+				<div class="form-group mb-3">
+					<label class="form-label" for="description">Description</label>
+					<textarea rows="7" id="description" class="form-control" name="description"
+						placeholder="Description" {{#if ../required}} required{{/if}}>{{Description}}</textarea>
+				</div>
+
+				<div class="form-group mb-3">
+					<label class="form-label" for="type">Organisation Type</label>
+					<select id="type" class="form-control" name="type" {{#if ../required}} required{{else}}
+						disabled{{/if}}>
+						<option value="">-- Please Select --</option>
+						{{#each ../types}}
+						<option value="{{id}}" data-type="{{../OrganisationType.id}}" {{#eq id ../OrganisationType.id}}
+							selected{{/eq}}>
+							{{Name}}</option>
+						{{/each}}
+					</select>
+				</div>
+				{{/with}}
+			</div>
+		</div>
+
+		<div class="col-12 col-lg-4">
+			<div class="card card-body mb-3">
+				<h3 class="text-center">Images</h3>
+				<file-upload title="Logo" name="logo" accept="image/*" src="{{organisation.LogoId}}"
+					token="{{uploadToken}}" v-on:start="addUpload" v-on:cancel="completeUpload"
+					v-on:complete="completeUpload"></file-upload>
+				<file-upload title="Header Image" name="header" accept="image/*" src="{{organisation.HeaderId}}"
+					token="{{uploadToken}}" v-on:start="addUpload" v-on:cancel="completeUpload"
+					v-on:complete="completeUpload"></file-upload>
+			</div>
 		</div>
 	</div>
-	<div class="col-12 col-lg-6">
-		<div class="form-group mb-3">
-			<label class="form-label" for="slug">URL Slug</label>
-			<input type="text" class="form-control" id="slug" name="slug" placeholder="URL Slug" :value="slug"
-				{{#unless ../session.user.IsAdmin}} readonly{{/unless}} />
-		</div>
-	</div>
+	<button class="btn btn-lg btn-default mb-3" :disabled="uploadsInProgress > 0">Save</button>
+</form>
 
-	<div class="col-12 col-lg-6">
-		<colour-picker title="Primary Colour" name="primary" value="{{isNull PrimaryColour '#000000'}}"></colour-picker>
-	</div>
-	<div class="col-12 col-lg-6">
-		<colour-picker title="Secondary Colour" name="secondary" value="{{isNull SecondaryColour '#FFFFFF'}}"></colour-picker>
-	</div>
-</div>
+<script src="/js/vue.js"></script>
+<script src="/js/component/ColourPicker.js"></script>
+<script src="/js/component/FileUpload.js"></script>
 
-<div class="form-group mb-3">
-	<label class="form-label" for="description">Description</label>
-	<textarea rows="7" id="description" class="form-control" name="description" placeholder="Description" {{#if
-		../required}} required{{/if}}>{{Description}}</textarea>
-</div>
+<script src="/js/tinymce.min.js"></script>
 
-<div class="form-group mb-3">
-	<label class="form-label" for="type">Organisation Type</label>
-	<select id="type" class="form-control" name="type" {{#if ../required}} required{{else}} disabled{{/if}}>
-		<option value="">-- Please Select --</option>
-		{{#each ../types}}
-		<option value="{{id}}" data-type="{{../OrganisationType.id}}" {{#eq id ../OrganisationType.id}} selected{{/eq}}>
-			{{Name}}</option>
-		{{/each}}
-	</select>
-</div>
-{{/with}}
+<script>
+	const app = new Vue({
+		el: '#app',
+		data: {
+			uploadsInProgress: 0,
+			slug: '{{ organisation.Slug }}'
+		},
+		methods: {
+			addUpload() {
+				this.uploadsInProgress++;
+			},
+
+			completeUpload() {
+				this.uploadsInProgress--;
+			},
+
+			generateSlug(e) {
+				this.slug = e.target.value.toLowerCase()
+					.trim()
+					.replace(/[^\w ]+/g, '')
+					.replace(/ +/g, '-');
+			}
+		}
+	});
+
+	tinymce.init({
+		selector: '#description',
+		plugins: 'autolink lists advlist link preview code wordcount',
+		toolbar_mode: 'floating',
+		menubar: 'file edit view insert tools format',
+		contextmenu: 'link lists table',
+		setup: (editor) => {
+			editor.on('change', editor.save);
+		}
+	});
+</script>

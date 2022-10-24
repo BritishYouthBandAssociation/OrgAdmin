@@ -8,7 +8,7 @@
 <div class="alert alert-danger text-center mb-2">{{error}}</div>
 {{/if}}
 
-<div id="app">
+<div>
 	<div class="row">
 		<div class="col-12 col-lg-6 mb-3">
 			<div class="card card-body">
@@ -23,7 +23,7 @@
 					Address</button>
 				{{/with}}
 				{{else}}
-				<div class="alert alert-danger text-light">No address set for this organisation</div>
+				<div class="alert alert-danger text-center">No address set for this organisation</div>
 				<button type="button" class="btn btn-default" data-bs-toggle="modal" data-bs-target="#addressModal">Add
 					Address</button>
 				{{/if}}
@@ -59,27 +59,7 @@
 		requests awaiting approval. <a href="changes">View Change Requests</a></div>
 	{{/gt}}
 
-	<form class="row" method="post">
-		<div class="col-12 col-lg-8">
-			<div class="card card-body mb-3">
-				<h3 class="text-center">Organisation Details</h3>
-				{{> organisation organisation=organisation types=types required=required}}
-			</div>
-		</div>
-
-		<div class="col-12 col-lg-4">
-			<div class="card card-body mb-3">
-				<h3 class="text-center">Images</h3>
-				<file-upload title="Logo" name="logo" accept="image/*" src="{{organisation.LogoId}}"
-					token="{{uploadToken}}" v-on:start="addUpload" v-on:cancel="completeUpload"
-					v-on:complete="completeUpload"></file-upload>
-				<file-upload title="Header Image" name="header" accept="image/*" src="{{organisation.HeaderId}}"
-					token="{{uploadToken}}" v-on:start="addUpload" v-on:cancel="completeUpload"
-					v-on:complete="completeUpload"></file-upload>
-			</div>
-		</div>
-		<button class="btn btn-lg btn-default mb-3" :disabled="uploadsInProgress > 0">Save</button>
-	</form>
+	{{> organisation organisation=organisation types=types required=required uploadToken=uploadToken}}
 </div>
 
 
@@ -103,46 +83,3 @@
 		</div>
 	</div>
 </form>
-
-<script src="/js/vue.js"></script>
-<script src="/js/component/ColourPicker.js"></script>
-<script src="/js/component/FileUpload.js"></script>
-
-<script src="/js/tinymce.min.js"></script>
-
-<script>
-	const app = new Vue({
-		el: '#app',
-		data: {
-			uploadsInProgress: 0,
-			slug: '{{ organisation.Slug }}'
-		},
-	methods: {
-		addUpload() {
-			this.uploadsInProgress++;
-		},
-
-		completeUpload() {
-			this.uploadsInProgress--;
-		},
-
-		generateSlug(e){
-			this.slug = e.target.value.toLowerCase()
-				.trim()
-				.replace(/[^\w ]+/g, '')
-				.replace(/ +/g, '-');
-		}
-	}
-	});
-
-	tinymce.init({
-		selector: '#description',
-		plugins: 'autolink lists advlist link preview code wordcount',
-		toolbar_mode: 'floating',
-		menubar: 'file edit view insert tools format',
-		contextmenu: 'link lists table',
-		setup: (editor) => {
-			editor.on('change', editor.save);
-		}
-	});
-</script>

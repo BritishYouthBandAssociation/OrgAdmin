@@ -17,7 +17,6 @@ Vue.component('file-upload', {
 				<div class="progress" v-if="progress > -1">
 					<div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" :aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100" :style="{width: progress + '%'}"></div>
 				</div>
-			
 			</div>
 			
 			<input type="hidden" :value="id" :name="name" />

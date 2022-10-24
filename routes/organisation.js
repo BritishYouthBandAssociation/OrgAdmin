@@ -91,11 +91,13 @@ router.get('/', checkAdmin, async (req, res, next) => {
 });
 
 router.get('/new', checkAdmin, async (req, res, next) => {
-	const types = await req.db.OrganisationType.findAll();
+	const config = ConfigHelper.importJSON(path.join(global.__approot, 'config'), 'server');
+	const [types, uploadToken] = await Promise.all([req.db.OrganisationType.findAll(), getImageToken(config)]);
 
 	return res.render('organisation/add.hbs', {
 		title: 'Add New Organisation',
 		types: types,
+		uploadToken,
 		organisation: {
 			Name: req.query.name ?? ''
 		}
@@ -116,20 +118,14 @@ router.post('/new', checkAdmin, validator.query(Joi.object({
 		.required(),
 	type: Joi.number()
 		.required(),
-	lineOne: Joi.string()
-		.required(),
-	lineTwo: Joi.string()
-		.required(),
-	city: Joi.string()
-		.required(),
-	postcode: Joi.string()
-		.required(),
 	primary: Joi.string()
 		.regex(/#([\da-fA-F]{3}){1,2}/)
 		.required(),
 	secondary: Joi.string()
 		.regex(/#([\da-fA-F]{3}){1,2}/)
 		.required(),
+	logo: Joi.string().guid().allow(''),
+	header: Joi.string().guid().allow('')
 })), async (req, res) => {
 	const org = await req.db.Organisation.create({
 		Name: req.body.name,
@@ -138,14 +134,8 @@ router.post('/new', checkAdmin, validator.query(Joi.object({
 		OrganisationTypeId: req.body.type,
 		PrimaryColour: req.body.primary,
 		SecondaryColour: req.body.secondary,
-		Address: {
-			Line1: req.body.lineOne,
-			Line2: req.body.lineTwo,
-			City: req.body.city,
-			Postcode: req.body.postcode
-		}
-	}, {
-		include: [req.db.Address]
+		LogoId: req.body.logo,
+		HeaderId: req.body.header
 	});
 
 	if (req.query.membershipType) {
