@@ -3,14 +3,14 @@
 	<div class="col-12 col-lg-6">
 		<div class="form-group mb-3">
 			<label class="form-label" for="name">Name</label>
-			<input type="text" class="form-control" id="name" name="name" placeholder="Name" value="{{Name}}"
+			<input type="text" class="form-control" id="name" name="name" placeholder="Name" value="{{Name}}" @keyUp="generateSlug"
 				required />
 		</div>
 	</div>
 	<div class="col-12 col-lg-6">
 		<div class="form-group mb-3">
 			<label class="form-label" for="slug">URL Slug</label>
-			<input type="text" class="form-control" id="slug" name="slug" placeholder="URL Slug" value="{{Slug}}"
+			<input type="text" class="form-control" id="slug" name="slug" placeholder="URL Slug" :value="slug"
 				{{#unless ../session.user.IsAdmin}} readonly{{/unless}} />
 		</div>
 	</div>
@@ -40,22 +40,3 @@
 	</select>
 </div>
 {{/with}}
-
-<script>
-	function generateSlug(value) {
-		return value.toLowerCase()
-			.trim()
-			.replace(/[^\w ]+/g, '')
-			.replace(/ +/g, '-');
-	}
-
-	const slug = document.getElementById("slug");
-	const name = document.getElementById("name");
-
-	//update initial value?
-	slug.value = generateSlug(name.value);
-
-	name.addEventListener("keyup", e => {
-		slug.value = generateSlug(name.value);
-	});
-</script>

@@ -55,7 +55,8 @@
 	<hr class="my-4" />
 
 	{{#gt organisation.OrgChangeRequests.length 0}}
-		<div class="alert alert-warning text-center">There are <b>{{organisation.OrgChangeRequests.length}}</b> change requests awaiting approval. <a href="changes">View Change Requests</a></div>
+	<div class="alert alert-warning text-center">There are <b>{{organisation.OrgChangeRequests.length}}</b> change
+		requests awaiting approval. <a href="changes">View Change Requests</a></div>
 	{{/gt}}
 
 	<form class="row" method="post">
@@ -69,8 +70,9 @@
 		<div class="col-12 col-lg-4">
 			<div class="card card-body mb-3">
 				<h3 class="text-center">Images</h3>
-				<file-upload title="Logo" name="logo" accept="image/*" src="{{organisation.LogoId}}" token="{{uploadToken}}"
-					v-on:start="addUpload" v-on:cancel="completeUpload" v-on:complete="completeUpload"></file-upload>
+				<file-upload title="Logo" name="logo" accept="image/*" src="{{organisation.LogoId}}"
+					token="{{uploadToken}}" v-on:start="addUpload" v-on:cancel="completeUpload"
+					v-on:complete="completeUpload"></file-upload>
 				<file-upload title="Header Image" name="header" accept="image/*" src="{{organisation.HeaderId}}"
 					token="{{uploadToken}}" v-on:start="addUpload" v-on:cancel="completeUpload"
 					v-on:complete="completeUpload"></file-upload>
@@ -112,19 +114,25 @@
 	const app = new Vue({
 		el: '#app',
 		data: {
-			uploadsInProgress: 0
+			uploadsInProgress: 0,
+			slug: '{{ organisation.Slug }}'
 		},
-		methods: {
-			addUpload() {
-				this.uploadsInProgress++;
-				console.log(this.uploadsInProgress);
-			},
+	methods: {
+		addUpload() {
+			this.uploadsInProgress++;
+		},
 
-			completeUpload() {
-				this.uploadsInProgress--;
-				console.log(this.uploadsInProgress);
-			}
+		completeUpload() {
+			this.uploadsInProgress--;
+		},
+
+		generateSlug(e){
+			this.slug = e.target.value.toLowerCase()
+				.trim()
+				.replace(/[^\w ]+/g, '')
+				.replace(/ +/g, '-');
 		}
+	}
 	});
 
 	tinymce.init({
