@@ -124,12 +124,20 @@ router.post('/new', checkAdmin, validator.query(Joi.object({
 		.required(),
 	postcode: Joi.string()
 		.required(),
-})), async (req, res, next) => {
+	primary: Joi.string()
+		.regex(/#([\da-fA-F]{3}){1,2}/)
+		.required(),
+	secondary: Joi.string()
+		.regex(/#([\da-fA-F]{3}){1,2}/)
+		.required(),
+})), async (req, res) => {
 	const org = await req.db.Organisation.create({
 		Name: req.body.name,
 		Slug: req.body.slug,
 		Description: req.body.description,
 		OrganisationTypeId: req.body.type,
+		PrimaryColour: req.body.primary,
+		SecondaryColour: req.body.secondary,
 		Address: {
 			Line1: req.body.lineOne,
 			Line2: req.body.lineTwo,

@@ -1,10 +1,12 @@
 <h2>Add Organisation</h2>
 
 {{#eq types.length 0}}
-<div class="alert alert-warning text-center">There are no organisation types currently configured. {{#if session.user.IsAdmin}}You must <a href="/config/organisation-type/">create one</a> before creating an organisation{{else}}Please contact your system administrator{{/if}}.</div>
+<div class="alert alert-warning text-center">There are no organisation types currently configured. {{#if
+	session.user.IsAdmin}}You must <a href="/config/organisation-type/">create one</a> before creating an
+	organisation{{else}}Please contact your system administrator{{/if}}.</div>
 {{/eq}}
 
-<form method="post">
+<form method="post" id="app">
 	<div class="row row-cols-1 row-cols-lg-2">
 		<div class="col mb-3">
 			<div class="card card-body">
@@ -24,6 +26,8 @@
 	<button class="btn btn-default">Add Organisation</button>
 </form>
 
+<script src="/js/vue.js"></script>
+<script src="/js/component/ColourPicker.js"></script>
 <script src="/js/tinymce.min.js"></script>
 
 <script>
@@ -35,6 +39,21 @@
 		contextmenu: 'link lists table',
 		setup: (editor) => {
 			editor.on('change', editor.save);
+		}
+	});
+
+	const app = new Vue({
+		el: '#app',
+		data: {
+			slug: ""
+		},
+		methods: {
+			generateSlug(e) {
+				this.slug = e.target.value.toLowerCase()
+					.trim()
+					.replace(/[^\w ]+/g, '')
+					.replace(/ +/g, '-');
+			}
 		}
 	});
 </script>

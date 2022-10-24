@@ -16,10 +16,10 @@
 	</div>
 
 	<div class="col-12 col-lg-6">
-		<colour-picker title="Primary Colour" name="primary" value="{{PrimaryColour}}"></colour-picker>
+		<colour-picker title="Primary Colour" name="primary" value="{{isNull PrimaryColour '#000000'}}"></colour-picker>
 	</div>
 	<div class="col-12 col-lg-6">
-		<colour-picker title="Secondary Colour" name="secondary" value="{{SecondaryColour}}"></colour-picker>
+		<colour-picker title="Secondary Colour" name="secondary" value="{{isNull SecondaryColour '#FFFFFF'}}"></colour-picker>
 	</div>
 </div>
 
