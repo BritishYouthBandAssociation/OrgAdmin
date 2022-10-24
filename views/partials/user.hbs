@@ -13,11 +13,7 @@
 <input type="email" class="form-control mb-3" id="email" name="email" required value="{{user.Email}}" />
 
 {{#if password}}
-<label for="password">Password</label>
-<input type="password" id="password" name="password" class="form-control mb-3" required />
-
-<label for="confirm">Confirm Password</label>
-<input type="password" id="confirm" name="confirm" class="form-control mb-3" required />
+{{> password}}
 {{/if}}
 
 

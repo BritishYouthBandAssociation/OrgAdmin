@@ -5,7 +5,7 @@
 		<div class="alert alert-danger text-center">{{error}}</div>
 	{{/if}}
 
-	<form method="post">
+	<form method="post" id="form">
 		{{> user user=details password=true accountControls=true}}
 
 		<div class="text-center">
@@ -13,3 +13,13 @@
 		</div>
 	</form>
 </div>
+
+<script>
+	const form = document.getElementById("form");
+	
+	form.addEventListener("submit", (e) => {
+		if(!checkPasswords()){
+			e.preventDefault();
+		}
+	});
+</script>
