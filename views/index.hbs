@@ -2,13 +2,30 @@
 <p>Welcome back, {{session.user.FirstName}}</p>
 
 {{#each messages}}
-	<div class="alert alert-{{level}} text-center">
-		{{text}}
-		{{#if link}}
-			<a href="{{link}}" class="stretched-link">View details</a>
-		{{/if}}
-	</div>
+<div class="alert alert-{{level}} text-center">
+	{{text}}
+	{{#if link}}
+	<a href="{{link}}" class="stretched-link">View details</a>
+	{{/if}}
+</div>
 {{/each}}
+
+{{#if session.user.IsAdmin}}
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 justify-content-center">
+	{{#each adminStats}}
+	<div class="col mb-3">
+		<div class="card text-center {{isNull class 'bg-dark text-light'}} h-100">
+			<div class="card-body">
+				<span class="fs-1">{{#if link}}<a class="stretched-link text-decoration-none {{isNull class 'text-light'}}" href="{{link}}">{{/if}}{{value}}{{#if link}}</a>{{/if}}</span>
+			</div>
+			<div class="card-footer">
+				{{title}} {{#if subtitle}}<span class="badge bg-default">{{subtitle}}</span>{{/if}}
+			</div>
+		</div>
+	</div>
+	{{/each}}
+</div>
+{{/if}}
 
 {{#gt captions.length 0}}
 <div class="card">

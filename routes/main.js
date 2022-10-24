@@ -56,6 +56,7 @@ router.post('/', validator.body(Joi.object({
 router.get('/home', async (req, res) => {
 	//set up various different bits
 	const messages = [];
+	const adminStats = [];
 
 	const [captions, judgeEvents] = await Promise.all([req.db.Caption.findAll({
 		include: [{
@@ -84,8 +85,8 @@ router.get('/home', async (req, res) => {
 			}]
 	})]);
 
-	if (req.session.user.IsAdmin){
-		const season = await req.db.Season.findOne({
+	if (req.session.user.IsAdmin) {
+		const [season, bands, adminUsers, totalUsers] = await Promise.all([req.db.Season.findOne({
 			where: {
 				Start: {
 					[Op.lte]: Date.now()
@@ -94,21 +95,47 @@ router.get('/home', async (req, res) => {
 					[Op.gte]: Date.now()
 				}
 			}
+		}),
+		req.db.Organisation.count(),
+		req.db.User.count({
+			where: {
+				IsAdmin: true
+			}
+		}),
+		req.db.User.count()]);
+
+		adminStats.push({
+			title: 'Total Organisations',
+			subtitle: 'Any season',
+			value: bands,
+			link: '/organisation/',
+			class: bands == 0 ? 'bg-danger text-light' : bands < 5 ? 'bg-warning text-dark' : null
 		});
 
-		if (season){
-			const nextSeason = await req.db.Season.findOne({
+		const adminPercent = adminUsers/totalUsers * 100;
+		adminStats.push({
+			title: 'Admin Users',
+			subtitle: 'Any season',
+			value: `${adminUsers} (${adminPercent}%)`,
+			class: adminPercent > 50 ? 'bg-danger text-light' : adminPercent < 10 ? 'bg-success text-light' : null,
+			link: '/user/'
+		});
+
+		if (season) {
+			const [nextSeason, membership] = await Promise.all([req.db.Season.findOne({
 				where: {
 					Start: {
 						[Op.gt]: season.End
 					}
 				},
 				order: [['Start']]
-			});
+			}),
+			season.getMemberships()
+			]);
 
-			if (nextSeason){
+			if (nextSeason) {
 				const diffDays = Math.ceil((nextSeason.Start - season.End) / (1000 * 60 * 60 * 24));
-				if (diffDays > 1){
+				if (diffDays > 1) {
 					messages.push({
 						text: `There is a gap of ${diffDays} days between the end of the current season and the start of the next one. Most pages require an active season.`,
 						link: '/config/season/',
@@ -117,7 +144,7 @@ router.get('/home', async (req, res) => {
 				}
 			} else {
 				const diffDays = Math.ceil((season.End - new Date()) / (1000 * 60 * 60 * 24));
-				if (diffDays < 30){
+				if (diffDays < 30) {
 					messages.push({
 						text: `The current season ends in ${diffDays} days, and there is no next season configured. Most pages require an active season.`,
 						link: '/config/season/',
@@ -125,7 +152,29 @@ router.get('/home', async (req, res) => {
 					});
 				}
 			}
+
+			if (!membership.length){
+				messages.push({
+					text: 'There are no members!',
+					link: '/membership/',
+					level: 'danger'
+				});
+			}
+
+			adminStats.push({
+				title: 'Membership',
+				subtitle: `${season.Identifier} season`,
+				value: membership.length,
+				link: '/membership/',
+				class: membership.length < 4 ? 'bg-danger text-light' : membership.length >= 10 ? 'bg-success text-light' : null
+			});
 		} else {
+			adminStats.push({
+				title: 'Membership',
+				value: 0,
+				link: '/membership/'
+			});
+
 			messages.push({
 				text: 'There is no current season configured. Most pages require an active season!',
 				link: '/config/season/',
@@ -141,7 +190,8 @@ router.get('/home', async (req, res) => {
 		hasFunctionality,
 		captions,
 		judgeEvents,
-		messages
+		messages,
+		adminStats
 	});
 });
 
