@@ -117,15 +117,20 @@ router.get('/home', async (req, res) => {
 
 		if (!membership){
 			messages.push({
-				text: 'Your band is not currently in membership!',
+				text: `${req.session.band.Name} is not currently in membership!`,
 				level: 'warning'
 			});
+		}
 
-			events.forEach(e => {
-				e.canEnter = !e.MembersOnly;
-				e.hasEntered = e.Organisations.filter(o => o.id === req.session.band.id).length > 0;
-				e.canView = e.canEnter || e.hasEntered;
-			});
+		for (let i = events.length - 1; i >= 0; i--){
+			const e = events[i];
+
+			e.canEnter = membership ? true : !e.MembersOnly;
+			e.hasEntered = e.Organisations.filter(o => o.id === req.session.band.id).length > 0;
+
+			if (!(e.canEnter || e.hasEntered)){
+				events.splice(i, 1);
+			}
 		}
 	}
 

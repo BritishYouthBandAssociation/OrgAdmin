@@ -115,7 +115,7 @@
 	{{#each events}}
 	<div class="col-12 col-lg-4">
 		<div class="card card-body h-100">
-			<h3>{{#if canView}}<a href="/event/{{id}}" class="text-dark">{{/if}}{{Name}}{{#if canView}} &gt;</a>{{/if}}</h3>
+			<h3><a href="/event/{{id}}/" class="text-dark">{{Name}} &gt;</a></h3>
 			<p><i>{{date Start}}, {{time Start}}</i></p>
 			{{#with Address}}
 			<p><i>{{Line1}}, {{City}}</i></p>
@@ -123,7 +123,7 @@
 
 			{{#if ../session.band}}
 				{{#if hasEntered}}
-					<div class="alert alert-success text-center">Entered</div>
+					<div class="alert alert-success text-center">{{../session.band.Name}} Entered</div>
 				{{else}}
 					{{#if canEnter}}
 						<a href="/event/{{id}}/organisations/" class="btn btn-default">Enter Show</a>
