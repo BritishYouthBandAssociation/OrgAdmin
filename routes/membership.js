@@ -159,6 +159,26 @@ router.post('/new/organisation', validator.body(Joi.object({
 
 	if (req.body.division && req.body.division !== ''){
 		orgMembership.DivisionId = req.body.division;
+
+		const events = await req.db.EventRegistration.findAll({
+			include: [{
+				model: req.db.Event,
+				where: {
+					Start: {
+						[Op.gt]: new Date()
+					}
+				}
+			}],
+			where: {
+				OrganisationId: req.body.organisation
+			}
+		});
+
+		//update division on future events
+		await Promise.all(events.map(e => {
+			e.DivisionId = req.body.division;
+			return e.save();
+		}));
 	}
 
 	//create the membership
@@ -307,11 +327,31 @@ router.post('/:id/division', validator.params(Joi.object({
 		req.db.Division.findByPk(req.body.division)
 	]);
 
-	if (!membership | !division) {
+	if (!membership || !division) {
 		return next();
 	}
 
 	await membership.OrganisationMembership.setDivision(division);
+
+	const events = await req.db.EventRegistration.findAll({
+		include: [{
+			model: req.db.Event,
+			where: {
+				Start: {
+					[Op.gt]: new Date()
+				}
+			}
+		}],
+		where: {
+			OrganisationId: membership.OrganisationMembership.OrganisationId
+		}
+	});
+
+	//update division on future events
+	await Promise.all(events.map(e => {
+		e.DivisionId = req.body.division;
+		return e.save();
+	}));
 
 	return res.redirect('./?saved=true');
 });

@@ -1,0 +1,40 @@
+{{#if fee}}
+<div class="card card-body mb-3">
+	<h3>Fee Details</h3>
+
+	{{#if fee.IsPaid}}
+		<p>This {{type}} of <b>&pound;{{fee.Total}}</b> is fully paid, and no further action is required</p>
+	{{else}}
+		<p><b>&pound;{{fee.Total}}</b> for this {{type}} is outstanding.</p>
+
+		{{#if isAdmin}}
+			<form method="post" action="/fee/{{fee.id}}" class="card card-body">
+				<div class="form-group mb-3">
+					<label for="paymentType">Payment Type</label>
+					<select class="form-control paymentType" name="paymentType" required>
+						<option value="">-- Please Select --</option>
+							{{#each paymentTypes}}
+								<option value="{{id}}">{{Description}}</option>
+							{{/each}}
+					</select>
+				</div>
+				<button type="button" class="btn btn-success btnFee" data-cost="{{fee.Total}}" disabled>Mark fee as paid</button>
+			</form>
+		{{else}}
+			<p>Please arrange for the sum of <b>&pound;{{fee.Total}}</b> to be paid at your earliest convenience</p>
+
+			<section class="text-start mb-3">
+				<p><b>By Bank Transfer</b></p>
+				<p>Name: <b>British Youth Band Association</b>
+				<p>Sort Code: <b>51-70-06</b></p>
+				<p>Account Number: <b>83704035</b></p>
+			</section>
+
+			<section class="text-start mb-3">
+				<p><b>By Cheque</b></p>
+				<p>Please make all cheques payable to the <b>British Youth Band Association</b>.</p>
+			</section>
+		{{/if}}
+	{{/if}}
+</div>
+{{/if}}

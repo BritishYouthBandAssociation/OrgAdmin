@@ -42,14 +42,17 @@
 	{{#each this}}
 	<div class="accordion-item">
 		{{#with Organisation}}
-		<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+		<button class="accordion-button collapsed{{#if ../IsWithdrawn}} bg-danger text-light{{/if}}" type="button" data-bs-toggle="collapse"
 			data-bs-target="#collapse-{{id}}" aria-expanded="false" aria-controls="collapse-{{id}}">
-			<span class="accordion-header header" id="heading-{{id}}">{{Name}}</span>
+			<span class="accordion-header header" id="heading-{{id}}">
+        {{Name}} {{#if ../IsWithdrawn}}(Withdrawn){{/if}}
+      </span>
 		</button>
 
 		<div id="collapse-{{id}}" class="accordion-collapse collapse" aria-labelledby="heading-{{id}}"
 			data-bs-parent="#accordion">
 			{{/with}}
+      
 			<div class="accordion-body">
 				<div>
 					<p>
@@ -60,56 +63,37 @@
 					</p>
 					{{#if HasAdminAccess}}
 					<p>
-						Cost: &pound;{{Fee.Total}}
-						{{#unless Fee.IsPaid}}
-						<span class="text-danger">Fee Outstanding</span>
+						Cost: &pound;{{RegistrationFee.Total}}
+						{{#unless RegistrationFee.IsPaid}}
+							<span class="text-danger">Fee Outstanding</span>
 						{{else}}
 						<span class="text-success">Fee Paid</span>
 						{{/unless}}
 					</p>
 
-					<div class="card card-body mb-3">
-						<h3>Fee Details</h3>
+					{{> fee fee=RegistrationFee type="registration" paymentTypes=../../paymentTypes isAdmin=../../session.user.IsAdmin}}
+				{{/if}}
 
-						{{#if Fee.IsPaid}}
-						<p>This registration is fully paid, and no further action is required</p>
-						{{else}}
-						<p>The fee for this registration is outstanding.</p>
+				<form action="withdraw/{{OrganisationId}}" method="post">
+					<p>Entry Status: 
+						<span class="{{#if IsWithdrawn}}text-danger{{else}}text-success{{/if}}">{{#if IsWithdrawn}}Withdrawn{{else}}Entered{{/if}}</span> 
+						{{#if HasAdminAccess}}
+							{{#if IsWithdrawn}}
+								{{#if CanReinstate}}
+									<button class="btn btn-success">Reinstate</button>
+								{{/if}}
+							{{else}}
+								{{#if CanWithdraw}}
+									<button class="btn btn-danger">Withdraw</button>
+								{{/if}}
+							{{/if}}
+						{{/if}}
+					</p>
+				</form>
 
-						{{#if ../../session.user.IsAdmin}}
-						<form method="post" action="/fee/{{Fee.id}}" class="card card-body">
-							<div class="form-group mb-3">
-								<label for="paymentType">Payment Type</label>
-								<select class="form-control paymentType" name="paymentType" required>
-									<option value="">-- Please Select --</option>
-									{{#each ../../paymentTypes}}
-									<option value="{{id}}">{{Description}}</option>
-									{{/each}}
-								</select>
-							</div>
-							<button type="button" class="btn btn-success btnFee" disabled>Mark fee as paid</button>
-						</form>
-
-						{{else}}
-						<p>Please arrange for the sum of <b>&pound;{{Fee.Total}}</b> to be paid at your earliest
-							convenience</p>
-
-						<section class="text-start mb-3">
-							<p><b>By Bank Transfer</b></p>
-							<p>Name: <b>British Youth Band Association</b>
-							<p>Sort Code: <b>51-70-06</b></p>
-							<p>Account Number: <b>83704035</b></p>
-						</section>
-
-						<section class="text-start mb-3">
-							<p><b>By Cheque</b></p>
-							<p>Please make all cheques payable to the <b>British Youth Band Association</b>.</p>
-						</section>
-					{{/if}}
-					{{/if}}
-					</div>
-					{{/if}}
-				</div>
+				{{#if HasAdminAccess}}
+					{{> fee fee=WithdrawalFee type="withdrawal" paymentTypes=../../paymentTypes isAdmin=../../session.user.IsAdmin}}
+				{{/if}}
 			</div>
 		</div>
 	</div>
@@ -138,10 +122,11 @@
 		});
 
 		btnFee.addEventListener('click', function (e) {
+			console.log(btnFee.dataset);
 			Swal.fire({
 				icon: 'question',
 				title: 'ARE YOU SURE?',
-				text: 'Are you sure you wish to mark this fee as paid? Please only continue if you are sure that {{Fee.Total}} pounds has been paid specifically for this fee.',
+				text: `Are you sure you wish to mark this fee as paid? Please only continue if you are sure that ${btnFee.dataset.cost} pounds has been paid specifically for this fee.`,
 				showCancelButton: true,
 				customClass: {
 					confirmButton: 'btn btn-lg btn-success mx-3',

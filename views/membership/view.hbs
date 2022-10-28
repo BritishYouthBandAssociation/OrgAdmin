@@ -8,7 +8,7 @@
 </div>
 
 {{#if saved}}
-	<div class="alert alert-success text-center">Membership saved successfully</div>
+<div class="alert alert-success text-center">Membership saved successfully</div>
 {{/if}}
 
 <div class="row text-center">
@@ -25,73 +25,7 @@
 			<p>End Date: {{date membership.Season.End}}</p>
 		</div>
 
-		<div class="card card-body mb-3">
-			<h3>Fee Details</h3>
-
-			{{#if membership.Fee.IsPaid}}
-			<p>This membership is fully paid, and no further action is required</p>
-			{{else}}
-			<p>The fee for this membership is outstanding.</p>
-
-			{{#if session.user.IsAdmin}}
-			<form method="post" action="/fee/{{membership.Fee.id}}" class="card card-body">
-				<div class="form-group mb-3">
-					<label for="paymentType">Payment Type</label>
-					<select class="form-control" name="paymentType" id="paymentType" required>
-						<option value="">-- Please Select --</option>
-						{{#each paymentTypes}}
-							<option value="{{id}}">{{Description}}</option>
-						{{/each}}
-					</select>
-				</div>
-				<button id="btnFee" type="button" class="btn btn-success" disabled>Mark fee as paid</button>
-			</form>
-
-			<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-			<script>
-				const btnFee = document.getElementById("btnFee");
-
-				document.getElementById('paymentType').addEventListener('change', function (e) {
-					btnFee.disabled = (this.value === "");
-				});
-
-				btnFee.addEventListener('click', function (e) {
-					Swal.fire({
-						icon: 'question',
-						title: 'ARE YOU SURE?',
-						text: 'Are you sure you wish to mark this fee as paid? Please only continue if you are sure that £{{membership.Fee.Total}} has been paid specifically for this fee.',
-						showCancelButton: true,
-						customClass: {
-							confirmButton: 'btn btn-lg btn-success mx-3',
-							cancelButton: 'btn btn-lg btn-danger mx-3'
-						},
-						buttonsStyling: false,
-						reverseButtons: true,
-						confirmButtonText: 'Yes, this fee has been paid'
-					}).then(res => {
-						if(res.isConfirmed){
-							this.form.submit();
-						}
-					})
-				});
-			</script>
-			{{else}}
-			<p>Please arrange for the sum of <b>&pound;{{membership.Fee.Total}}</b> to be paid at your earliest convenience</p>
-
-			<section class="text-start mb-3">
-				<p><b>By Bank Transfer</b></p>
-				<p>Name: <b>British Youth Band Association</b>
-				<p>Sort Code: <b>51-70-06</b></p>
-				<p>Account Number: <b>83704035</b></p>
-			</section>
-
-			<section class="text-start mb-3">
-				<p><b>By Cheque</b></p>
-				<p>Please make all cheques payable to the <b>British Youth Band Association</b>.</p>
-			</section>
-			{{/if}}
-			{{/if}}
-		</div>
+		{{>fee fee=membership.Fee type="membership" paymentTypes=paymentTypes isAdmin=session.user.IsAdmin}}
 	</div>
 
 	<div class="col-12 col-lg-6">
@@ -122,17 +56,47 @@
 					<select name="division" id="division" class="form-control" required>
 						<option value="">-- Please Select --</option>
 						{{#each divisions}}
-							<option {{#eq id ../membership.OrganisationMembership.Division.id}}selected{{/eq}} value="{{id}}">
-								{{Name}}
-							</option>
+						<option {{#eq id ../membership.OrganisationMembership.Division.id}}selected{{/eq}}
+							value="{{id}}">
+							{{Name}}
+						</option>
 						{{/each}}
 					</select>
 				</div>
 
 				<button class="btn btn-success">Save</button>
 			</form>
-			
+
 		</div>
 		{{/if}}
 	</div>
 </div>
+
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+	const btnFee = document.getElementsByClassName("btnFee")[0];
+
+	document.getElementsByClassName('paymentType')[0].addEventListener('change', function (e) {
+		btnFee.disabled = (this.value === "");
+	});
+
+	btnFee.addEventListener('click', function (e) {
+		Swal.fire({
+			icon: 'question',
+			title: 'ARE YOU SURE?',
+			text: `Are you sure you wish to mark this fee as paid? Please only continue if you are sure that £${btnFee.dataset.cost} has been paid specifically for this fee.`,
+			showCancelButton: true,
+			customClass: {
+				confirmButton: 'btn btn-lg btn-success mx-3',
+				cancelButton: 'btn btn-lg btn-danger mx-3'
+			},
+			buttonsStyling: false,
+			reverseButtons: true,
+			confirmButtonText: 'Yes, this fee has been paid'
+		}).then(res => {
+			if (res.isConfirmed) {
+				this.form.submit();
+			}
+		})
+	});
+</script>
