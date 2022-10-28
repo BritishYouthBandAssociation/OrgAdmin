@@ -1,84 +1,67 @@
 <h2>{{organisation.Name}}</h2>
 
 {{#if saved}}
-	<div class="alert alert-success text-center mb-2">Changes saved successfully!</div>
+<div class="alert alert-success text-center mb-2">Changes saved successfully!</div>
 {{/if}}
 
 {{#if error}}
-	<div class="alert alert-danger text-center mb-2">{{error}}</div>
+<div class="alert alert-danger text-center mb-2">{{error}}</div>
 {{/if}}
 
-<div class="row">
-	<div class="col-12 col-lg-8 order-1">
-		<div class="card card-body mb-3">
-			<h3 class="text-center">Organisation Details</h3>
-			<form method="post">
-				{{> organisation organisation=organisation types=types required=required}}
-				<button class="btn btn-default">Save</button>
-			</form>
-		</div>
-	</div>
-
-	<div class="col-12 col-lg-4 order-4 order-lg-2" id="app">
-		<div class="card card-body mb-3">
-			<h3 class="text-center">Branding</h3>
-
-			<form method="post" action="branding" enctype="multipart/form-data">
-				<colour-picker title="Primary Colour" name="primary" value="{{organisation.PrimaryColour}}"></colour-picker>
-				<colour-picker title="Secondary Colour" name="secondary" value="{{organisation.SecondaryColour}}"></colour-picker>
-
-				{{#if enableUpload}}
-				<file-upload title="Logo" name="logo" accept="image/*" src="{{logo}}"></file-upload>
-				<file-upload title="Header Image" name="header" accept="image/*" src="{{header}}"></file-upload>
-				{{else}}
-					<div class="alert alert-warning text-center">Uploads are currently not supported. Please contact your site administrator for more information</div>
-				{{/if}}
-
-				<button class="btn btn-default mt-3">Update Branding</button>
-			</form>
-		</div>
-	</div>
-
-
-	<div class="col-12 col-lg-6 mb-3 order-2 order-lg-3">
-		<div class="card card-body">
-			<h3 class="text-center">Address</h3>
-			{{#if organisation.Address}}
+<div>
+	<div class="row">
+		<div class="col-12 col-lg-6 mb-3">
+			<div class="card card-body">
+				<h3 class="text-center">Address</h3>
+				{{#if organisation.Address}}
 				{{#with organisation.Address}}
-					<p>{{Line1}}</p>
-					<p>{{Line2}}</p>
-					<p>{{City}}</p>
-					<p>{{Postcode}}</p>
-					<button type="button" class="btn btn-default" data-bs-toggle="modal" data-bs-target="#addressModal">Edit Address</button>
+				<p>{{Line1}}</p>
+				<p>{{Line2}}</p>
+				<p>{{City}}</p>
+				<p>{{Postcode}}</p>
+				<button type="button" class="btn btn-default" data-bs-toggle="modal" data-bs-target="#addressModal">Edit
+					Address</button>
 				{{/with}}
-			{{else}}
-				<div class="alert alert-danger text-light">No address set for this organisation</div>
-				<button type="button" class="btn btn-default" data-bs-toggle="modal" data-bs-target="#addressModal">Add Address</button>
-			{{/if}}
+				{{else}}
+				<div class="alert alert-danger text-center">No address set for this organisation</div>
+				<button type="button" class="btn btn-default" data-bs-toggle="modal" data-bs-target="#addressModal">Add
+					Address</button>
+				{{/if}}
+			</div>
 		</div>
-	</div>
 
-	<div class="col-12 col-lg-6 order-3 order-lg-4">
-		<div class="card card-body text-center">
-			<h3>Contacts</h3>
-			{{#if organisation.OrganisationUsers}}
+		<div class="col-12 col-lg-6">
+			<div class="card card-body text-center">
+				<h3>Contacts</h3>
+				{{#if organisation.OrganisationUsers}}
 				<div class="card mb-3">
 					<div class="list-group list-group-flush">
 						{{#each organisation.OrganisationUsers}}
-							{{#with User}}
-								<div class="list-group-item">{{FirstName}} {{Surname}} - {{Email}}</div>
-							{{/with}}
+						{{#with User}}
+						<div class="list-group-item">{{FirstName}} {{Surname}} - {{Email}}</div>
+						{{/with}}
 						{{/each}}
 					</div>
 				</div>
-			{{else}}
+				{{else}}
 				<div class="alert alert-danger">No contacts set for this organisation</div>
-			{{/if}}
+				{{/if}}
 
-			<a href="contacts" class="btn btn-default">Manage Contacts</a>
+				<a href="contacts" class="btn btn-default">Manage Contacts</a>
+			</div>
 		</div>
 	</div>
+
+	<hr class="my-4" />
+
+	{{#gt organisation.OrgChangeRequests.length 0}}
+	<div class="alert alert-warning text-center">There are <b>{{organisation.OrgChangeRequests.length}}</b> change
+		requests awaiting approval. <a href="changes">View Change Requests</a></div>
+	{{/gt}}
+
+	{{> organisation organisation=organisation types=types required=required uploadToken=uploadToken}}
 </div>
+
 
 <form method="post" action="address">
 	<div class="modal fade" id="addressModal" tabindex="-1" aria-hidden="true">
@@ -93,33 +76,10 @@
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-					<button type="submit" class="btn btn-default">Save changes</button>
+					<button type="submit" class="btn btn-default">Save
+						changes</button>
 				</div>
 			</div>
 		</div>
 	</div>
 </form>
-
-
-<script src="/js/vue.js"></script>
-<script src="/js/component/ColourPicker.js"></script>
-<script src="/js/component/FileUpload.js"></script>
-
-<script src="/js/tinymce.min.js"></script>
-
-<script>
-	const app = new Vue({
-		el: '#app'
-	});
-
-	tinymce.init({
-		selector: '#description',
-		plugins: 'autolink lists advlist link preview code wordcount',
-		toolbar_mode: 'floating',
-		menubar: 'file edit view insert tools format',
-		contextmenu: 'link lists table',
-		setup: (editor) => {
-			editor.on('change', editor.save);
-		}
-	});
-</script>

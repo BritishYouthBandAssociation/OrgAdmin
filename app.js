@@ -186,6 +186,7 @@ async function main() {
 	app.use((req, res, next) => {
 		res.locals.page = req.path.toLowerCase();
 		res.locals.session = req.session;
+		res.locals.uploadServer = serverOptions.uploadServer;
 
 		next();
 	});

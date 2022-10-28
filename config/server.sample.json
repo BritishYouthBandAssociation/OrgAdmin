@@ -4,5 +4,7 @@
 	"uploadPath":"/web/uploads/-org-",
 	"uploadURL": "",
 	"serveUploads": true,
-	"logging": true
+	"logging": true,
+	"uploadServer": "",
+	"uploadSecret": ""
 }
