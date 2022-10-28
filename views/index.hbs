@@ -1,2 +1,141 @@
 <h2>Bandmaster</h2>
-<p>Welcome back, {{name}}</p>
+<p>Welcome back, {{session.user.FirstName}}</p>
+
+{{#each messages}}
+<div class="alert alert-{{level}} text-center">
+	{{text}}
+	{{#if link}}
+	<a href="{{link}}" class="stretched-link">View details</a>
+	{{/if}}
+</div>
+{{/each}}
+
+{{#unless hasFunctionality}}
+<div class="p-5 mb-4 bg-warning rounded-3 text-center">
+	<div class="container-fluid py-5">
+		<h2>Limited Access</h2>
+		<svg xmlns="http://www.w3.org/2000/svg" height="10rem" fill="currentColor" class="bi bi-person-x-fill"
+			viewBox="0 0 16 16">
+			<path fill-rule="evenodd"
+				d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm6.146-2.854a.5.5 0 0 1 .708 0L14 6.293l1.146-1.147a.5.5 0 0 1 .708.708L14.707 7l1.147 1.146a.5.5 0 0 1-.708.708L14 7.707l-1.146 1.147a.5.5 0 0 1-.708-.708L13.293 7l-1.147-1.146a.5.5 0 0 1 0-.708z" />
+		</svg>
+		<p>Your account is not linked to a band. This severely reduces the functions you are able to perform on this
+			site.</p>
+		<p>If you believe this is incorrect, please speak to your bandmaster in the first instance as they should be
+			able to grant you access.</p>
+		<p>If you are still unable to access the site, please contact {{getConfigValue "config/site" "adminName"
+			"AdminTeam" }} at <a href='mailto:{{getConfigValue "config/site" "adminEmail" "#" }}'
+				class="text-dark">{{getConfigValue "config/site" "adminEmail" "" }}</a></p>
+	</div>
+</div>
+{{/unless}}
+
+{{#if session.user.IsAdmin}}
+<h2>Admin Dashboard</h2>
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 justify-content-center mb-3">
+	{{#each adminStats}}
+	<div class="col mb-3">
+		<div class="card text-center {{isNull class 'bg-dark text-light'}} h-100">
+			<div class="card-body">
+				<span class="fs-1">{{#if link}}<a
+						class="stretched-link text-decoration-none {{isNull class 'text-light'}}"
+						href="{{link}}">{{/if}}{{value}}{{#if link}}</a>{{/if}}</span>
+			</div>
+			<div class="card-footer">
+				{{title}} {{#if subtitle}}<span class="badge bg-default">{{subtitle}}</span>{{/if}}
+			</div>
+		</div>
+	</div>
+	{{/each}}
+</div>
+{{/if}}
+
+{{#gt captions.length 0}}
+<div class="card mb-3">
+	<div class="card-body">
+		<h3>Judging</h3>
+		<p>You have been made available to judge the following caption(s):</p>
+		<div class="list-group mb-3">
+			{{#each captions}}
+			<div class="list-group-item">{{Name}}</div>
+			{{/each}}
+		</div>
+
+		<div class="row row-cols-1 row-cols-lg-2">
+			<div class="col mb-3">
+				<div class="card h-100">
+					<div class="card-header">Your Upcoming Events</div>
+					<div class="card-body">
+						{{#eq judgeEvents.length 0}}
+						<div class="alert alert-info text-center">You have not been assigned to the judging panel for
+							any upcoming events</div>
+						{{else}}
+						<div class="list-group mb-3">
+							{{#each judgeEvents}}
+							<div class="list-group-item list-group-item-action">
+								<div class="row row-cols-1 row-cols-lg-2">
+									<div class="col mb-3">
+										<h3>{{Event.Name}}</h3>
+										<p><i>{{date Event.Start}}, {{time Event.Start}}</i></p>
+										{{#with Event.Address}}
+										<p><i>{{Line1}}, {{City}}</i></p>
+										{{/with}}
+										<p>Judging {{Caption.Name}}</p>
+									</div>
+									<div class="col mb-3 d-flex align-items-center justify-content-center">
+										<a class="stretched-link" href="event/{{Event.id}}/">View Event Details</a>
+									</div>
+								</div>
+							</div>
+							{{/each}}
+						</div>
+						{{/eq}}
+						<a class="btn btn-default" href="/event/">View all events</a>
+					</div>
+				</div>
+			</div>
+
+			{{!-- <div class="col mb-3">
+				<div class="card h-100">
+					<div class="card-header">Your Recent Results</div>
+					<div class="card-body">
+						<div class="alert alert-info text-center">You have not recorded any results in the current
+							season</div>
+					</div>
+				</div>
+			</div> --}}
+		</div>
+	</div>
+</div>
+{{/gt}}
+
+{{#gt events.length 0}}
+<h2>Upcoming Events</h2>
+<div class="row flex-row flex-nowrap">
+	{{#each events}}
+	<div class="col-12 col-lg-4">
+		<div class="card card-body h-100">
+			<h3><a href="/event/{{id}}/" class="text-dark">{{Name}} &gt;</a></h3>
+			<p><i>{{date Start}}, {{time Start}}</i></p>
+			{{#with Address}}
+			<p><i>{{Line1}}, {{City}}</i></p>
+			{{/with}}
+
+			{{#if ../session.band}}
+				{{#if hasEntered}}
+					<div class="alert alert-success text-center">{{../session.band.Name}} Entered</div>
+				{{else}}
+					{{#if canEnter}}
+						<a href="/event/{{id}}/organisations/" class="btn btn-default">Enter Show</a>
+					{{else}}
+						<p><svg xmlns="http://www.w3.org/2000/svg" width="2rem" fill="currentColor" class="bi bi-lock-fill" viewBox="0 0 16 16">
+							<path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
+						</svg> This event is only available to members</p>
+					{{/if}}
+				{{/if}}
+			{{/if}}
+		</div>
+	</div>
+	{{/each}}
+</div>
+{{/gt}}

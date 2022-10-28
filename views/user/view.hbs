@@ -27,13 +27,8 @@
 			{{#if nomatch}}
 				<div class="alert alert-danger text-center">Passwords must match</div>
 			{{/if}}
-			<form action="password" method="post">
-				<label for="password">New Password</label>
-				<input type="password" id="password" name="password" class="form-control mb-3" required />
-
-				<label for="confirm">Confirm Password</label>
-				<input type="password" id="confirm" name="confirm" class="form-control mb-3" required />
-
+			<form action="password" method="post" id="changePassword">
+				{{> password}}
 				<div class="text-center">
 					<button class="btn btn-default">Update Password</button>
 				</div>
@@ -63,3 +58,13 @@
 		</div>
 	</div>
 </div>
+
+<script>
+	const form = document.getElementById("changePassword");
+	form.addEventListener("submit", (e) => {
+		if(!checkPasswords()){
+			form.reportValidity();
+			e.preventDefault();
+		}
+	});
+</script>
