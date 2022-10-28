@@ -631,7 +631,8 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 		paymentTypes,
 		error: req.query.error,
 		success: req.query.success,
-		event
+		event,
+		canAddBand: req.session.band && registrations.filter(r => r.Organisation.id === req.session.band.id).length === 0
 	});
 });
 
@@ -724,7 +725,7 @@ router.post('/:id/organisations/add', validator.params(idParamSchema), validator
 		return next();
 	}
 
-	if (req.session.band && req.session.band.id !== org.id) {
+	if (!req.session.user.IsAdmin && (!req.session.band || req.session.band.id !== org.id)) {
 		return res.redirect('/no-access');
 	}
 
