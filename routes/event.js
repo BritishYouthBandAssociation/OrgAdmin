@@ -287,6 +287,13 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 		return next();
 	}
 
+	const missingScore = await req.db.EventRegistration.findOne({
+		where: {
+			EventId: event.id,
+			TotalScore: null
+		}
+	});
+
 	return res.render('event/view.hbs', {
 		title: event.Name,
 		event,
@@ -295,7 +302,8 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 		judgesAssigned: event.EventCaptions?.filter(ec => ec.JudgeId != null).length ?? 0,
 		organisationsRegistered: entries,
 		saved: req.query.saved ?? false,
-		hasSchedule: event.EventSchedules.length > 0
+		hasSchedule: event.EventSchedules.length > 0,
+		hasScores: !missingScore
 	});
 });
 
