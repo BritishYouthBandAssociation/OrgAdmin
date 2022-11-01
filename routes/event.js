@@ -891,6 +891,10 @@ router.get('/:id/scores', async (req, res, next) => {
 				IsWithdrawn: false
 			},
 			include: [req.db.Organisation]
+		},
+		{
+			model: req.db.EventCaption,
+			include: [req.db.Caption, req.db.User]
 		}]
 	});
 
@@ -898,13 +902,19 @@ router.get('/:id/scores', async (req, res, next) => {
 		return next();
 	}
 
-	console.log(req.query.current);
+	await Promise.all(event.EventCaptions.map(ec => {
+		return loadCaption(req.db.Caption, ec.Caption);
+	}));
+
+	console.log(event.EventCaptions[0].Caption);
+
+	const currentRegistration = event.EventRegistrations.find(x => x.id == req.query.current);
 
 	return res.render('event/scores', {
 		title: `${event.Name} Scores`,
 		event,
 		earlyScore: event.Start > new Date(),
-		current: req.query.current ?? -1
+		currentRegistration
 	});
 });
 
