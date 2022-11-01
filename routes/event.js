@@ -259,7 +259,8 @@ router.post('/new', validator.body(Joi.object({
 });
 
 router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
-	saved: Joi.boolean()
+	saved: Joi.boolean(),
+	error: Joi.string()
 })), async (req, res, next) => {
 	const [event, types, entries] = await Promise.all([
 		req.db.Event.findByPk(req.params.id, {
@@ -303,7 +304,8 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 		organisationsRegistered: entries,
 		saved: req.query.saved ?? false,
 		hasSchedule: event.EventSchedules.length > 0,
-		hasScores: !missingScore
+		hasScores: !missingScore,
+		error: req.query.error
 	});
 });
 
@@ -640,7 +642,7 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 
 		r.HasAdminAccess = req.session.user.IsAdmin || req.session.band?.id === r.Organisation.id;
 		r.CanWithdraw = now < event.Start;
-		r.CanReinstate = now < (event.EntryCutoffDate ?? event.Start);
+		r.CanReinstate = now < (event.EntryCutoffDate ?? event.Start) || event.AllowLateEntry;
 
 		sortedRegistrations[divisionName].push(r);
 	});
@@ -678,8 +680,8 @@ router.post('/:id/organisations/withdraw/:orgID', async (req, res, next) => {
 
 	const withdraw = !reg.IsWithdrawn;
 
+	const today = new Date();
 	if (withdraw) {
-		const today = new Date();
 		const freeWithdrawal = new Date(event.FreeWithdrawalCutoffDate);
 
 		if (today > freeWithdrawal && !reg.WithdrawalFeeId) {
@@ -690,7 +692,13 @@ router.post('/:id/organisations/withdraw/:orgID', async (req, res, next) => {
 			reg.WithdrawalFeeId = fee.id;
 		}
 	} else {
-		reg.EntryDate = new Date();
+		if (today > event.EntryCutoffDate){
+			if (!event.AllowLateEntry){
+				return res.redirect('../?error=The deadline has passed for entering this event');
+			}
+			reg.EntryDate = today;
+		}
+
 
 		if (reg.WithdrawalFee && !reg.WithdrawalFee.IsPaid) {
 			await req.db.Fee.destroy({
