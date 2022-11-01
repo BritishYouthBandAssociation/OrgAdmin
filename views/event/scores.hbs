@@ -1,0 +1,27 @@
+<h2>Add Scores</h2>
+<p class="mb-3"><a href="../">&lt; back to {{event.Name}}</a></p>
+
+{{#if earlyScore}}
+	<div class="alert alert-warning text-center">This event does not take place until {{date event.Start}} - are you sure you wish to add scores now?</div>
+{{/if}}
+
+<select class="form-control" id="bands">
+	<option value="">-- Please Select --</option>
+	{{#each event.EventRegistrations}}
+		<option value="{{id}}" {{#eq id ../current}}selected{{/eq}}>{{Organisation.Name}}</option>
+	{{/each}}
+</select>
+
+<hr />
+
+<script>
+	const ddl = document.getElementById("bands");
+	ddl.addEventListener("change", () => {
+		const val = ddl.value;
+		if(val.trim().length === 0){
+			return;
+		}
+
+		window.location.href = `?current=${val}`;
+	});
+</script>

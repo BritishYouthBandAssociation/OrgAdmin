@@ -267,7 +267,6 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 				req.db.Address,
 				req.db.EventType,
 				req.db.EventCaption,
-				req.db.Organisation,
 				req.db.EventSchedule
 			]
 		}),
@@ -882,6 +881,31 @@ router.post('/:id/schedule/automatic', checkAdmin, validator.body(Joi.object({
 	}, req.body.division);
 
 	return res.redirect('manual?saved=true');
+});
+
+router.get('/:id/scores', async (req, res, next) => {
+	const event = await req.db.Event.findByPk(req.params.id, {
+		include: [{
+			model: req.db.EventRegistration,
+			where: {
+				IsWithdrawn: false
+			},
+			include: [req.db.Organisation]
+		}]
+	});
+
+	if (!event){
+		return next();
+	}
+
+	console.log(req.query.current);
+
+	return res.render('event/scores', {
+		title: `${event.Name} Scores`,
+		event,
+		earlyScore: event.Start > new Date(),
+		current: req.query.current ?? -1
+	});
 });
 
 module.exports = {

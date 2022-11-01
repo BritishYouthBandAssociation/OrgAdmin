@@ -97,7 +97,10 @@ router.get('/home', async (req, res) => {
 				[Op.gte]: new Date()
 			}
 		},
-		include: [req.db.Address, req.db.Organisation]
+		include: [req.db.Address, {
+			model: req.db.EventRegistration,
+			include: [req.db.Organisation]
+		}]
 	}), req.db.Season.findOne({
 		where: {
 			Start: {
@@ -133,7 +136,7 @@ router.get('/home', async (req, res) => {
 			const e = events[i];
 
 			e.canEnter = membership ? true : !e.MembersOnly;
-			e.hasEntered = e.Organisations.filter(o => o.id === req.session.band.id).length > 0;
+			e.hasEntered = e.EventRegistrations.filter(er => er.Organisation.id === req.session.band.id).length > 0;
 
 			if (!(e.canEnter || e.hasEntered)){
 				events.splice(i, 1);

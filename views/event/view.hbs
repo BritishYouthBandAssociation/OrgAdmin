@@ -35,7 +35,11 @@
 		</div>
 	</div>
 	<div class="col mb-3">
-		<!-- add scores link here :) -->
+		<div class="card text-center {{#if hasScores}}bg-success{{else}}bg-danger{{/if}} h-100">
+			<div class="card-body">
+				<a class="stretched-link fs-2 text-white text-decoration-none" href="scores/">Scores &gt;</a>
+			</div>
+		</div>
 	</div>
 </div>
 
