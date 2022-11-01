@@ -906,8 +906,6 @@ router.get('/:id/scores', async (req, res, next) => {
 		return loadCaption(req.db.Caption, ec.Caption);
 	}));
 
-	console.log(event.EventCaptions[0].Caption);
-
 	const currentRegistration = event.EventRegistrations.find(x => x.id == req.query.current);
 
 	return res.render('event/scores', {
@@ -916,6 +914,10 @@ router.get('/:id/scores', async (req, res, next) => {
 		earlyScore: event.Start > new Date(),
 		currentRegistration
 	});
+});
+
+router.post('/:id/scores', (req, res, next) => {
+	console.log(req.body);
 });
 
 module.exports = {

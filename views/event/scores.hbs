@@ -16,31 +16,40 @@
 {{#if currentRegistration}}
 <hr />
 
-<div class="row row-cols-1 row-cols-lg-2">
-	{{#each event.EventCaptions}}
-	<div class="col mb-3">
-		<div class="card card-body">
-			<p class="fs-4">{{Caption.Name}}</p>
-			{{#if User}}
-			<p class="fst-italic">Judged by {{User.FullName}}</p>
-			{{/if}}
+<form method="post">
+	<div class="row row-cols-1 row-cols-lg-2 row-cols-xl-3">
+		{{#each event.EventCaptions}}
+		<div class="col mb-3">
+			<div class="card card-body">
+				<p class="fs-4">{{Caption.Name}}</p>
+				{{#if User}}
+				<p class="fst-italic">Judged by {{User.FullName}}</p>
+				{{/if}}
 
-			<div class="row row-cols-2">
-				{{#each Caption.Subcaptions}}
+				<div class="row row-cols-2">
+					{{#each Caption.Subcaptions}}
 					<div class="col">
 						<div class="card">
 							<div class="card-header">{{Name}}</div>
 							<div class="card-body">
-								<input type="number" class="form-control" />
+								<div class="input-group">
+									<input type="number" name="score[]" class="form-control" min="0" max="{{MaxScore}}" />
+									<span class="input-group-text"> / {{MaxScore}}</span>
+								</div>
 							</div>
 						</div>
+						<input type="hidden" name="caption[]" value="{{id}}" />
 					</div>
-				{{/each}}
+					{{/each}}
+				</div>
 			</div>
 		</div>
+		{{/each}}
 	</div>
-	{{/each}}
-</div>
+
+	<button class="btn btn-lg btn-success">Save</button>
+	<input type="hidden" name="registration" value="{{id}}" />
+</form>
 {{/if}}
 
 <script>
