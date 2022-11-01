@@ -65,7 +65,7 @@ router.get('/home', async (req, res) => {
 	const messages = [];
 	const adminStats = [];
 
-	const [captions, judgeEvents, events, season] = await Promise.all([req.db.Caption.findAll({
+	const [captions, judgeEvents, events, season, scores] = await Promise.all([req.db.Caption.findAll({
 		include: [{
 			model: req.db.User,
 			where: {
@@ -89,7 +89,8 @@ router.get('/home', async (req, res) => {
 				},
 				include: [req.db.Address],
 				order: [['Start']]
-			}]
+			}],
+		limit: 5
 	}),
 	req.db.Event.findAll({
 		where: {
@@ -110,9 +111,29 @@ router.get('/home', async (req, res) => {
 				[Op.gte]: Date.now()
 			}
 		}
+	}), req.db.EventCaption.findAll({
+		include: [req.db.Caption,
+			{
+				model: req.db.User,
+				where: {
+					id: req.session.user.id
+				}
+			}, {
+				model: req.db.Event,
+				include: [req.db.Address, {
+					model: req.db.EventRegistration,
+					where: {
+						TotalScore: {
+							[Op.ne]: null
+						}
+					}
+				}],
+				order: [['Start', 'DESC']]
+			}],
+		limit: 5
 	})]);
 
-	if (req.session.band){
+	if (req.session.band) {
 		const membership = await req.db.OrganisationMembership.findOne({
 			where: {
 				OrganisationId: req.session.band.id
@@ -125,20 +146,20 @@ router.get('/home', async (req, res) => {
 			}]
 		});
 
-		if (!membership){
+		if (!membership) {
 			messages.push({
 				text: `${req.session.band.Name} is not currently in membership!`,
 				level: 'warning'
 			});
 		}
 
-		for (let i = events.length - 1; i >= 0; i--){
+		for (let i = events.length - 1; i >= 0; i--) {
 			const e = events[i];
 
 			e.canEnter = membership ? true : !e.MembersOnly;
 			e.hasEntered = e.EventRegistrations.filter(er => er.Organisation.id === req.session.band.id).length > 0;
 
-			if (!(e.canEnter || e.hasEntered)){
+			if (!(e.canEnter || e.hasEntered)) {
 				events.splice(i, 1);
 			}
 		}
@@ -162,7 +183,7 @@ router.get('/home', async (req, res) => {
 			class: bands == 0 ? 'bg-danger text-light' : bands < 5 ? 'bg-warning text-dark' : null
 		});
 
-		const adminPercent = adminUsers/totalUsers * 100;
+		const adminPercent = adminUsers / totalUsers * 100;
 		adminStats.push({
 			title: 'Admin Users',
 			subtitle: 'Any season',
@@ -203,7 +224,7 @@ router.get('/home', async (req, res) => {
 				}
 			}
 
-			if (!membership.length){
+			if (!membership.length) {
 				messages.push({
 					text: 'There are no members!',
 					link: '/membership/',
@@ -242,7 +263,8 @@ router.get('/home', async (req, res) => {
 		judgeEvents,
 		events,
 		messages,
-		adminStats
+		adminStats,
+		scores
 	});
 });
 
