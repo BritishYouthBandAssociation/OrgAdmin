@@ -381,7 +381,8 @@ router.post('/:id/registration', validator.params(idParamSchema), validator.body
 	registrationCutoff: Joi.date()
 		.required(),
 	freeWithdrawalCutoff: Joi.date()
-		.required()
+		.required(),
+	lateEntry: Joi.boolean().required().truthy('1').falsy('0')
 })), async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id);
 
@@ -392,6 +393,7 @@ router.post('/:id/registration', validator.params(idParamSchema), validator.body
 	await event.update({
 		EntryCutoffDate: req.body.registrationCutoff,
 		FreeWithdrawalCutoffDate: req.body.freeWithdrawalCutoff,
+		AllowLateEntry: req.body.lateEntry
 	});
 
 	return res.redirect('./?saved=true');

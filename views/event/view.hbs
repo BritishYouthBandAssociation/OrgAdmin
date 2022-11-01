@@ -160,6 +160,17 @@
 						session.user.IsAdmin}}readonly{{/unless}} />
 				</div>
 
+				<p>Allow Late Entries?</p>
+				<div class="btn-group" role="group" aria-label="Allow Late Entries?">
+					<input type="radio" value="1" class="btn-check" name="lateEntry" id="lateEntry-y"
+						autocomplete="off" {{#if event.AllowLateEntry}}checked{{/if}}>
+					<label class="btn btn-outline-success" for="lateEntry-y">Yes</label>
+
+					<input type="radio" value="0" class="btn-check" name="lateEntry" id="lateEntry-n"
+						autocomplete="off" {{#unless event.AllowLateEntry}}checked{{/unless}}>
+					<label class="btn btn-outline-danger" for="lateEntry-n">No</label>
+				</div>
+
 				{{#if session.user.IsAdmin}}
 				<div class='text-center'>
 					<input type='submit' class='btn btn-default' value='Save' />
