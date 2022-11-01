@@ -75,7 +75,7 @@
 					</div>
 				</div>
 
-				<div class="card" v-if="addBreaks == 1">
+				<div class="card mb-3" v-if="addBreaks == 1">
 					<div class="card-header">Break Config</div>
 					<div class="card-body">
 						<div class="form-group mb-3">
@@ -94,6 +94,21 @@
 						</div>
 					</div>
 				</div>
+
+				{{#if event.AllowLateEntry}}
+					<div class="form-group mb-3">
+					<label>Late Entries On First?</label>
+					<div class="btn-group" role="group" aria-label="Add Breaks?">
+						<input type="radio" value="1" class="btn-check" name="lateEntry" id="lateEntry-y" autocomplete="off">
+						<label class="btn btn-outline-success" for="lateEntry-y">Yes</label>
+
+						<input type="radio" value="0" class="btn-check" name="lateEntry" id="lateEntry-n" autocomplete="off" checked>
+						<label class="btn btn-outline-danger" for="lateEntry-n">No</label>
+					</div>
+				</div>
+				{{else}}
+					<div class="alert alert-info text-center">Late entries not allowed</div>
+				{{/if}}
 
 			</div>
 		</div>

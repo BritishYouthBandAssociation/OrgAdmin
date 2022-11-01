@@ -49,6 +49,22 @@ function entrySort(array, direction) {
 	return array;
 }
 
+function splitEntries(entries, cutoff){
+	const late = [], regular = [];
+
+	entries.forEach(e => {
+		if (e.EntryDate > cutoff){
+			console.log(`${e.EntryDate} > ${cutoff}`);
+			late.push(e);
+		} else {
+			console.log(`${cutoff} > ${e.EntryDate}`);
+			regular.push(e);
+		}
+	});
+
+	return [late, regular];
+}
+
 async function generateSchedule(req, next, eventID, config, divisionOrder) {
 	if (config.EventId) {
 		delete config.EventId; //appears this interferes with other Sequelize bits...
@@ -100,18 +116,28 @@ async function generateSchedule(req, next, eventID, config, divisionOrder) {
 	time.setMinutes(parseInt(parts[1]) - time.getTimezoneOffset());
 	time.setSeconds(0);
 
+	const cutoff = new Date(event.EntryCutoffDate);
+
 	for (let i = 0; i < divisionOrder.length; i++) {
-		const div = registrations[divisionOrder[i]];
+		let div = registrations[divisionOrder[i]];
 		if (!div || div.length === 0) {
 			//we may have withdrawn the last band for this division
 			continue;
 		}
 
-		if (config.Type.indexOf('entry') > -1) {
-			entrySort(div, config.Type.split('-')[1]);
-		} else {
-			shuffleArray(div);
+		let late = [], regular = div;
+		if (config.LateOnFirst){
+			[late, regular] = splitEntries(div, cutoff);
+			entrySort(late, 'desc');
 		}
+
+		if (config.Type.indexOf('entry') > -1) {
+			entrySort(regular, config.Type.split('-')[1]);
+		} else {
+			shuffleArray(regular);
+		}
+
+		div = late.concat(regular);
 
 		await gen.createScheduleDivision({
 			DivisionId: divisionOrder[i] == -1 ? null : divisionOrder[i],
@@ -692,13 +718,12 @@ router.post('/:id/organisations/withdraw/:orgID', async (req, res, next) => {
 			reg.WithdrawalFeeId = fee.id;
 		}
 	} else {
-		if (today > event.EntryCutoffDate){
+		if (today > new Date(event.EntryCutoffDate)){
 			if (!event.AllowLateEntry){
 				return res.redirect('../?error=The deadline has passed for entering this event');
 			}
 			reg.EntryDate = today;
 		}
-
 
 		if (reg.WithdrawalFee && !reg.WithdrawalFee.IsPaid) {
 			await req.db.Fee.destroy({
@@ -899,7 +924,8 @@ router.post('/:id/schedule/automatic', checkAdmin, validator.body(Joi.object({
 	breaks: Joi.number(),
 	breakNum: Joi.number(),
 	breakFrequency: Joi.string(),
-	breakLength: Joi.number()
+	breakLength: Joi.number(),
+	lateEntry: Joi.boolean().truthy('1').falsy('0')
 })), async (req, res, next) => {
 	await generateSchedule(req, next, req.params.id, {
 		Type: req.body.type,
@@ -907,7 +933,8 @@ router.post('/:id/schedule/automatic', checkAdmin, validator.body(Joi.object({
 		AddBreaks: req.body.breaks == 1,
 		BreakNum: req.body.breakNum,
 		BreakType: req.body.breakFrequency,
-		BreakLength: parseInt(req.body.breakLength)
+		BreakLength: parseInt(req.body.breakLength),
+		LateOnFirst: req.body.lateEntry
 	}, req.body.division);
 
 	return res.redirect('manual?saved=true');
