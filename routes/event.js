@@ -389,12 +389,24 @@ router.post('/:id/registration', validator.params(idParamSchema), validator.body
 	return res.redirect('./?saved=true');
 });
 
-async function loadCaption(db, parent) {
-	parent.Subcaptions = await db.findAll({
+async function loadCaption(db, parent, scoresFor = null) {
+	const criteria = {
 		where: {
 			ParentID: parent.id
 		}
-	});
+	};
+
+	if (scoresFor != null){
+		criteria.include = [{
+			model: db.EventRegistrationScore,
+			where: {
+				EventRegistrationId: scoresFor
+			},
+			required: false
+		}];
+	}
+
+	parent.Subcaptions = await db.Caption.findAll(criteria);
 
 	await Promise.all(parent.Subcaptions.map(s => {
 		return loadCaption(db, s);
@@ -452,7 +464,7 @@ router.get('/:id/judges', validator.params(idParamSchema), validator.query(Joi.o
 
 	//load the rest
 	await Promise.all(captionData.map(c => {
-		return loadCaption(req.db.Caption, c);
+		return loadCaption(req.db, c);
 	}));
 
 	let captions = [];
@@ -538,7 +550,7 @@ router.post('/:id/judges/reset', validator.params(idParamSchema), async (req, re
 
 	//load the rest
 	await Promise.all(captionData.map(c => {
-		return loadCaption(req.db.Caption, c);
+		return loadCaption(req.db, c);
 	}));
 
 	const captions = [];
@@ -895,7 +907,10 @@ router.get('/:id/scores', async (req, res, next) => {
 		{
 			model: req.db.EventCaption,
 			include: [req.db.Caption, req.db.User]
-		}]
+		}],
+		order: [
+			[req.db.EventRegistration, 'TotalScore']
+		]
 	});
 
 	if (!event){
@@ -903,7 +918,7 @@ router.get('/:id/scores', async (req, res, next) => {
 	}
 
 	await Promise.all(event.EventCaptions.map(ec => {
-		return loadCaption(req.db.Caption, ec.Caption);
+		return loadCaption(req.db, ec.Caption, req.query.current);
 	}));
 
 	const currentRegistration = event.EventRegistrations.find(x => x.id == req.query.current);
@@ -916,8 +931,53 @@ router.get('/:id/scores', async (req, res, next) => {
 	});
 });
 
-router.post('/:id/scores', (req, res, next) => {
-	console.log(req.body);
+router.post('/:id/scores', async (req, res, next) => {
+	const [event, registration] = await Promise.all([req.db.Event.findByPk(req.params.id), req.db.EventRegistration.findByPk(req.body.registration)]);
+
+	if (!event || !registration){
+		return next();
+	}
+
+	//clear off scores, ready to go again!
+	await req.db.EventRegistrationScore.destroy({
+		where: {
+			EventRegistrationId: req.body.registration
+		}
+	});
+
+	let totalScore = 0;
+	let grandTotal = 0;
+	await Promise.all(req.body.score.map((score, index) => {
+		return (async function() {
+			if (isNaN(score) || score.trim().length == 0){
+				return;
+			}
+
+			const caption = await req.db.Caption.findByPk(req.body.caption[index]);
+			const adjustedScore = score * caption.Multiplier;
+			const adjustedTotal = caption.MaxScore * caption.Multiplier;
+
+			totalScore += adjustedScore;
+			if (!caption.IsOptional){
+				grandTotal += adjustedScore;
+			}
+
+			await req.db.EventRegistrationScore.create({
+				EventRegistrationId: req.body.registration,
+				CaptionId: caption.id,
+				RawScore: score,
+				RawMax: caption.MaxScore,
+				AdjustedScore: adjustedScore,
+				AdjustedMax: adjustedTotal,
+				AdjustmentMultiplier: caption.Multiplier
+			});
+		})();
+	}));
+
+	registration.TotalScore = grandTotal / 100.0;
+	await registration.save();
+
+	return res.redirect(`?saved=true&current=${req.body.registration}`);
 });
 
 module.exports = {

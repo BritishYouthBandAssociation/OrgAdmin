@@ -61,7 +61,7 @@ Vue.component('caption-selector', {
 			this.caption.IsOptional = val;
 
 			if (val && this.$refs.subcaption){
-				this.$refs.subcaption.forEach(s=> {
+				this.$refs.subcaption.forEach(s => {
 					s.setOptional(val);
 				});
 			}
