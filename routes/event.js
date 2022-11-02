@@ -54,10 +54,8 @@ function splitEntries(entries, cutoff){
 
 	entries.forEach(e => {
 		if (e.EntryDate > cutoff){
-			console.log(`${e.EntryDate} > ${cutoff}`);
 			late.push(e);
 		} else {
-			console.log(`${cutoff} > ${e.EntryDate}`);
 			regular.push(e);
 		}
 	});
@@ -972,14 +970,15 @@ router.get('/:id/scores', async (req, res, next) => {
 		title: `${event.Name} Scores`,
 		event,
 		earlyScore: event.Start > new Date(),
-		currentRegistration
+		currentRegistration,
+		canEdit: !event.ScoresReleased
 	});
 });
 
 router.post('/:id/scores', async (req, res, next) => {
 	const [event, registration] = await Promise.all([req.db.Event.findByPk(req.params.id), req.db.EventRegistration.findByPk(req.body.registration)]);
 
-	if (!event || !registration){
+	if (!event || !registration || event.ScoresReleased){
 		return next();
 	}
 
