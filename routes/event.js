@@ -274,7 +274,8 @@ router.post('/new', validator.body(Joi.object({
 		Start: req.body.start,
 		End: req.body.end,
 		Slug: slug,
-		SeasonId: req.body.season
+		SeasonId: req.body.season,
+		AllowLateEntry: true
 	});
 
 	await event.setEventType(eventType);
@@ -372,6 +373,37 @@ router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
 	}
 
 	const addressProvided = req.body.lineOne && req.body.lineTwo && req.body.city && req.body.postcode;
+
+	if (!event.ScoresReleased && req.body.scoresReleased){
+		//we are releasing scores here - trigger league calculation
+		const [results, _] = await req.db.sequelize.query(`
+			UPDATE OrganisationMemberships om
+			INNER JOIN Organisations o ON o.id = om.OrganisationId
+			INNER JOIN EventRegistrations er ON er.OrganisationId = o.id
+			
+			SET LeagueScore = (
+				SELECT SUM(TotalScore) / 2
+				FROM
+				(
+					SELECT cast(TotalScore as decimal(10, 5)) AS TotalScore
+					FROM EventRegistrations
+					INNER JOIN Events e ON e.id = EventRegistrations.EventId
+					WHERE OrganisationId = o.id
+					AND e.SeasonId = e.SeasonId
+					AND IFNULL(TotalScore, -1) > 0
+					AND IsWithdrawn = 0
+					LIMIT 2
+				) scores
+			)
+			
+			WHERE er.EventId = :eventID
+			AND er.IsWithdrawn = 0;
+		`, {
+			replacements: {
+				eventID: event.id
+			}
+		});
+	}
 
 	await event.update({
 		Name: req.body.name,
@@ -1022,7 +1054,7 @@ router.post('/:id/scores/:current', async (req, res, next) => {
 		})();
 	}));
 
-	registration.TotalScore = grandTotal / 100.0;
+	registration.TotalScore = grandTotal / 10.0;
 	await registration.save();
 
 	return res.redirect('?saved=true');
