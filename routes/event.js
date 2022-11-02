@@ -938,7 +938,7 @@ router.post('/:id/schedule/automatic', checkAdmin, validator.body(Joi.object({
 	return res.redirect('manual?saved=true');
 });
 
-router.get('/:id/scores', async (req, res, next) => {
+router.get('/:id/scores/:current?', async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id, {
 		include: [{
 			model: req.db.EventRegistration,
@@ -961,12 +961,12 @@ router.get('/:id/scores', async (req, res, next) => {
 	}
 
 	await Promise.all(event.EventCaptions.map(ec => {
-		return loadCaption(req.db, ec.Caption, req.query.current);
+		return loadCaption(req.db, ec.Caption, req.params.current);
 	}));
 
-	const currentRegistration = event.EventRegistrations.find(x => x.id == req.query.current);
+	const currentRegistration = event.EventRegistrations.find(x => x.id == req.params.current);
 
-	return res.render('event/scores', {
+	return res.render('event/add-scores', {
 		title: `${event.Name} Scores`,
 		event,
 		earlyScore: event.Start > new Date(),
