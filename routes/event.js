@@ -975,7 +975,11 @@ router.get('/:id/scores/:current?', async (req, res, next) => {
 	});
 });
 
-router.post('/:id/scores', async (req, res, next) => {
+router.post('/:id/scores/:current', async (req, res, next) => {
+	if (req.body.registration != req.params.current){
+		return next();
+	}
+
 	const [event, registration] = await Promise.all([req.db.Event.findByPk(req.params.id), req.db.EventRegistration.findByPk(req.body.registration)]);
 
 	if (!event || !registration || event.ScoresReleased){
@@ -1021,7 +1025,7 @@ router.post('/:id/scores', async (req, res, next) => {
 	registration.TotalScore = grandTotal / 100.0;
 	await registration.save();
 
-	return res.redirect(`?saved=true&current=${req.body.registration}`);
+	return res.redirect('?saved=true');
 });
 
 module.exports = {

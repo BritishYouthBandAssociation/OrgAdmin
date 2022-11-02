@@ -39,7 +39,7 @@
 							<div class="card-header">{{Name}}</div>
 							<div class="card-body">
 								<div class="input-group">
-									<input type="number" name="score[]" class="form-control" step="0.01" min="0" max="{{MaxScore}}" value="{{EventRegistrationScore.RawScore}}"{{#unless canEdit}} disabled{{/unless}}/>
+									<input type="number" name="score[]" class="form-control" step="0.01" min="0" max="{{MaxScore}}" value="{{EventRegistrationScore.RawScore}}"{{#unless ../../canEdit}} disabled{{/unless}}/>
 									<span class="input-group-text"> / {{MaxScore}}</span>
 								</div>
 							</div>
