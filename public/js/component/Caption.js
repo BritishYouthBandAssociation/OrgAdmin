@@ -19,7 +19,7 @@ Vue.component('caption-selector', {
 
 			<div class="form-group mb-3">
 				<label :for="'multiplier-' + caption.id">Multiplier</label>
-				<input type="number" class="form-control" :id="'multiplier-' + caption.id" v-model="caption.Multiplier" step="0.01"/>
+				<input type="number" class="form-control" :id="'multiplier-' + caption.id" v-model="caption.Multiplier" step="0.01" @change="setMultiplier"/>
 			</div>
 
 			<div class="form-group mb-3">
@@ -61,9 +61,17 @@ Vue.component('caption-selector', {
 			this.caption.IsOptional = val;
 
 			if (val && this.$refs.subcaption){
-				this.$refs.subcaption.forEach(s => {
-					s.setOptional(val);
-				});
+				this.$refs.subcaption.forEach(s => s.setOptional(val));
+			}
+		},
+
+		setMultiplier(val){
+			if (!isNaN(val)){
+				this.caption.Multiplier = val;
+			}
+
+			if (this.$refs.subcaption){
+				this.$refs.subcaption.forEach(s => s.setMultiplier(this.caption.Multiplier));
 			}
 		}
 	},
