@@ -582,9 +582,9 @@ router.post('/:id/judges', validator.params(idParamSchema), validator.body(Joi.o
 		.items(Joi.number()),
 	// eslint-disable-next-line camelcase
 	judge_search: Joi.array()
-		.items(Joi.string()),
+		.items(Joi.string().allow('')),
 	judge: Joi.array()
-		.items(Joi.string().uuid())
+		.items(Joi.string().uuid().allow(''))
 })), async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id);
 
@@ -594,7 +594,7 @@ router.post('/:id/judges', validator.params(idParamSchema), validator.body(Joi.o
 
 	await Promise.all(req.body.judge.map((j, index) => {
 		if (j.trim().length === 0) {
-			return null;
+			j = null;
 		}
 
 		return req.db.EventCaption.update({
