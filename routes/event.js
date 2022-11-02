@@ -35,6 +35,20 @@ function shuffleArray(array) {
 	return array;
 }
 
+function leagueSort(entries){
+	entries.sort((a, b) => {
+		const aMember = a.Organisation.OrganisationMemberships;
+		const aScore = aMember.length == 0 ? 0 : aMember[0].LeagueScore;
+
+		const bMember = b.Organisation.OrganisationMemberships;
+		const bScore = bMember.length == 0 ? 0 : bMember[0].LeagueScore;
+
+		return aScore - bScore;
+	});
+
+	return entries;
+}
+
 function entrySort(array, direction) {
 	array.sort((a, b) => {
 		const d1 = new Date(a.EntryDate), d2 = new Date(b.EntryDate);
@@ -68,22 +82,35 @@ async function generateSchedule(req, next, eventID, config, divisionOrder) {
 		delete config.EventId; //appears this interferes with other Sequelize bits...
 	}
 
-	const [event, entries] = await Promise.all([req.db.Event.findByPk(req.params.id),
-		req.db.EventRegistration.findAll({
-			include: [
-				req.db.Organisation,
-				req.db.Division
-			],
-			where: {
-				EventId: eventID,
-				IsWithdrawn: false
-			}
-		})
-	]);
+	const event= await req.db.Event.findByPk(req.params.id);
 
 	if (!event) {
 		return next();
 	}
+
+	const entries = await req.db.EventRegistration.findAll({
+		include: [
+			{
+				model: req.db.Organisation,
+				include: [{
+					model: req.db.OrganisationMembership,
+					include: [{
+						model: req.db.Membership,
+						where: {
+							SeasonId: event.SeasonId
+						},
+						required: false
+					}]
+				}]
+			},
+			req.db.Division,
+			req.db.Event
+		],
+		where: {
+			EventId: eventID,
+			IsWithdrawn: false
+		}
+	});
 
 	const registrations = {};
 	entries.forEach(e => {
@@ -131,6 +158,8 @@ async function generateSchedule(req, next, eventID, config, divisionOrder) {
 
 		if (config.Type.indexOf('entry') > -1) {
 			entrySort(regular, config.Type.split('-')[1]);
+		} else if (config.Type == 'league') {
+			leagueSort(regular);
 		} else {
 			shuffleArray(regular);
 		}
@@ -919,17 +948,38 @@ router.get('/:id/schedule/automatic', checkAdmin, async (req, res, next) => {
 				attributes: ['Name', 'id']
 			}],
 			where: {
-				EventId: req.params.id
+				EventId: req.params.id,
+				IsWithdrawn: false
 			},
 			group: ['DivisionId']
 		}),
 		req.db.EventRegistration.count({
 			where: {
-				EventId: req.params.id
+				EventId: req.params.id,
+				IsWithdrawn: false
 			}
-		})]);
+		}),
+		req.db.sequelize.query(`
+			SELECT 1
+			FROM EventRegistrations er
+			INNER JOIN Events e ON e.id = er.EventId
+			WHERE er.EventID = :eventID
+			AND er.IsWithdrawn = 0
+			AND NOT EXISTS (
+				SELECT 1
+				FROM OrganisationMemberships om
+				INNER JOIN Memberships m ON m.id = om.MembershipId
+				WHERE om.OrganisationId = er.OrganisationId
+				AND m.SeasonId = e.SeasonId
+			)
+		`, {
+			replacements: {
+				eventID: req.params.id
+			}
+		})
+	]);
 
-	const [event, , entries] = result;
+	const [event, , entries, [hasUnregistered]] = result;
 	let [, divisions] = result;
 
 	if (!event) {
@@ -943,6 +993,7 @@ router.get('/:id/schedule/automatic', checkAdmin, async (req, res, next) => {
 		event,
 		divisions,
 		entries,
+		hasUnregistered,
 		saved: req.query.saved ?? false
 	});
 });
