@@ -148,7 +148,14 @@ router.get('/event-type', checkAdmin, validator.query(Joi.object({
 	saved: Joi.boolean()
 })), async (req, res, next) => {
 	const [types, membershipTypes] = await Promise.all([req.db.EventType.findAll({
-		include: [req.db.EventTypeDiscount]
+		include: [{
+			model: req.db.EventTypeDiscount,
+			include: [req.db.MembershipType]
+		}],
+		order: [
+			['id'],
+			[req.db.EventTypeDiscount, 'DiscountAfter']
+		]
 	}), req.db.MembershipType.findAll({
 		where: {
 			IsOrganisation: true,
@@ -165,64 +172,71 @@ router.get('/event-type', checkAdmin, validator.query(Joi.object({
 });
 
 router.post('/event-type', checkAdmin,
-	// validator.body(Joi.object({
-	// 	id: Joi.array()
-	// 		.items(Joi.number()),
-	// 	type: Joi.array()
-	// 		.items(Joi.string()),
-	// 	cost: Joi.array()
-	// 		.items(Joi.number()),
-	// 	isActive: Joi.array()
-	// 		.items(Joi.boolean().falsy('0').truthy('1')),
-	// })),
+	validator.body(Joi.object({
+		id: Joi.array()
+			.items(Joi.number()),
+		type: Joi.array()
+			.items(Joi.string()),
+		cost: Joi.array()
+			.items(Joi.number()),
+		isActive: Joi.array()
+			.items(Joi.boolean().falsy('0').truthy('1')),
+		discountAfter: Joi.array().items(Joi.array().items(Joi.number())),
+		multiplier: Joi.array().items(Joi.array().items(Joi.number())),
+		membersOnly: Joi.array().items(Joi.array().items(Joi.boolean())),
+		membershipType: Joi.array().items(Joi.array().items(Joi.array().items(Joi.number().allow(''))))
+	})),
 	async (req, res, next) => {
-		console.log(req.body);
-
-		for (let i = 0; i < req.body.type.length; i++) {
-			const details = {
-				Name: req.body.type[i],
-				EntryCost: req.body.cost[i],
-				IsActive: req.body.isActive[i]
-			};
-
-			let type = null;
-			if (req.body.id[i] < 0) {
-				type = await req.db.EventType.create(details);
-			} else {
-				await req.db.EventType.update(details, {
-					where: {
-						id: req.body.id[i]
-					}
-				});
-				type = await req.db.EventType.findByPk(req.body.id[i]);
-			}
-
-			//clear discounts and start fresh
-			await req.db.EventTypeDiscount.destroy({
-				where: {
-					EventTypeId: type.id
-				}
-			});
-
-			for (let d = 0; d < req.body.discountAfter[i].length; d++){
-				console.log(`Found discount for type ${req.body.type[i]}: `);
-				console.log(`- Discount After: ${req.body.discountAfter[i][d]}`);
-				console.log(`- Discount Multiplier: ${req.body.multiplier[i][d]}`);
-				console.log(`- Members Only? ${req.body.membersOnly[i][d]}`);
-				console.log('- Membership types:');
-				console.log(req.body.membershipType[i][d]);
-				console.log();
-
-				const discount = {
-					DiscountAfter: req.body.discountAfter[i][d],
-					DiscountMultiplier: req.body.multiplier[i][d],
-					MembersOnly: req.body.membersOnly[i][d],
-					AllMembers: req.body.membershipType[i][d].indexOf('-1') > 0
+		await Promise.all(req.body.type.map((_, i) => {
+			return (async function(){
+				const details = {
+					Name: req.body.type[i],
+					EntryCost: req.body.cost[i],
+					IsActive: req.body.isActive[i]
 				};
 
-				await type.createEventTypeDiscount(discount);
-			}
-		}
+				let type = null;
+				if (req.body.id[i] < 0) {
+					type = await req.db.EventType.create(details);
+				} else {
+					await req.db.EventType.update(details, {
+						where: {
+							id: req.body.id[i]
+						}
+					});
+					type = await req.db.EventType.findByPk(req.body.id[i]);
+				}
+
+				//clear discounts and start fresh
+				await req.db.EventTypeDiscount.destroy({
+					where: {
+						EventTypeId: type.id
+					}
+				});
+
+				await Promise.all(req.body.discountAfter[i].map((_, d) => {
+					return (async function() {
+						const allPos = (req.body.membershipType[i][d] ?? []).indexOf(-1);
+						if (allPos > -1) {
+							req.body.membershipType[i][d].splice(allPos, 1);
+						}
+
+						const discountDetails = {
+							DiscountAfter: req.body.discountAfter[i][d],
+							DiscountMultiplier: req.body.multiplier[i][d],
+							MembersOnly: req.body.membersOnly[i][d],
+							AllMembers: allPos > -1
+						};
+
+						const discount = await type.createEventTypeDiscount(discountDetails);
+
+						if (discount.MembersOnly) {
+							await discount.addMembershipTypes(req.body.membershipType[i][d]);
+						}
+					})();
+				}));
+			})();
+		}));
 
 		return res.redirect('?saved=true');
 	});
