@@ -26,6 +26,71 @@ const checkAdmin = (req, res, next) => {
 	next();
 };
 
+function getDiscountMultiplier(num, thresholds) {
+	let multiplier = 1;
+
+	for (let i = 0; i < thresholds.length; i++) {
+		//thresholds is pre-sorted so
+		if (thresholds[i].DiscountAfter > num) {
+			return multiplier;
+		}
+
+		multiplier = thresholds[i].DiscountMultiplier;
+	}
+
+	return multiplier;
+}
+
+async function recalculateEntryFees(db, season, typeID, org) {
+	const [type, events, discount] = await Promise.all([
+		db.EventType.findByPk(typeID),
+		db.Event.findAll({
+			where: {
+				SeasonId: season,
+				EventTypeId: typeID
+			},
+			include: [{
+				model: db.EventRegistration,
+				where: {
+					OrganisationId: org
+				},
+				include: ['RegistrationFee']
+			}
+			],
+			order: [
+				['Start', 'ASC']
+			]
+		}),
+		db.EventTypeDiscount.findAll({
+			where: {
+				EventTypeId: typeID
+			},
+			order: [['DiscountAfter']]
+		})]);
+
+	let eligibleEvents = 0;
+
+	for (let i = 0; i < events.length; i++) {
+		const reg = events[i].EventRegistrations[0];
+
+		if (!reg.IsWithdrawn) {
+			eligibleEvents++;
+		}
+
+		const currFee = reg.RegistrationFee.Total;
+
+		const targetMultiplier = getDiscountMultiplier(eligibleEvents, discount);
+		const targetFee = type.EntryCost * targetMultiplier;
+
+		if (currFee != targetFee) {
+			reg.RegistrationFee.Total = targetFee;
+			reg.RegistrationFee.save();
+
+			//TODO: handle already paid!
+		}
+	}
+}
+
 function shuffleArray(array) {
 	for (let i = array.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * (i + 1));
@@ -35,7 +100,7 @@ function shuffleArray(array) {
 	return array;
 }
 
-function leagueSort(entries){
+function leagueSort(entries) {
 	entries.sort((a, b) => {
 		const aMember = a.Organisation.OrganisationMemberships;
 		const aScore = aMember.length == 0 ? 0 : aMember[0].LeagueScore;
@@ -63,11 +128,11 @@ function entrySort(array, direction) {
 	return array;
 }
 
-function splitEntries(entries, cutoff){
+function splitEntries(entries, cutoff) {
 	const late = [], regular = [];
 
 	entries.forEach(e => {
-		if (e.EntryDate > cutoff){
+		if (e.EntryDate > cutoff) {
 			late.push(e);
 		} else {
 			regular.push(e);
@@ -82,7 +147,7 @@ async function generateSchedule(req, next, eventID, config, divisionOrder) {
 		delete config.EventId; //appears this interferes with other Sequelize bits...
 	}
 
-	const event= await req.db.Event.findByPk(req.params.id);
+	const event = await req.db.Event.findByPk(req.params.id);
 
 	if (!event) {
 		return next();
@@ -151,7 +216,7 @@ async function generateSchedule(req, next, eventID, config, divisionOrder) {
 		}
 
 		let late = [], regular = div;
-		if (config.LateOnFirst){
+		if (config.LateOnFirst) {
 			[late, regular] = splitEntries(div, cutoff);
 			entrySort(late, 'desc');
 		}
@@ -403,7 +468,7 @@ router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
 
 	const addressProvided = req.body.lineOne && req.body.lineTwo && req.body.city && req.body.postcode;
 
-	if (!event.ScoresReleased && req.body.scoresReleased){
+	if (!event.ScoresReleased && req.body.scoresReleased) {
 		//we are releasing scores here - trigger league calculation
 		const [results, _] = await req.db.sequelize.query(`
 			UPDATE OrganisationMemberships om
@@ -493,7 +558,7 @@ async function loadCaption(db, parent, scoresFor = null) {
 		}
 	};
 
-	if (scoresFor != null){
+	if (scoresFor != null) {
 		criteria.include = [{
 			model: db.EventRegistrationScore,
 			where: {
@@ -777,8 +842,8 @@ router.post('/:id/organisations/withdraw/:orgID', async (req, res, next) => {
 			reg.WithdrawalFeeId = fee.id;
 		}
 	} else {
-		if (today > new Date(event.EntryCutoffDate)){
-			if (!event.AllowLateEntry){
+		if (today > new Date(event.EntryCutoffDate)) {
+			if (!event.AllowLateEntry) {
 				return res.redirect('../?error=The deadline has passed for entering this event');
 			}
 			reg.EntryDate = today;
@@ -807,6 +872,8 @@ router.post('/:id/organisations/withdraw/:orgID', async (req, res, next) => {
 
 		await generateSchedule(req, next, event.id, gen.dataValues, divs.map(d => d.DivisionId ?? -1));
 	}
+
+	await recalculateEntryFees(req.db, event.SeasonId, event.EventTypeId, org.id);
 
 	return res.redirect('../');
 });
@@ -1039,7 +1106,7 @@ router.get('/:id/scores/:current?', async (req, res, next) => {
 		]
 	});
 
-	if (!event){
+	if (!event) {
 		return next();
 	}
 
@@ -1059,13 +1126,13 @@ router.get('/:id/scores/:current?', async (req, res, next) => {
 });
 
 router.post('/:id/scores/:current', async (req, res, next) => {
-	if (req.body.registration != req.params.current){
+	if (req.body.registration != req.params.current) {
 		return next();
 	}
 
 	const [event, registration] = await Promise.all([req.db.Event.findByPk(req.params.id), req.db.EventRegistration.findByPk(req.body.registration)]);
 
-	if (!event || !registration || event.ScoresReleased){
+	if (!event || !registration || event.ScoresReleased) {
 		return next();
 	}
 
@@ -1080,7 +1147,7 @@ router.post('/:id/scores/:current', async (req, res, next) => {
 	let grandTotal = 0;
 	await Promise.all(req.body.score.map((score, index) => {
 		return (async function() {
-			if (isNaN(score) || score.trim().length == 0){
+			if (isNaN(score) || score.trim().length == 0) {
 				return;
 			}
 
@@ -1089,7 +1156,7 @@ router.post('/:id/scores/:current', async (req, res, next) => {
 			const adjustedTotal = caption.MaxScore * caption.Multiplier;
 
 			totalScore += adjustedScore;
-			if (!caption.IsOptional){
+			if (!caption.IsOptional) {
 				grandTotal += adjustedScore;
 			}
 
