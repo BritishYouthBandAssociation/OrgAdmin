@@ -20,8 +20,7 @@
 					<label :for="'cost-' + index">Entry Cost</label>
 					<div class="input-group">
 						<span class="input-group-text">&pound;</span>
-						<input type="number" min="0" step="0.01" class="form-control" name="cost[]" :id="'cost-' + index" v-model="type.EntryCost"
-							required />
+						<input type="number" min="0" step="0.01" class="form-control" name="cost[]" :id="'cost-' + index" v-model="type.EntryCost" required />
 					</div>
 				</div>
 
@@ -29,14 +28,60 @@
 					<div class="col">Is Active?</div>
 					<div class="col">
 						<div class="btn-group" role="group" aria-label="Is Active?">
-							<input type="radio" value="1" class="btn-check" :name="'isActive[' + index + ']'"
-								:id="'isActive-' + index + '-y'" autocomplete="off" :checked="type.IsActive" />
+							<input type="radio" value="1" class="btn-check" :name="'isActive[' + index + ']'" :id="'isActive-' + index + '-y'" autocomplete="off" :checked="type.IsActive" />
 							<label class="btn btn-outline-success" :for="'isActive-' + index + '-y'">Yes</label>
 
-							<input type="radio" value="0" class="btn-check" :name="'isActive[' + index + ']'"
-								:id="'isActive-' + index + '-n'" autocomplete="off" :checked="!type.IsActive">
+							<input type="radio" value="0" class="btn-check" :name="'isActive[' + index + ']'" :id="'isActive-' + index + '-n'" autocomplete="off" :checked="!type.IsActive">
 							<label class="btn btn-outline-danger" :for="'isActive-' + index + '-n'">No</label>
 						</div>
+					</div>
+				</div>
+
+				<div class="card mb-3">
+					<div class="card-header">Discounts <button type="button" class="ms-3 btn btn-default" @click="addDiscount(index)">+ Add</button>
+					</div>
+					<div class="list-group accordion-flush" :id="'discount-' + index">
+						<div class="list-group-item" v-for="(discount, i) in type.EventTypeDiscounts" :key="discount.id">
+							<div class="form-group mb-3">
+								<label :for="'discount-' + index + '-after-' + i">Discount After</label>
+								<input type="number" class="form-control" :id="'discount-' + index + '-after-' + i" v-model="discount.DiscountAfter" :name="'discountAfter[' + index + '][' + i + ']'" />
+							</div>
+							<div class="form-group mb-3">
+								<label :for="'discount-' + index + '-multiplier-' + i">Multiplier</label>
+								<input type="number" step="0.01" class="form-control" :id="'discount-' + index + '-multiplier-' + i" v-model="discount.DiscountMultiplier" :name="'multiplier[' + index + '][' + i + ']'"/>
+							</div>
+							<div class="alert alert-info text-center mb-3">After entering ${discount.DiscountAfter} shows, the new price will be ${getDiscountPrice(type, discount)}</div>
+
+							<div class="row row-cols-2 align-items-center mb-3">
+								<div class="col">Members Only?</div>
+								<div class="col">
+									<div class="btn-group" role="group" aria-label="Members Only?">
+										<input type="radio" value="true" class="btn-check" :id="'discount-' + index + '-membersOnly-' + i + '-y'" autocomplete="off" v-model="discount.MembersOnly" :name="'membersOnly[' + index + '][' + i + ']'"/>
+										<label class="btn btn-outline-success" :for="'discount-' + index + '-membersOnly-' + i + '-y'">Yes</label>
+
+										<input type="radio" value="false" class="btn-check" :id="'discount-' + index + '-membersOnly-' + i + '-n'" autocomplete="off" v-model="discount.MembersOnly" :true-value="false" :false-value="true" :name="'membersOnly[' + index + '][' + i + ']'">
+										<label class="btn btn-outline-danger" :for="'discount-' + index + '-membersOnly-' + i + '-n'">No</label>
+									</div>
+								</div>
+							</div>
+
+							<div class="form-group mb-3" v-if="discount.MembersOnly || discount.MembersOnly == 'true'">
+								<label>Membership Types</label>
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" value="-1" :id="'discount-' + index + '-type-' + i + '-all'" :name="'membershipType[' + index + '][' + i + '][]'">
+									<label class="form-check-label" :for="'discount-' + index + '-type-' + i + '-all'">All</label>
+								</div>
+								{{#each membershipTypes}}
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" value="{{id}}" :id="'discount-' + index + '-type-' + i + '-{{id}}'" :name="'membershipType[' + index + '][' + i + '][]'">
+									<label class="form-check-label" :for="'discount-' + index + '-type-' + i + '-{{id}}'">{{Name}}</label>
+								</div>
+								{{/each}}
+							</div>
+							<input type="hidden" value="" :name="'membershipType[' + index + '][' + i + '][]'" v-else />
+
+						</div>
+
 					</div>
 				</div>
 			</div>
@@ -53,6 +98,7 @@
 	let id = 0;
 
 	const app = new Vue({
+		delimiters: ['${', '}'],
 		el: '#app',
 		data: {
 			types: {{{ json types }}}
@@ -64,12 +110,37 @@
 				Name: "",
 				EntryCost: 0,
 				IsActive: true,
+				EventTypeDiscounts: []
 			});
 
 			// scroll to the bottom of the page
 			Vue.nextTick(() => {
 				document.getElementById(`type-${id}`).scrollIntoView(true);
 			});
+		},
+
+		addDiscount(index){
+			this.types[index].EventTypeDiscounts.push({
+				id: --id,
+				DiscountAfter: 0,
+				DiscountMultiplier: 1,
+				MembersOnly: 'true',
+				IsFresh: true
+			});
+		},
+
+		getDiscountPrice(type, discount){
+			if (type.EntryCost && discount.DiscountMultiplier) {
+				const reduction = Math.round((1 - discount.DiscountMultiplier) * 100);
+				const newCost = (type.EntryCost * discount.DiscountMultiplier).toFixed(2);
+				return `£${newCost} (${reduction}% discount)`;
+			}
+
+			return "(not set)";
+		},
+
+		removeDiscount(index, discount){
+			this.types[index].EventTypeDiscounts.splice(discount, 1);
 		}
 	}
 	})
