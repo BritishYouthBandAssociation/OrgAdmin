@@ -19,16 +19,16 @@ Vue.component('caption-selector', {
 
 			<div class="form-group mb-3">
 				<label :for="'multiplier-' + caption.id">Multiplier</label>
-				<input type="number" class="form-control" :id="'multiplier-' + caption.id" v-model="caption.Multiplier" step="0.01"/>
+				<input type="number" class="form-control" :id="'multiplier-' + caption.id" v-model="caption.Multiplier" step="0.01" @change="setMultiplier"/>
 			</div>
 
 			<div class="form-group mb-3">
 				<label :for="'optional-' + caption.id">Is Optional?</label>
 				<div class="btn-group" role="group" aria-label="Is Optional?">
-					<input type="radio" value="true" class="btn-check" :name="'optional-' + caption.id" :id="'optional-y-' + caption.id" autocomplete="off" v-model="caption.IsOptional">
+					<input type="radio" value="true" class="btn-check" :name="'optional-' + caption.id" :id="'optional-y-' + caption.id" autocomplete="off" v-model="caption.IsOptional" @change="setOptional(true)">
 					<label class="btn btn-outline-success" :for="'optional-y-' + caption.id">Yes</label>
 
-					<input type="radio" value="false" class="btn-check" :name="'optional-' + caption.id" :id="'optional-n-' + caption.id" autocomplete="off" v-model="caption.IsOptional">
+					<input type="radio" value="false" class="btn-check" :name="'optional-' + caption.id" :id="'optional-n-' + caption.id" autocomplete="off" v-model="caption.IsOptional" @change="setOptional(false)">
 					<label class="btn btn-outline-danger" :for="'optional-n-' + caption.id">No</label>
 				</div>
 			</div>
@@ -36,7 +36,7 @@ Vue.component('caption-selector', {
 			<button class="btn btn-default mb-3" type="button" v-on:click="addCaption">+ Add</button>
 
 			<div class="row row-cols-1 row-cols-lg-2">
-				<caption-selector v-for="c in caption.Subcaptions" :key="c.id" :caption="c" />
+				<caption-selector v-for="c in caption.Subcaptions" :key="c.id" :caption="c" ref="subcaption"/>
 			</div>
 		</div>
 	</div>
@@ -55,6 +55,24 @@ Vue.component('caption-selector', {
 			Vue.nextTick(() => {
 				document.getElementById(`caption-${id}`).scrollIntoView(true);
 			});
+		},
+
+		setOptional(val){
+			this.caption.IsOptional = val;
+
+			if (val && this.$refs.subcaption){
+				this.$refs.subcaption.forEach(s => s.setOptional(val));
+			}
+		},
+
+		setMultiplier(val){
+			if (!isNaN(val)){
+				this.caption.Multiplier = val;
+			}
+
+			if (this.$refs.subcaption){
+				this.$refs.subcaption.forEach(s => s.setMultiplier(this.caption.Multiplier));
+			}
 		}
 	},
 	computed: {

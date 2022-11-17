@@ -35,7 +35,11 @@
 		</div>
 	</div>
 	<div class="col mb-3">
-		<!-- add scores link here :) -->
+		<div class="card text-center {{#if hasScores}}bg-success{{else}}bg-danger{{/if}} h-100">
+			<div class="card-body">
+				<a class="stretched-link fs-2 text-white text-decoration-none" href="scores/">Scores &gt;</a>
+			</div>
+		</div>
 	</div>
 </div>
 
@@ -154,6 +158,17 @@
 					<input type='date' class='form-control' id='freeWithdrawalCutoff' name='freeWithdrawalCutoff'
 						placeholder='Free Withdrawal Cutoff' value='{{event.FreeWithdrawalCutoffDate}}' {{#unless
 						session.user.IsAdmin}}readonly{{/unless}} />
+				</div>
+
+				<p>Allow Late Entries?</p>
+				<div class="btn-group" role="group" aria-label="Allow Late Entries?">
+					<input type="radio" value="1" class="btn-check" name="lateEntry" id="lateEntry-y"
+						autocomplete="off" {{#if event.AllowLateEntry}}checked{{/if}}>
+					<label class="btn btn-outline-success" for="lateEntry-y">Yes</label>
+
+					<input type="radio" value="0" class="btn-check" name="lateEntry" id="lateEntry-n"
+						autocomplete="off" {{#unless event.AllowLateEntry}}checked{{/unless}}>
+					<label class="btn btn-outline-danger" for="lateEntry-n">No</label>
 				</div>
 
 				{{#if session.user.IsAdmin}}

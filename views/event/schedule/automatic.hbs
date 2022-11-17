@@ -5,6 +5,11 @@
 <div class="alert alert-danger text-center">Automatic schedule generation is only supported for events with entries.
 	Please use the <a href="manual">manual schedule generation tool</a> instead</div>
 {{else}}
+
+	{{#if hasUnregistered}}
+		<div class="alert alert-warning text-center">This event includes bands that are not in membership - these are not included in the league divisions and do not have a league score</div>
+	{{/if}}
+
 <form method="post" id="app">
 	<div class="row row-cols-1 row-cols-lg-2">
 		<div class="col mb-3">
@@ -48,6 +53,10 @@
 						value="entry-desc" required>
 					<label class="btn btn-outline-success mb-3" for="entryDescGen">Entry Order (Last Entry
 						First)</label>
+
+						<input type="radio" class="btn-check" name="type" id="league" autocomplete="off"
+						value="league" required>
+					<label class="btn btn-outline-success mb-3" for="league">League Score</label>
 				</div>
 			</div>
 		</div>
@@ -75,7 +84,7 @@
 					</div>
 				</div>
 
-				<div class="card" v-if="addBreaks == 1">
+				<div class="card mb-3" v-if="addBreaks == 1">
 					<div class="card-header">Break Config</div>
 					<div class="card-body">
 						<div class="form-group mb-3">
@@ -94,6 +103,21 @@
 						</div>
 					</div>
 				</div>
+
+				{{#if event.AllowLateEntry}}
+					<div class="form-group mb-3">
+					<label>Late Entries On First?</label>
+					<div class="btn-group" role="group" aria-label="Add Breaks?">
+						<input type="radio" value="1" class="btn-check" name="lateEntry" id="lateEntry-y" autocomplete="off">
+						<label class="btn btn-outline-success" for="lateEntry-y">Yes</label>
+
+						<input type="radio" value="0" class="btn-check" name="lateEntry" id="lateEntry-n" autocomplete="off" checked>
+						<label class="btn btn-outline-danger" for="lateEntry-n">No</label>
+					</div>
+				</div>
+				{{else}}
+					<div class="alert alert-info text-center">Late entries not allowed</div>
+				{{/if}}
 
 			</div>
 		</div>

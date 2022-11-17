@@ -26,6 +26,71 @@ const checkAdmin = (req, res, next) => {
 	next();
 };
 
+function getDiscountMultiplier(num, thresholds) {
+	let multiplier = 1;
+
+	for (let i = 0; i < thresholds.length; i++) {
+		//thresholds is pre-sorted so
+		if (thresholds[i].DiscountAfter > num) {
+			return multiplier;
+		}
+
+		multiplier = thresholds[i].DiscountMultiplier;
+	}
+
+	return multiplier;
+}
+
+async function recalculateEntryFees(db, season, typeID, org) {
+	const [type, events, discount] = await Promise.all([
+		db.EventType.findByPk(typeID),
+		db.Event.findAll({
+			where: {
+				SeasonId: season,
+				EventTypeId: typeID
+			},
+			include: [{
+				model: db.EventRegistration,
+				where: {
+					OrganisationId: org
+				},
+				include: ['RegistrationFee']
+			}
+			],
+			order: [
+				['Start', 'ASC']
+			]
+		}),
+		db.EventTypeDiscount.findAll({
+			where: {
+				EventTypeId: typeID
+			},
+			order: [['DiscountAfter']]
+		})]);
+
+	let eligibleEvents = 0;
+
+	for (let i = 0; i < events.length; i++) {
+		const reg = events[i].EventRegistrations[0];
+
+		if (!reg.IsWithdrawn) {
+			eligibleEvents++;
+		}
+
+		const currFee = reg.RegistrationFee.Total;
+
+		const targetMultiplier = getDiscountMultiplier(eligibleEvents, discount);
+		const targetFee = type.EntryCost * targetMultiplier;
+
+		if (currFee != targetFee) {
+			reg.RegistrationFee.Total = targetFee;
+			reg.RegistrationFee.save();
+
+			//TODO: handle already paid!
+		}
+	}
+}
+
 function shuffleArray(array) {
 	for (let i = array.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * (i + 1));
@@ -33,6 +98,20 @@ function shuffleArray(array) {
 	}
 
 	return array;
+}
+
+function leagueSort(entries) {
+	entries.sort((a, b) => {
+		const aMember = a.Organisation.OrganisationMemberships;
+		const aScore = aMember.length == 0 ? 0 : aMember[0].LeagueScore;
+
+		const bMember = b.Organisation.OrganisationMemberships;
+		const bScore = bMember.length == 0 ? 0 : bMember[0].LeagueScore;
+
+		return aScore - bScore;
+	});
+
+	return entries;
 }
 
 function entrySort(array, direction) {
@@ -49,27 +128,54 @@ function entrySort(array, direction) {
 	return array;
 }
 
+function splitEntries(entries, cutoff) {
+	const late = [], regular = [];
+
+	entries.forEach(e => {
+		if (e.EntryDate > cutoff) {
+			late.push(e);
+		} else {
+			regular.push(e);
+		}
+	});
+
+	return [late, regular];
+}
+
 async function generateSchedule(req, next, eventID, config, divisionOrder) {
 	if (config.EventId) {
 		delete config.EventId; //appears this interferes with other Sequelize bits...
 	}
 
-	const [event, entries] = await Promise.all([req.db.Event.findByPk(req.params.id),
-		req.db.EventRegistration.findAll({
-			include: [
-				req.db.Organisation,
-				req.db.Division
-			],
-			where: {
-				EventId: eventID,
-				IsWithdrawn: false
-			}
-		})
-	]);
+	const event = await req.db.Event.findByPk(req.params.id);
 
 	if (!event) {
 		return next();
 	}
+
+	const entries = await req.db.EventRegistration.findAll({
+		include: [
+			{
+				model: req.db.Organisation,
+				include: [{
+					model: req.db.OrganisationMembership,
+					include: [{
+						model: req.db.Membership,
+						where: {
+							SeasonId: event.SeasonId
+						},
+						required: false
+					}]
+				}]
+			},
+			req.db.Division,
+			req.db.Event
+		],
+		where: {
+			EventId: eventID,
+			IsWithdrawn: false
+		}
+	});
 
 	const registrations = {};
 	entries.forEach(e => {
@@ -100,18 +206,30 @@ async function generateSchedule(req, next, eventID, config, divisionOrder) {
 	time.setMinutes(parseInt(parts[1]) - time.getTimezoneOffset());
 	time.setSeconds(0);
 
+	const cutoff = new Date(event.EntryCutoffDate);
+
 	for (let i = 0; i < divisionOrder.length; i++) {
-		const div = registrations[divisionOrder[i]];
+		let div = registrations[divisionOrder[i]];
 		if (!div || div.length === 0) {
 			//we may have withdrawn the last band for this division
 			continue;
 		}
 
-		if (config.Type.indexOf('entry') > -1) {
-			entrySort(div, config.Type.split('-')[1]);
-		} else {
-			shuffleArray(div);
+		let late = [], regular = div;
+		if (config.LateOnFirst) {
+			[late, regular] = splitEntries(div, cutoff);
+			entrySort(late, 'desc');
 		}
+
+		if (config.Type.indexOf('entry') > -1) {
+			entrySort(regular, config.Type.split('-')[1]);
+		} else if (config.Type == 'league') {
+			leagueSort(regular);
+		} else {
+			shuffleArray(regular);
+		}
+
+		div = late.concat(regular);
 
 		await gen.createScheduleDivision({
 			DivisionId: divisionOrder[i] == -1 ? null : divisionOrder[i],
@@ -250,7 +368,8 @@ router.post('/new', validator.body(Joi.object({
 		Start: req.body.start,
 		End: req.body.end,
 		Slug: slug,
-		SeasonId: req.body.season
+		SeasonId: req.body.season,
+		AllowLateEntry: true
 	});
 
 	await event.setEventType(eventType);
@@ -259,7 +378,8 @@ router.post('/new', validator.body(Joi.object({
 });
 
 router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
-	saved: Joi.boolean()
+	saved: Joi.boolean(),
+	error: Joi.string()
 })), async (req, res, next) => {
 	const [event, types, entries] = await Promise.all([
 		req.db.Event.findByPk(req.params.id, {
@@ -267,7 +387,6 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 				req.db.Address,
 				req.db.EventType,
 				req.db.EventCaption,
-				req.db.Organisation,
 				req.db.EventSchedule
 			]
 		}),
@@ -288,6 +407,13 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 		return next();
 	}
 
+	const missingScore = await req.db.EventRegistration.findOne({
+		where: {
+			EventId: event.id,
+			TotalScore: null
+		}
+	});
+
 	return res.render('event/view.hbs', {
 		title: event.Name,
 		event,
@@ -296,7 +422,9 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 		judgesAssigned: event.EventCaptions?.filter(ec => ec.JudgeId != null).length ?? 0,
 		organisationsRegistered: entries,
 		saved: req.query.saved ?? false,
-		hasSchedule: event.EventSchedules.length > 0
+		hasSchedule: event.EventSchedules.length > 0,
+		hasScores: !missingScore,
+		error: req.query.error
 	});
 });
 
@@ -340,6 +468,37 @@ router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
 
 	const addressProvided = req.body.lineOne && req.body.lineTwo && req.body.city && req.body.postcode;
 
+	if (!event.ScoresReleased && req.body.scoresReleased) {
+		//we are releasing scores here - trigger league calculation
+		const [results, _] = await req.db.sequelize.query(`
+			UPDATE OrganisationMemberships om
+			INNER JOIN Organisations o ON o.id = om.OrganisationId
+			INNER JOIN EventRegistrations er ON er.OrganisationId = o.id
+			
+			SET LeagueScore = (
+				SELECT SUM(TotalScore) / 2
+				FROM
+				(
+					SELECT cast(TotalScore as decimal(10, 5)) AS TotalScore
+					FROM EventRegistrations
+					INNER JOIN Events e ON e.id = EventRegistrations.EventId
+					WHERE OrganisationId = o.id
+					AND e.SeasonId = e.SeasonId
+					AND IFNULL(TotalScore, -1) > 0
+					AND IsWithdrawn = 0
+					LIMIT 2
+				) scores
+			)
+			
+			WHERE er.EventId = :eventID
+			AND er.IsWithdrawn = 0;
+		`, {
+			replacements: {
+				eventID: event.id
+			}
+		});
+	}
+
 	await event.update({
 		Name: req.body.name,
 		Type: req.body.type,
@@ -374,7 +533,8 @@ router.post('/:id/registration', validator.params(idParamSchema), validator.body
 	registrationCutoff: Joi.date()
 		.required(),
 	freeWithdrawalCutoff: Joi.date()
-		.required()
+		.required(),
+	lateEntry: Joi.boolean().required().truthy('1').falsy('0')
 })), async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id);
 
@@ -385,17 +545,30 @@ router.post('/:id/registration', validator.params(idParamSchema), validator.body
 	await event.update({
 		EntryCutoffDate: req.body.registrationCutoff,
 		FreeWithdrawalCutoffDate: req.body.freeWithdrawalCutoff,
+		AllowLateEntry: req.body.lateEntry
 	});
 
 	return res.redirect('./?saved=true');
 });
 
-async function loadCaption(db, parent) {
-	parent.Subcaptions = await db.findAll({
+async function loadCaption(db, parent, scoresFor = null) {
+	const criteria = {
 		where: {
 			ParentID: parent.id
 		}
-	});
+	};
+
+	if (scoresFor != null) {
+		criteria.include = [{
+			model: db.EventRegistrationScore,
+			where: {
+				EventRegistrationId: scoresFor
+			},
+			required: false
+		}];
+	}
+
+	parent.Subcaptions = await db.Caption.findAll(criteria);
 
 	await Promise.all(parent.Subcaptions.map(s => {
 		return loadCaption(db, s);
@@ -453,7 +626,7 @@ router.get('/:id/judges', validator.params(idParamSchema), validator.query(Joi.o
 
 	//load the rest
 	await Promise.all(captionData.map(c => {
-		return loadCaption(req.db.Caption, c);
+		return loadCaption(req.db, c);
 	}));
 
 	let captions = [];
@@ -474,9 +647,9 @@ router.post('/:id/judges', validator.params(idParamSchema), validator.body(Joi.o
 		.items(Joi.number()),
 	// eslint-disable-next-line camelcase
 	judge_search: Joi.array()
-		.items(Joi.string()),
+		.items(Joi.string().allow('')),
 	judge: Joi.array()
-		.items(Joi.string().uuid())
+		.items(Joi.string().uuid().allow(''))
 })), async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id);
 
@@ -486,7 +659,7 @@ router.post('/:id/judges', validator.params(idParamSchema), validator.body(Joi.o
 
 	await Promise.all(req.body.judge.map((j, index) => {
 		if (j.trim().length === 0) {
-			return null;
+			j = null;
 		}
 
 		return req.db.EventCaption.update({
@@ -539,7 +712,7 @@ router.post('/:id/judges/reset', validator.params(idParamSchema), async (req, re
 
 	//load the rest
 	await Promise.all(captionData.map(c => {
-		return loadCaption(req.db.Caption, c);
+		return loadCaption(req.db, c);
 	}));
 
 	const captions = [];
@@ -619,7 +792,7 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 
 		r.HasAdminAccess = req.session.user.IsAdmin || req.session.band?.id === r.Organisation.id;
 		r.CanWithdraw = now < event.Start;
-		r.CanReinstate = now < (event.EntryCutoffDate ?? event.Start);
+		r.CanReinstate = now < (event.EntryCutoffDate ?? event.Start) || event.AllowLateEntry;
 
 		sortedRegistrations[divisionName].push(r);
 	});
@@ -657,8 +830,8 @@ router.post('/:id/organisations/withdraw/:orgID', async (req, res, next) => {
 
 	const withdraw = !reg.IsWithdrawn;
 
+	const today = new Date();
 	if (withdraw) {
-		const today = new Date();
 		const freeWithdrawal = new Date(event.FreeWithdrawalCutoffDate);
 
 		if (today > freeWithdrawal && !reg.WithdrawalFeeId) {
@@ -669,7 +842,12 @@ router.post('/:id/organisations/withdraw/:orgID', async (req, res, next) => {
 			reg.WithdrawalFeeId = fee.id;
 		}
 	} else {
-		reg.EntryDate = new Date();
+		if (today > new Date(event.EntryCutoffDate)) {
+			if (!event.AllowLateEntry) {
+				return res.redirect('../?error=The deadline has passed for entering this event');
+			}
+			reg.EntryDate = today;
+		}
 
 		if (reg.WithdrawalFee && !reg.WithdrawalFee.IsPaid) {
 			await req.db.Fee.destroy({
@@ -694,6 +872,8 @@ router.post('/:id/organisations/withdraw/:orgID', async (req, res, next) => {
 
 		await generateSchedule(req, next, event.id, gen.dataValues, divs.map(d => d.DivisionId ?? -1));
 	}
+
+	await recalculateEntryFees(req.db, event.SeasonId, event.EventTypeId, org.id);
 
 	return res.redirect('../');
 });
@@ -835,17 +1015,38 @@ router.get('/:id/schedule/automatic', checkAdmin, async (req, res, next) => {
 				attributes: ['Name', 'id']
 			}],
 			where: {
-				EventId: req.params.id
+				EventId: req.params.id,
+				IsWithdrawn: false
 			},
 			group: ['DivisionId']
 		}),
 		req.db.EventRegistration.count({
 			where: {
-				EventId: req.params.id
+				EventId: req.params.id,
+				IsWithdrawn: false
 			}
-		})]);
+		}),
+		req.db.sequelize.query(`
+			SELECT 1
+			FROM EventRegistrations er
+			INNER JOIN Events e ON e.id = er.EventId
+			WHERE er.EventID = :eventID
+			AND er.IsWithdrawn = 0
+			AND NOT EXISTS (
+				SELECT 1
+				FROM OrganisationMemberships om
+				INNER JOIN Memberships m ON m.id = om.MembershipId
+				WHERE om.OrganisationId = er.OrganisationId
+				AND m.SeasonId = e.SeasonId
+			)
+		`, {
+			replacements: {
+				eventID: req.params.id
+			}
+		})
+	]);
 
-	const [event, , entries] = result;
+	const [event, , entries, [hasUnregistered]] = result;
 	let [, divisions] = result;
 
 	if (!event) {
@@ -859,6 +1060,7 @@ router.get('/:id/schedule/automatic', checkAdmin, async (req, res, next) => {
 		event,
 		divisions,
 		entries,
+		hasUnregistered,
 		saved: req.query.saved ?? false
 	});
 });
@@ -870,7 +1072,8 @@ router.post('/:id/schedule/automatic', checkAdmin, validator.body(Joi.object({
 	breaks: Joi.number(),
 	breakNum: Joi.number(),
 	breakFrequency: Joi.string(),
-	breakLength: Joi.number()
+	breakLength: Joi.number(),
+	lateEntry: Joi.boolean().truthy('1').falsy('0')
 })), async (req, res, next) => {
 	await generateSchedule(req, next, req.params.id, {
 		Type: req.body.type,
@@ -878,10 +1081,101 @@ router.post('/:id/schedule/automatic', checkAdmin, validator.body(Joi.object({
 		AddBreaks: req.body.breaks == 1,
 		BreakNum: req.body.breakNum,
 		BreakType: req.body.breakFrequency,
-		BreakLength: parseInt(req.body.breakLength)
+		BreakLength: parseInt(req.body.breakLength),
+		LateOnFirst: req.body.lateEntry
 	}, req.body.division);
 
 	return res.redirect('manual?saved=true');
+});
+
+router.get('/:id/scores/:current?', async (req, res, next) => {
+	const event = await req.db.Event.findByPk(req.params.id, {
+		include: [{
+			model: req.db.EventRegistration,
+			where: {
+				IsWithdrawn: false
+			},
+			include: [req.db.Organisation]
+		},
+		{
+			model: req.db.EventCaption,
+			include: [req.db.Caption, req.db.User]
+		}],
+		order: [
+			[req.db.EventRegistration, 'TotalScore']
+		]
+	});
+
+	if (!event) {
+		return next();
+	}
+
+	await Promise.all(event.EventCaptions.map(ec => {
+		return loadCaption(req.db, ec.Caption, req.params.current);
+	}));
+
+	const currentRegistration = event.EventRegistrations.find(x => x.id == req.params.current);
+
+	return res.render('event/add-scores', {
+		title: `${event.Name} Scores`,
+		event,
+		earlyScore: event.Start > new Date(),
+		currentRegistration,
+		canEdit: !event.ScoresReleased
+	});
+});
+
+router.post('/:id/scores/:current', async (req, res, next) => {
+	if (req.body.registration != req.params.current) {
+		return next();
+	}
+
+	const [event, registration] = await Promise.all([req.db.Event.findByPk(req.params.id), req.db.EventRegistration.findByPk(req.body.registration)]);
+
+	if (!event || !registration || event.ScoresReleased) {
+		return next();
+	}
+
+	//clear off scores, ready to go again!
+	await req.db.EventRegistrationScore.destroy({
+		where: {
+			EventRegistrationId: req.body.registration
+		}
+	});
+
+	let totalScore = 0;
+	let grandTotal = 0;
+	await Promise.all(req.body.score.map((score, index) => {
+		return (async function() {
+			if (isNaN(score) || score.trim().length == 0) {
+				return;
+			}
+
+			const caption = await req.db.Caption.findByPk(req.body.caption[index]);
+			const adjustedScore = score * caption.Multiplier;
+			const adjustedTotal = caption.MaxScore * caption.Multiplier;
+
+			totalScore += adjustedScore;
+			if (!caption.IsOptional) {
+				grandTotal += adjustedScore;
+			}
+
+			await req.db.EventRegistrationScore.create({
+				EventRegistrationId: req.body.registration,
+				CaptionId: caption.id,
+				RawScore: score,
+				RawMax: caption.MaxScore,
+				AdjustedScore: adjustedScore,
+				AdjustedMax: adjustedTotal,
+				AdjustmentMultiplier: caption.Multiplier
+			});
+		})();
+	}));
+
+	registration.TotalScore = grandTotal / 10.0;
+	await registration.save();
+
+	return res.redirect('?saved=true');
 });
 
 module.exports = {

@@ -95,15 +95,37 @@
 				</div>
 			</div>
 
-			{{!-- <div class="col mb-3">
+			<div class="col mb-3">
 				<div class="card h-100">
 					<div class="card-header">Your Recent Results</div>
 					<div class="card-body">
+						{{#eq scores.length 0}}
 						<div class="alert alert-info text-center">You have not recorded any results in the current
 							season</div>
+							{{else}}
+							<div class="list-group mb-3">
+							{{#each scores}}
+							<div class="list-group-item list-group-item-action">
+								<div class="row row-cols-1 row-cols-lg-2">
+									<div class="col mb-3">
+										<h3>{{Event.Name}}</h3>
+										<p><i>{{date Event.Start}}, {{time Event.Start}}</i></p>
+										{{#with Event.Address}}
+										<p><i>{{Line1}}, {{City}}</i></p>
+										{{/with}}
+										<p>Judging {{Caption.Name}}</p>
+									</div>
+									<div class="col mb-3 d-flex align-items-center justify-content-center">
+										<a class="stretched-link" href="event/{{Event.id}}/scores">View Event Details</a>
+									</div>
+								</div>
+							</div>
+							{{/each}}
+						</div>
+						{{/eq}}
 					</div>
 				</div>
-			</div> --}}
+			</div>
 		</div>
 	</div>
 </div>

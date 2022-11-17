@@ -147,45 +147,99 @@ router.post('/organisation-type', checkAdmin, validator.body(Joi.object({
 router.get('/event-type', checkAdmin, validator.query(Joi.object({
 	saved: Joi.boolean()
 })), async (req, res, next) => {
-	const types = await req.db.EventType.findAll();
+	const [types, membershipTypes] = await Promise.all([req.db.EventType.findAll({
+		include: [{
+			model: req.db.EventTypeDiscount,
+			include: [req.db.MembershipType]
+		}],
+		order: [
+			['id'],
+			[req.db.EventTypeDiscount, 'DiscountAfter']
+		]
+	}), req.db.MembershipType.findAll({
+		where: {
+			IsOrganisation: true,
+			IsActive: true
+		}
+	})]);
 
 	return res.render('config/event-type.hbs', {
 		title: 'Event Types',
-		types: types,
+		types,
+		membershipTypes,
 		saved: req.query.saved ?? false
 	});
 });
 
-router.post('/event-type', checkAdmin, validator.body(Joi.object({
-	id: Joi.array()
-		.items(Joi.number()),
-	type: Joi.array()
-		.items(Joi.string()),
-	cost: Joi.array()
-		.items(Joi.number()),
-	isActive: Joi.array()
-		.items(Joi.boolean().falsy('0').truthy('1')),
-})), async (req, res, next) => {
-	await Promise.all(req.body.type.map((type, i) => {
-		const details = {
-			Name: req.body.type[i],
-			EntryCost: req.body.cost[i],
-			IsActive: req.body.isActive[i]
-		};
+router.post('/event-type', checkAdmin,
+	validator.body(Joi.object({
+		id: Joi.array()
+			.items(Joi.number()),
+		type: Joi.array()
+			.items(Joi.string()),
+		cost: Joi.array()
+			.items(Joi.number()),
+		isActive: Joi.array()
+			.items(Joi.boolean().falsy('0').truthy('1')),
+		discountAfter: Joi.array().items(Joi.array().items(Joi.number())),
+		multiplier: Joi.array().items(Joi.array().items(Joi.number())),
+		membersOnly: Joi.array().items(Joi.array().items(Joi.boolean())),
+		membershipType: Joi.array().items(Joi.array().items(Joi.array().items(Joi.number().allow(''))))
+	})),
+	async (req, res, next) => {
+		await Promise.all(req.body.type.map((_, i) => {
+			return (async function(){
+				const details = {
+					Name: req.body.type[i],
+					EntryCost: req.body.cost[i],
+					IsActive: req.body.isActive[i]
+				};
 
-		if (req.body.id[i] < 0) {
-			return req.db.EventType.create(details);
-		}
+				let type = null;
+				if (req.body.id[i] < 0) {
+					type = await req.db.EventType.create(details);
+				} else {
+					await req.db.EventType.update(details, {
+						where: {
+							id: req.body.id[i]
+						}
+					});
+					type = await req.db.EventType.findByPk(req.body.id[i]);
+				}
 
-		return req.db.EventType.update(details, {
-			where: {
-				id: req.body.id[i]
-			}
-		});
-	}));
+				//clear discounts and start fresh
+				await req.db.EventTypeDiscount.destroy({
+					where: {
+						EventTypeId: type.id
+					}
+				});
 
-	return res.redirect('?saved=true');
-});
+				await Promise.all(req.body.discountAfter[i].map((_, d) => {
+					return (async function() {
+						const allPos = (req.body.membershipType[i][d] ?? []).indexOf(-1);
+						if (allPos > -1) {
+							req.body.membershipType[i][d].splice(allPos, 1);
+						}
+
+						const discountDetails = {
+							DiscountAfter: req.body.discountAfter[i][d],
+							DiscountMultiplier: req.body.multiplier[i][d],
+							MembersOnly: req.body.membersOnly[i][d],
+							AllMembers: allPos > -1
+						};
+
+						const discount = await type.createEventTypeDiscount(discountDetails);
+
+						if (discount.MembersOnly) {
+							await discount.addMembershipTypes(req.body.membershipType[i][d]);
+						}
+					})();
+				}));
+			})();
+		}));
+
+		return res.redirect('?saved=true');
+	});
 
 router.get('/payment-type', checkAdmin, validator.query(Joi.object({
 	saved: Joi.boolean()
@@ -275,7 +329,7 @@ router.post('/division', checkAdmin, validator.body(Joi.object({
 	return res.redirect('?saved=true');
 });
 
-async function loadCaption(db, parent){
+async function loadCaption(db, parent) {
 	parent.Subcaptions = await db.findAll({
 		where: {
 			ParentID: parent.id
@@ -320,7 +374,7 @@ async function saveCaption(db, caption, parent) {
 		ParentID: parent
 	};
 
-	if (caption.id < 0){
+	if (caption.id < 0) {
 		const _new = await db.create(details);
 
 		caption.id = _new.id;

@@ -31,6 +31,9 @@ Vue.component('search-box', {
 		doSearch(e) {
 			this.$data._text = e.target.value; //mobile workaround
 
+			//we've changed the text, so should clear any previously-selected value
+			this.$data._value = null;
+
 			if (this.$data._text.length < 3) {
 				this.results = [];
 				this.noneFound = false;
