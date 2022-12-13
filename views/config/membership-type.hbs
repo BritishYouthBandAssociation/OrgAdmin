@@ -25,6 +25,11 @@
 					</div>
 				</div>
 
+				<div class="form-group mb-3">
+					<label :for="'import-' + index">Import ID</label>
+						<input type="number" class="form-control" name="import[]" :id="'import-' + index" v-model="type.LinkedImportId"/>
+				</div>
+
 				<div class="row row-cols-2 align-items-center mb-3">
 					<div class="col">Is Organisation?</div>
 					<div class="col">

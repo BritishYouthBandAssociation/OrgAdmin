@@ -58,6 +58,7 @@ router.post('/membership-type', checkAdmin, validator.body(Joi.object({
 		.items(Joi.boolean().falsy('0').truthy('1')),
 	isOrganisation: Joi.array()
 		.items(Joi.boolean().falsy('0').truthy('1')),
+	import: Joi.array().items(Joi.number().allow(''))
 })), async (req, res, next) => {
 	for (let i = 0; i < req.body.type.length; i++) {
 		let labelID = req.body.lbl[i];
@@ -88,6 +89,10 @@ router.post('/membership-type', checkAdmin, validator.body(Joi.object({
 			Cost: req.body.cost[i],
 			LabelId: labelID
 		};
+
+		if (req.body.import[i]){
+			details.LinkedImportId = req.body.import[i];
+		}
 
 		if (req.body.id[i] < 0) {
 			await req.db.MembershipType.create(details);
