@@ -4,6 +4,7 @@
 const express = require('express');
 const Joi = require('joi');
 const { Op } = require('sequelize');
+const { helpers } = require(global.__lib);
 
 const validator = require('@byba/express-validator');
 
@@ -293,13 +294,142 @@ router.post('/import-prep', validator.body(Joi.object({
 	config.Key = req.body.key;
 	config.Secret = req.body.secret;
 
-	if (found){
+	if (found) {
 		await config.save();
 	} else {
 		await req.db.WooCommerceImportConfig.create(config);
 	}
 
 	res.redirect('import');
+});
+
+router.get('/import', async (req, res) => {
+	if (!req.session.user.IsAdmin) {
+		return res.redirect('/no-access');
+	}
+
+	const [config, season, membershipTypes] = await Promise.all([req.db.WooCommerceImportConfig.findOne(), req.db.Season.findOne({
+		where: {
+			Start: {
+				[Op.lte]: Date.now()
+			},
+			End: {
+				[Op.gte]: Date.now()
+			}
+		}
+	}), req.db.MembershipType.findAll({
+		where: {
+			LinkedImportId: {
+				[Op.ne]: null
+			},
+			IsActive: true
+		}
+	})]);
+
+	if (!season) {
+		return res.redirect('/config/season?needsSeason=true&next=/membership/import');
+	}
+
+	if (!config) {
+		return res.redirect('import-prep');
+	}
+
+	const products = membershipTypes.map(m => {
+		return {
+			ExternalId: m.LinkedImportId,
+			id: m.id,
+			IsOrganisation: m.IsOrganisation
+		};
+	});
+
+	let url = `${config.Domain}wp-json/wc/v3/orders?after=${season.Start.toISOString()}&per_page=50`;
+	if (products.length === 1) {
+		url += `&product=${products[0].ExternalId}`;
+	}
+
+	console.log(url);
+
+	const data = await fetch(url, {
+		headers: {
+			Authorization: 'Basic ' + Buffer.from(`${config.Key}:${config.Secret}`).toString('base64')
+		}
+	}).then(res => res.json());
+
+	console.log(data);
+
+	await Promise.all(data.map(order => {
+		return (async function() {
+			//these are hardcoded to the BYBA site because it's not really possible otherwise :/
+			console.log(`Processing order #${order.id}`);
+
+			const contact = {
+				Email: order.billing.email,
+				FirstName: order.billing.first_name,
+				Surname: order.billing.last_name,
+				IsActive: true,
+				IsAdmin: false,
+				Password: `BYBA@${season.Identifier}`
+			};
+
+			console.log('Extracted contact details');
+			console.log(contact);
+
+			let contactMatch = await req.db.User.findOne({
+				where: {
+					Email: contact.Email
+				}
+			});
+
+			if (contactMatch) {
+				console.log('Matched to existing user');
+			} else {
+				console.log('Creating user!');
+				contactMatch = await req.db.User.create(contact);
+			}
+
+			console.log(contactMatch);
+
+			await Promise.all(order.line_items.map(item => {
+				return (async function() {
+					const match = products.find(p => p.ExternalId == item.product_id);
+					if (!match) {
+						console.log(`${item.product_id} is not mapped to a membership type - skipping...`);
+						return;
+					}
+
+					if (match.IsOrganisation) {
+						console.log('Org!');
+
+						const orgName = order.meta_data.find(m => m.key == '_billing_wooccm13').value;
+						const org = {
+							Name: orgName,
+							Slug: helpers.SlugHelper.formatSlug(orgName),
+							Description: ''
+						};
+						console.log(org);
+
+						let matchedOrg = await req.db.Organisation.findOne({
+							where: {
+								Slug: org.Slug
+							}
+						});
+
+						if (matchedOrg) {
+							console.log('Matched to existing organisation!');
+						} else {
+							console.log('Creating Organisation!');
+							matchedOrg = await req.db.Organisation.create(org);
+						}
+
+						console.log(matchedOrg);
+					}
+				})();
+			}));
+			console.log();
+		})();
+	}));
+
+	res.send(data);
 });
 
 router.get('/:id', validator.params(Joi.object({
