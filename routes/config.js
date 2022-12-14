@@ -87,12 +87,9 @@ router.post('/membership-type', checkAdmin, validator.body(Joi.object({
 			IsActive: req.body.isActive[i],
 			IsOrganisation: req.body.isOrganisation[i],
 			Cost: req.body.cost[i],
-			LabelId: labelID
+			LabelId: labelID,
+			LinkedImportId: req.body.import[i].trim() == '' ? null : req.body.import[i]
 		};
-
-		if (req.body.import[i]){
-			details.LinkedImportId = req.body.import[i];
-		}
 
 		if (req.body.id[i] < 0) {
 			await req.db.MembershipType.create(details);
