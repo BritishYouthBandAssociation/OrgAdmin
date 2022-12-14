@@ -88,7 +88,7 @@ router.post('/membership-type', checkAdmin, validator.body(Joi.object({
 			IsOrganisation: req.body.isOrganisation[i],
 			Cost: req.body.cost[i],
 			LabelId: labelID,
-			LinkedImportId: req.body.import[i].trim() == '' ? null : req.body.import[i]
+			LinkedImportId: req.body.import[i] == '' ? null : req.body.import[i]
 		};
 
 		if (req.body.id[i] < 0) {
