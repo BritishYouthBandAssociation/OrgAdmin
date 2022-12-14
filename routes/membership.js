@@ -250,6 +250,29 @@ router.post('/new/individual', validator.body(Joi.object({
 	return res.redirect(`/membership/${newMembership.id}/`);
 });
 
+router.get('/import-prep', async (req, res) => {
+	if (!req.session.user.IsAdmin){
+		return res.redirect('/no-access');
+	}
+
+	const [mappings, config] = await Promise.all([req.db.MembershipType.count({
+		where: {
+			LinkedImportId: {
+				[Op.ne]: null
+			}
+		}
+	}), req.db.WooCommerceImportConfig.findOne() ]);
+
+	const noMapping = mappings === 0;
+
+	res.render('membership/importer.hbs', {
+		title: 'Import Membership',
+		firstRun: true && !noMapping,
+		noMapping,
+		config: config ?? {}
+	});
+});
+
 router.get('/:id', validator.params(Joi.object({
 	id: Joi.number()
 })), validator.query(Joi.object({
