@@ -157,7 +157,7 @@ router.post('/new/organisation', validator.body(Joi.object({
 		OrganisationId: req.body.organisation,
 	};
 
-	if (req.body.division && req.body.division !== ''){
+	if (req.body.division && req.body.division !== '') {
 		orgMembership.DivisionId = req.body.division;
 
 		const events = await req.db.EventRegistration.findAll({
@@ -251,7 +251,7 @@ router.post('/new/individual', validator.body(Joi.object({
 });
 
 router.get('/import-prep', async (req, res) => {
-	if (!req.session.user.IsAdmin){
+	if (!req.session.user.IsAdmin) {
 		return res.redirect('/no-access');
 	}
 
@@ -261,7 +261,7 @@ router.get('/import-prep', async (req, res) => {
 				[Op.ne]: null
 			}
 		}
-	}), req.db.WooCommerceImportConfig.findOne() ]);
+	}), req.db.WooCommerceImportConfig.findOne()]);
 
 	const noMapping = mappings === 0;
 
@@ -271,6 +271,35 @@ router.get('/import-prep', async (req, res) => {
 		noMapping,
 		config: config ?? {}
 	});
+});
+
+router.post('/import-prep', validator.body(Joi.object({
+	url: Joi.string(), //not .uri() in case someone puts e.g. byba.online instead of http://byba.online
+	key: Joi.string(),
+	secret: Joi.string()
+})), async (req, res) => {
+	if (!req.session.user.IsAdmin) {
+		return res.redirect('/no-access');
+	}
+
+	let config = await req.db.WooCommerceImportConfig.findOne();
+	const found = config != null;
+
+	if (!found) {
+		config = {};
+	}
+
+	config.Domain = req.body.url;
+	config.Key = req.body.key;
+	config.Secret = req.body.secret;
+
+	if (found){
+		await config.save();
+	} else {
+		await req.db.WooCommerceImportConfig.create(config);
+	}
+
+	res.redirect('import');
 });
 
 router.get('/:id', validator.params(Joi.object({
