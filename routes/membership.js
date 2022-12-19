@@ -361,7 +361,7 @@ router.get('/import', async (req, res) => {
 		const order = data[o];
 
 		if (order.needs_payment) {
-			return;
+			continue;
 		}
 
 		//these are hardcoded to the BYBA site because it's not really possible otherwise :/
@@ -403,7 +403,7 @@ router.get('/import', async (req, res) => {
 			const match = products.find(p => p.ExternalId == item.product_id);
 			if (!match) {
 				console.log(`${item.product_id} is not mapped to a membership type - skipping...`);
-				return;
+				continue;
 			}
 
 			if (match.IsOrganisation) {
@@ -452,7 +452,7 @@ router.get('/import', async (req, res) => {
 
 				if (membershipMatch) {
 					console.log('Found membership for this organisation... skipping!');
-					return;
+					continue;
 				}
 
 				const membership = await req.db.Membership.create({
@@ -467,7 +467,43 @@ router.get('/import', async (req, res) => {
 				});
 
 				console.log(`Created membership #${membership.Number}`);
+				console.log();
+				continue;
 			}
+
+			//individual
+			console.log('Individual!');
+
+			const membershipMatch = await req.db.IndividualMembership.findOne({
+				where: {
+					UserId: contactMatch.id
+				},
+				include: {
+					model: req.db.Membership,
+					where: {
+						SeasonId: season.id
+					}
+				}
+			});
+
+			if (membershipMatch) {
+				console.log('Found membership for this individual... skipping!');
+				continue;
+			}
+
+			const membership = await req.db.Membership.create({
+				DateStarted: order.date_paid,
+				SeasonId: season.id,
+				MembershipTypeId: match.id
+			});
+
+			const individualMembership = await req.db.IndividualMembership.create({
+				MembershipId: membership.id,
+				UserId: contactMatch.id
+			});
+
+			console.log(`Created membership #${membership.Number}`);
+			console.log();
 		}
 	}
 
