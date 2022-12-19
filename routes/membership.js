@@ -362,7 +362,10 @@ router.get('/import', async (req, res) => {
 		memberships = memberships.concat(res);
 	}
 
-	res.send(data);
+	res.render('membership/import-result.hbs', {
+		title: 'Membership Import',
+		memberships
+	});
 });
 
 router.get('/:id', validator.params(Joi.object({

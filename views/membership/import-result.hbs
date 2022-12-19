@@ -1,0 +1,24 @@
+<h2>Import Membership</h2>
+
+<div class="alert alert-info text-center">The membership import has completed - see below for the results</div>
+
+<div class="row row-cols-1 row-cols-lg-3 text-center">
+	{{#each memberships}}
+	<div class="col mb-3">
+		<div class="card">
+			{{#if isNewRecord}}
+			<div class="alert alert-success text-center rounded-0">New record created</div>
+			{{else}}
+			<div class="alert alert-info text-center rounded-0">Existing record updated</div>
+			{{/if}}
+
+			<div class="card-body">
+				<h3>{{Number}}</h3>
+				<p>{{Entity.Name}}{{Entity.FullName}}</p>
+				<p>Started on {{date DateStarted}}</p>
+				<a href="/membership/{{id}}" target="_blank" class="stretched-link">View Details</a>
+			</div>
+		</div>
+	</div>
+	{{/each}}
+</div>

@@ -131,20 +131,14 @@ class WPOrderProcessor {
 		let orgMembership = null, individualMembership = null;
 		if (membershipType.IsOrganisation) {
 			orgMembership = await this.processOrganisationMembership(org);
-			if (!orgMembership) {
-				return null;
-			}
 
-			if (!orgMembership.isNewRecord) {
+			if (!orgMembership._options.isNewRecord) {
 				return orgMembership.Membership;
 			}
 		} else {
 			individualMembership = await this.processIndividualMembership(contact);
-			if (!individualMembership) {
-				return null;
-			}
 
-			if (!individualMembership.isNewRecord) {
+			if (!individualMembership._options.isNewRecord) {
 				return individualMembership.Membership;
 			}
 		}
@@ -152,12 +146,14 @@ class WPOrderProcessor {
 		const membership = await this.#db.Membership.create({
 			DateStarted: startDate,
 			SeasonId: this.#season.id,
-			MembershipType: membershipType,
-			OrganisationMembership: orgMembership,
-			IndividualMembership: individualMembership
-		}, {
-			include: [this.#db.MembershipType, this.#db.OrganisationMembership, this.#db.IndividualMembership]
+			MembershipTypeId: membershipType.id
 		});
+
+		if (orgMembership){
+			await membership.setOrganisationMembership(orgMembership);
+		} else {
+			await membership.setIndividualMembership(individualMembership);
+		}
 
 		return membership;
 	}
@@ -171,16 +167,55 @@ class WPOrderProcessor {
 		return key.value;
 	}
 
+	async setPaymentStatus(membership, startDate) {
+		const fee = await membership.getFee();
+		fee.IsPaid = true;
+		fee.PaymentDate = startDate;
+		fee.PaymentTypeId = 4; //online
+		fee.save();
+	}
+
 	async process(order) {
 		const contact = await this.getContact(order);
 		const org = this.parseOrgName(order);
 		const memberships = [];
 
 		for (let i = 0; i < order.line_items.length; i++) {
-			const membership = await this.processOrderLine(order.line_items[i], contact, org, order.date_paid);
-			if (membership != null) {
-				memberships.push(membership);
+			if (order.needs_payment) {
+				continue;
 			}
+
+			let membership = await this.processOrderLine(order.line_items[i], contact, org, order.date_paid);
+			if (membership == null) {
+				continue;
+			}
+
+			const promises = [this.setPaymentStatus(membership, order.date_paid)];
+			const newRecord = membership._options.isNewRecord;
+
+			if (!membership.Entity) {
+				promises.push(this.#db.Membership.findByPk(membership.id, {
+					include: [
+						{
+							model: this.#db.IndividualMembership,
+							include: [this.#db.User]
+						},
+						{
+							model: this.#db.OrganisationMembership,
+							include: [
+								{
+									model: this.#db.Organisation
+								}
+							]
+						}]
+				}));
+			} else {
+				promises.push(membership);
+			}
+
+			[, membership] = await Promise.all(promises);
+			membership.isNewRecord = newRecord;
+			memberships.push(membership);
 		}
 
 		return memberships;
