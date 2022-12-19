@@ -32,16 +32,21 @@ const checkAccess = (req, res, next) => {
 };
 
 async function getImageToken(config) {
-	const details = await fetch(`${config.uploadServer}upload/token`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			'Origin': 'localhost'
-		},
-		body: JSON.stringify({ secret: config.uploadSecret })
-	}).then(res => res.json());
+	try {
+		const details = await fetch(`${config.uploadServer}upload/token`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'Origin': 'localhost'
+			},
+			body: JSON.stringify({ secret: config.uploadSecret })
+		}).then(res => res.json());
 
-	return details.Value;
+		return details.Value;
+	} catch {
+		console.error('File uploads are currently unavailable - it looks like Presto is not running!');
+		return null;
+	}
 }
 
 async function commitImage(config, data, origin, token = null, isRetry = false) {
@@ -353,7 +358,7 @@ router.get('/:orgID/changes', validator.params(idParamSchema), checkAccess, asyn
 		}]
 	});
 
-	if (!org){
+	if (!org) {
 		return next();
 	}
 
@@ -374,14 +379,14 @@ router.post('/:orgID/changes/:changeID', validator.params(Joi.object({
 })), checkAccess, async (req, res, next) => {
 	const [org, change] = await Promise.all([req.db.Organisation.findByPk(req.params.orgID), req.db.OrgChangeRequest.findByPk(req.params.changeID)]);
 
-	if (!org || !change || change.IsApproved){
+	if (!org || !change || change.IsApproved) {
 		return next();
 	}
 
 	change.IsApproved = req.body.approve;
 	change.setApprover(req.session.user);
 
-	if (change.IsApproved){
+	if (change.IsApproved) {
 		org[change.Field] = change.NewValue;
 	}
 
