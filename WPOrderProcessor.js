@@ -72,8 +72,29 @@ class WPOrderProcessor {
 		return matchedOrg;
 	}
 
-	async processOrganisationMembership(orgName) {
+	async addContactToOrganisation(organisation, contact){
+		const match = await organisation.getOrganisationUsers({
+			include: [{
+				model: this.#db.User,
+				where: {
+					Email: contact.Email,
+					IsActive: true
+				}
+			}]
+		});
+
+		if (!match || match.length == 0){
+			await this.#db.OrganisationUser.create({
+				IsActive: true,
+				OrganisationId: organisation.id,
+				UserId: contact.id
+			});
+		}
+	}
+
+	async processOrganisationMembership(orgName, contact) {
 		const org = await this.getOrganisation(orgName);
+		await this.addContactToOrganisation(org, contact);
 
 		const membershipMatch = await this.#db.OrganisationMembership.findOne({
 			where: {
@@ -130,7 +151,7 @@ class WPOrderProcessor {
 
 		let orgMembership = null, individualMembership = null;
 		if (membershipType.IsOrganisation) {
-			orgMembership = await this.processOrganisationMembership(org);
+			orgMembership = await this.processOrganisationMembership(org, contact);
 
 			if (!orgMembership._options.isNewRecord) {
 				return orgMembership.Membership;
