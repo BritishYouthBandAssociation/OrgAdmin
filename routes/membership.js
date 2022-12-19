@@ -7,6 +7,7 @@ const { Op } = require('sequelize');
 const { helpers } = require(global.__lib);
 
 const validator = require('@byba/express-validator');
+const WPOrderProcessor = require('../WPOrderProcessor');
 
 const router = express.Router();
 
@@ -347,164 +348,18 @@ router.get('/import', async (req, res) => {
 		url += `&product=${products[0].ExternalId}`;
 	}
 
-	console.log(url);
-
 	const data = await fetch(url, {
 		headers: {
 			Authorization: 'Basic ' + Buffer.from(`${config.Key}:${config.Secret}`).toString('base64')
 		}
 	}).then(res => res.json());
 
-	console.log(data);
+	const processor = new WPOrderProcessor(products, season, req.db);
+	let memberships = [];
 
 	for (let o = 0; o < data.length; o++){
-		const order = data[o];
-
-		if (order.needs_payment) {
-			continue;
-		}
-
-		//these are hardcoded to the BYBA site because it's not really possible otherwise :/
-		console.log(`Processing order #${order.id}`);
-
-		const contact = {
-			Email: order.billing.email,
-			FirstName: order.billing.first_name,
-			Surname: order.billing.last_name,
-			IsActive: true,
-			IsAdmin: false,
-			Password: `BYBA@${season.Identifier}`
-		};
-
-		console.log('Extracted contact details');
-		console.log(contact);
-
-		let contactMatch = await req.db.User.findOne({
-			where: {
-				Email: contact.Email
-			}
-		});
-
-		if (contactMatch) {
-			console.log('Matched to existing user');
-			Object.keys(contact).filter(f => !['IsActive', 'IsAdmin', 'Password'].includes(f)).forEach(c => {
-				contactMatch[c] = contact[c];
-			});
-			await contactMatch.save();
-		} else {
-			console.log('Creating user!');
-			contactMatch = await req.db.User.create(contact);
-		}
-
-		console.log(contactMatch);
-
-		for (let i = 0; i < order.line_items.length; i++){
-			const item = order.line_items[i];
-			const match = products.find(p => p.ExternalId == item.product_id);
-			if (!match) {
-				console.log(`${item.product_id} is not mapped to a membership type - skipping...`);
-				continue;
-			}
-
-			if (match.IsOrganisation) {
-				console.log('Org!');
-
-				const orgName = order.meta_data.find(m => m.key == '_billing_wooccm13').value;
-				const org = {
-					Name: orgName,
-					Slug: helpers.SlugHelper.formatSlug(orgName),
-					Description: '',
-					OrganisationTypeId: 1
-				};
-				console.log(org);
-
-				let matchedOrg = await req.db.Organisation.findOne({
-					where: {
-						Slug: org.Slug
-					}
-				});
-
-				if (matchedOrg) {
-					console.log('Matched to existing organisation!');
-
-					Object.keys(org).forEach(o => {
-						matchedOrg[o] = org[o];
-					});
-					await matchedOrg.save();
-				} else {
-					console.log('Creating Organisation!');
-					matchedOrg = await req.db.Organisation.create(org);
-				}
-
-				console.log(matchedOrg);
-
-				const membershipMatch = await req.db.OrganisationMembership.findOne({
-					where: {
-						OrganisationId: matchedOrg.id
-					},
-					include: {
-						model: req.db.Membership,
-						where: {
-							SeasonId: season.id
-						}
-					}
-				});
-
-				if (membershipMatch) {
-					console.log('Found membership for this organisation... skipping!');
-					continue;
-				}
-
-				const membership = await req.db.Membership.create({
-					DateStarted: order.date_paid,
-					SeasonId: season.id,
-					MembershipTypeId: match.id
-				});
-
-				const orgMembership = await req.db.OrganisationMembership.create({
-					MembershipId: membership.id,
-					OrganisationId: matchedOrg.id
-				});
-
-				console.log(`Created membership #${membership.Number}`);
-				console.log();
-				continue;
-			}
-
-			//individual
-			console.log('Individual!');
-
-			const membershipMatch = await req.db.IndividualMembership.findOne({
-				where: {
-					UserId: contactMatch.id
-				},
-				include: {
-					model: req.db.Membership,
-					where: {
-						SeasonId: season.id
-					}
-				}
-			});
-
-			if (membershipMatch) {
-				console.log('Found membership for this individual... skipping!');
-				continue;
-			}
-
-			const membership = await req.db.Membership.create({
-				DateStarted: order.date_paid,
-				SeasonId: season.id,
-				MembershipTypeId: match.id
-			});
-
-			const individualMembership = await req.db.IndividualMembership.create({
-				MembershipId: membership.id,
-				UserId: contactMatch.id
-			});
-
-			console.log(`Created membership #${membership.Number}`);
-			console.log();
-		}
+		const res = await processor.process(data[o]);
+		memberships = memberships.concat(res);
 	}
 
 	res.send(data);

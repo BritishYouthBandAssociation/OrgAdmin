@@ -1,0 +1,190 @@
+'use strict';
+
+const {
+	helpers: {
+		SlugHelper
+	}
+} = require(global.__lib);
+
+class WPOrderProcessor {
+	#products = [];
+	#season = null;
+	#db = null;
+
+	constructor(products, season, db) {
+		this.#products = products;
+		this.#season = season;
+		this.#db = db;
+	}
+
+	async getContact(order) {
+		const contact = {
+			Email: order.billing.email,
+			FirstName: order.billing.first_name,
+			Surname: order.billing.last_name,
+			IsActive: true,
+			IsAdmin: false,
+			Password: `BYBA@${this.#season.Identifier}`
+		};
+
+		let contactMatch = await this.#db.User.findOne({
+			where: {
+				Email: contact.Email
+			}
+		});
+
+		if (contactMatch) {
+			Object.keys(contact).filter(f => !['IsActive', 'IsAdmin', 'Password'].includes(f)).forEach(c => {
+				contactMatch[c] = contact[c];
+			});
+			await contactMatch.save();
+		} else {
+			contactMatch = await this.#db.User.create(contact);
+		}
+
+		return contactMatch;
+	}
+
+	async getOrganisation(orgName) {
+		const slug = SlugHelper.formatSlug(orgName);
+		const org = {
+			Name: orgName,
+			Slug: slug,
+			Description: '',
+			OrganisationTypeId: 1
+		};
+
+		let matchedOrg = await this.#db.Organisation.findOne({
+			where: {
+				Slug: slug
+			}
+		});
+
+		if (matchedOrg) {
+			Object.keys(org).forEach(o => {
+				matchedOrg[o] = org[o];
+			});
+			await matchedOrg.save();
+		} else {
+			matchedOrg = await this.#db.Organisation.create(org);
+		}
+
+		return matchedOrg;
+	}
+
+	async processOrganisationMembership(orgName) {
+		const org = await this.getOrganisation(orgName);
+
+		const membershipMatch = await this.#db.OrganisationMembership.findOne({
+			where: {
+				OrganisationId: org.id
+			},
+			include: {
+				model: this.#db.Membership,
+				where: {
+					SeasonId: this.#season.id
+				}
+			}
+		});
+
+		if (membershipMatch) {
+			return membershipMatch;
+		}
+
+		const orgMembership = await this.#db.OrganisationMembership.create({
+			OrganisationId: org.id
+		});
+
+		return orgMembership;
+	}
+
+	async processIndividualMembership(contact) {
+		const membershipMatch = await this.#db.IndividualMembership.findOne({
+			where: {
+				UserId: contact.id
+			},
+			include: {
+				model: this.#db.Membership,
+				where: {
+					SeasonId: this.#season.id
+				}
+			}
+		});
+
+		if (membershipMatch) {
+			return membershipMatch;
+		}
+
+		const individualMembership = await this.#db.IndividualMembership.create({
+			UserId: contact.id
+		});
+
+		return individualMembership;
+	}
+
+	async processOrderLine(item, contact, org, startDate) {
+		const membershipType = this.#products.find(p => p.ExternalId == item.product_id);
+		if (!membershipType) {
+			return null;
+		}
+
+		let orgMembership = null, individualMembership = null;
+		if (membershipType.IsOrganisation) {
+			orgMembership = await this.processOrganisationMembership(org);
+			if (!orgMembership) {
+				return null;
+			}
+
+			if (!orgMembership.isNewRecord) {
+				return orgMembership.Membership;
+			}
+		} else {
+			individualMembership = await this.processIndividualMembership(contact);
+			if (!individualMembership) {
+				return null;
+			}
+
+			if (!individualMembership.isNewRecord) {
+				return individualMembership.Membership;
+			}
+		}
+
+		const membership = await this.#db.Membership.create({
+			DateStarted: startDate,
+			SeasonId: this.#season.id,
+			MembershipType: membershipType,
+			OrganisationMembership: orgMembership,
+			IndividualMembership: individualMembership
+		}, {
+			include: [this.#db.MembershipType, this.#db.OrganisationMembership, this.#db.IndividualMembership]
+		});
+
+		return membership;
+	}
+
+	parseOrgName(order) {
+		const key = order.meta_data.find(m => m.key == '_billing_wooccm13');
+		if (!key) {
+			return '';
+		}
+
+		return key.value;
+	}
+
+	async process(order) {
+		const contact = await this.getContact(order);
+		const org = this.parseOrgName(order);
+		const memberships = [];
+
+		for (let i = 0; i < order.line_items.length; i++) {
+			const membership = await this.processOrderLine(order.line_items[i], contact, org, order.date_paid);
+			if (membership != null) {
+				memberships.push(membership);
+			}
+		}
+
+		return memberships;
+	}
+}
+
+module.exports = WPOrderProcessor;
