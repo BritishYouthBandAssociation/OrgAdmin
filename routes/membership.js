@@ -357,77 +357,119 @@ router.get('/import', async (req, res) => {
 
 	console.log(data);
 
-	await Promise.all(data.map(order => {
-		return (async function() {
-			//these are hardcoded to the BYBA site because it's not really possible otherwise :/
-			console.log(`Processing order #${order.id}`);
+	for (let o = 0; o < data.length; o++){
+		const order = data[o];
 
-			const contact = {
-				Email: order.billing.email,
-				FirstName: order.billing.first_name,
-				Surname: order.billing.last_name,
-				IsActive: true,
-				IsAdmin: false,
-				Password: `BYBA@${season.Identifier}`
-			};
+		if (order.needs_payment) {
+			return;
+		}
 
-			console.log('Extracted contact details');
-			console.log(contact);
+		//these are hardcoded to the BYBA site because it's not really possible otherwise :/
+		console.log(`Processing order #${order.id}`);
 
-			let contactMatch = await req.db.User.findOne({
-				where: {
-					Email: contact.Email
-				}
+		const contact = {
+			Email: order.billing.email,
+			FirstName: order.billing.first_name,
+			Surname: order.billing.last_name,
+			IsActive: true,
+			IsAdmin: false,
+			Password: `BYBA@${season.Identifier}`
+		};
+
+		console.log('Extracted contact details');
+		console.log(contact);
+
+		let contactMatch = await req.db.User.findOne({
+			where: {
+				Email: contact.Email
+			}
+		});
+
+		if (contactMatch) {
+			console.log('Matched to existing user');
+			Object.keys(contact).filter(f => !['IsActive', 'IsAdmin', 'Password'].includes(f)).forEach(c => {
+				contactMatch[c] = contact[c];
 			});
+			await contactMatch.save();
+		} else {
+			console.log('Creating user!');
+			contactMatch = await req.db.User.create(contact);
+		}
 
-			if (contactMatch) {
-				console.log('Matched to existing user');
-			} else {
-				console.log('Creating user!');
-				contactMatch = await req.db.User.create(contact);
+		console.log(contactMatch);
+
+		for (let i = 0; i < order.line_items.length; i++){
+			const item = order.line_items[i];
+			const match = products.find(p => p.ExternalId == item.product_id);
+			if (!match) {
+				console.log(`${item.product_id} is not mapped to a membership type - skipping...`);
+				return;
 			}
 
-			console.log(contactMatch);
+			if (match.IsOrganisation) {
+				console.log('Org!');
 
-			await Promise.all(order.line_items.map(item => {
-				return (async function() {
-					const match = products.find(p => p.ExternalId == item.product_id);
-					if (!match) {
-						console.log(`${item.product_id} is not mapped to a membership type - skipping...`);
-						return;
+				const orgName = order.meta_data.find(m => m.key == '_billing_wooccm13').value;
+				const org = {
+					Name: orgName,
+					Slug: helpers.SlugHelper.formatSlug(orgName),
+					Description: '',
+					OrganisationTypeId: 1
+				};
+				console.log(org);
+
+				let matchedOrg = await req.db.Organisation.findOne({
+					where: {
+						Slug: org.Slug
 					}
+				});
 
-					if (match.IsOrganisation) {
-						console.log('Org!');
+				if (matchedOrg) {
+					console.log('Matched to existing organisation!');
 
-						const orgName = order.meta_data.find(m => m.key == '_billing_wooccm13').value;
-						const org = {
-							Name: orgName,
-							Slug: helpers.SlugHelper.formatSlug(orgName),
-							Description: ''
-						};
-						console.log(org);
+					Object.keys(org).forEach(o => {
+						matchedOrg[o] = org[o];
+					});
+					await matchedOrg.save();
+				} else {
+					console.log('Creating Organisation!');
+					matchedOrg = await req.db.Organisation.create(org);
+				}
 
-						let matchedOrg = await req.db.Organisation.findOne({
-							where: {
-								Slug: org.Slug
-							}
-						});
+				console.log(matchedOrg);
 
-						if (matchedOrg) {
-							console.log('Matched to existing organisation!');
-						} else {
-							console.log('Creating Organisation!');
-							matchedOrg = await req.db.Organisation.create(org);
+				const membershipMatch = await req.db.OrganisationMembership.findOne({
+					where: {
+						OrganisationId: matchedOrg.id
+					},
+					include: {
+						model: req.db.Membership,
+						where: {
+							SeasonId: season.id
 						}
-
-						console.log(matchedOrg);
 					}
-				})();
-			}));
-			console.log();
-		})();
-	}));
+				});
+
+				if (membershipMatch) {
+					console.log('Found membership for this organisation... skipping!');
+					return;
+				}
+
+				const membership = await req.db.Membership.create({
+					DateStarted: order.date_paid,
+					SeasonId: season.id,
+					MembershipTypeId: match.id
+				});
+
+				const orgMembership = await req.db.OrganisationMembership.create({
+					MembershipId: membership.id,
+					OrganisationId: matchedOrg.id
+				});
+
+				console.log(`Created membership #${membership.Number}`);
+			}
+		}
+	}
 
 	res.send(data);
 });
