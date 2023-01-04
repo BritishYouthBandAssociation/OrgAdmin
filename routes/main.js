@@ -183,7 +183,7 @@ router.get('/home', async (req, res) => {
 			class: bands == 0 ? 'bg-danger text-light' : bands < 5 ? 'bg-warning text-dark' : null
 		});
 
-		const adminPercent = adminUsers / totalUsers * 100;
+		const adminPercent = Math.round(adminUsers / totalUsers * 100);
 		adminStats.push({
 			title: 'Admin Users',
 			subtitle: 'Any season',

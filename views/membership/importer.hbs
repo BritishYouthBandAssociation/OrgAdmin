@@ -1,0 +1,29 @@
+<h2>Import Membership</h2>
+
+{{#if firstRun}}
+	<div class="alert alert-success text-center">This utility allows importing membership from a WooCommerce WordPress site. You will need a few details to get started</div>
+{{/if}}
+
+{{#if noMapping}}
+	<div class="alert alert-danger text-center">There are no mappings set up between the membership types on this system and on the old system. Please add the product id to the relevant <a href="/config/membership-type">Membership Type</a> and try again.</div>
+	{{else}}
+
+<form method="post">
+	<div class="form-group mb-3">
+		<label for="url">Domain</label>
+			<input type="text" name="url" id="url" class="form-control" value="{{config.Domain}}" required/>
+	</div>
+
+	<div class="form-group mb-3">
+		<label for="key">API Key</label>
+		<input type="text" name="key" id="key" class="form-control" value="{{config.Key}}" required/>
+	</div>
+
+	<div class="form-group mb-3">
+		<label for="secret">API Secret</label>
+		<input type="text" name="secret" id="secret" class="form-control" value="{{config.Secret}}" required/>
+	</div>
+
+	<button type="submit" class="btn btn-default btn-lg">Start Import</button>
+</form>
+{{/if}}

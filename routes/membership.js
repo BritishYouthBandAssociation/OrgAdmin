@@ -4,8 +4,10 @@
 const express = require('express');
 const Joi = require('joi');
 const { Op } = require('sequelize');
+const { helpers } = require(global.__lib);
 
 const validator = require('@byba/express-validator');
+const WPOrderProcessor = require('../WPOrderProcessor');
 
 const router = express.Router();
 
@@ -157,7 +159,7 @@ router.post('/new/organisation', validator.body(Joi.object({
 		OrganisationId: req.body.organisation,
 	};
 
-	if (req.body.division && req.body.division !== ''){
+	if (req.body.division && req.body.division !== '') {
 		orgMembership.DivisionId = req.body.division;
 
 		const events = await req.db.EventRegistration.findAll({
@@ -248,6 +250,122 @@ router.post('/new/individual', validator.body(Joi.object({
 
 	//display it
 	return res.redirect(`/membership/${newMembership.id}/`);
+});
+
+router.get('/import-prep', async (req, res) => {
+	if (!req.session.user.IsAdmin) {
+		return res.redirect('/no-access');
+	}
+
+	const [mappings, config] = await Promise.all([req.db.MembershipType.count({
+		where: {
+			LinkedImportId: {
+				[Op.ne]: null
+			}
+		}
+	}), req.db.WooCommerceImportConfig.findOne()]);
+
+	const noMapping = mappings === 0;
+
+	res.render('membership/importer.hbs', {
+		title: 'Import Membership',
+		firstRun: true && !noMapping,
+		noMapping,
+		config: config ?? {}
+	});
+});
+
+router.post('/import-prep', validator.body(Joi.object({
+	url: Joi.string(), //not .uri() in case someone puts e.g. byba.online instead of http://byba.online
+	key: Joi.string(),
+	secret: Joi.string()
+})), async (req, res) => {
+	if (!req.session.user.IsAdmin) {
+		return res.redirect('/no-access');
+	}
+
+	let config = await req.db.WooCommerceImportConfig.findOne();
+	const found = config != null;
+
+	if (!found) {
+		config = {};
+	}
+
+	config.Domain = req.body.url;
+	config.Key = req.body.key;
+	config.Secret = req.body.secret;
+
+	if (found) {
+		await config.save();
+	} else {
+		await req.db.WooCommerceImportConfig.create(config);
+	}
+
+	res.redirect('import');
+});
+
+router.get('/import', async (req, res) => {
+	if (!req.session.user.IsAdmin) {
+		return res.redirect('/no-access');
+	}
+
+	const [config, season, membershipTypes] = await Promise.all([req.db.WooCommerceImportConfig.findOne(), req.db.Season.findOne({
+		where: {
+			Start: {
+				[Op.lte]: Date.now()
+			},
+			End: {
+				[Op.gte]: Date.now()
+			}
+		}
+	}), req.db.MembershipType.findAll({
+		where: {
+			LinkedImportId: {
+				[Op.ne]: null
+			},
+			IsActive: true
+		}
+	})]);
+
+	if (!season) {
+		return res.redirect('/config/season?needsSeason=true&next=/membership/import');
+	}
+
+	if (!config) {
+		return res.redirect('import-prep');
+	}
+
+	const products = membershipTypes.map(m => {
+		return {
+			ExternalId: m.LinkedImportId,
+			id: m.id,
+			IsOrganisation: m.IsOrganisation
+		};
+	});
+
+	let url = `${config.Domain}wp-json/wc/v3/orders?after=${season.Start.toISOString()}&per_page=50`;
+	if (products.length === 1) {
+		url += `&product=${products[0].ExternalId}`;
+	}
+
+	const data = await fetch(url, {
+		headers: {
+			Authorization: 'Basic ' + Buffer.from(`${config.Key}:${config.Secret}`).toString('base64')
+		}
+	}).then(res => res.json());
+
+	const processor = new WPOrderProcessor(products, season, req.db);
+	let memberships = [];
+
+	for (let o = 0; o < data.length; o++){
+		const res = await processor.process(data[o]);
+		memberships = memberships.concat(res);
+	}
+
+	res.render('membership/import-result.hbs', {
+		title: 'Membership Import',
+		memberships
+	});
 });
 
 router.get('/:id', validator.params(Joi.object({
