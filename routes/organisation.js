@@ -428,7 +428,7 @@ router.get('/:orgID/contacts/add/:email', validator.params(idParamSchema.keys({
 		return next();
 	}
 
-	const user = await req.db.User.findOne({ where: { Email: req.params.email } });
+	const user = await req.db.User.findByEmail(req.params.email);
 	if (user == null) {
 		return res.redirect(`/user/new?orgID=${req.params.orgID}&email=${req.params.email}`);
 	}
@@ -451,7 +451,7 @@ router.post('/:orgID/contacts/add/:email', validator.params(idParamSchema.keys({
 		return next();
 	}
 
-	const user = await req.db.User.findOne({ where: { Email: req.params.email } });
+	const user = await req.db.User.findByEmail(req.body.email);
 	if (!user) {
 		return res.redirect(`/user/new?orgID=${req.params.orgID}&email=${req.params.email}`);
 	}

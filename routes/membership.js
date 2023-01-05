@@ -173,11 +173,7 @@ router.post('/new/individual', validator.body(Joi.object({
 	season: Joi.number().required()
 })), async (req, res, next) => {
 	const [exists, type] = await Promise.all([
-		req.db.User.findOne({
-			where: {
-				Email: req.body.email
-			}
-		}),
+		req.db.User.findByEmail(req.body.email),
 		req.db.MembershipType.findOne({
 			where: {
 				id: req.body.type

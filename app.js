@@ -142,11 +142,7 @@ async function main() {
 				return res.redirect(`/?next=${req.path}`);
 			}
 		} else {
-			req.session.user = await req.db.User.findOne({
-				where: {
-					id: req.session.user.id
-				}
-			});
+			req.session.user = await req.db.User.findByPk(req.session.user.id);
 
 			req.session.user.bands = await req.db.Organisation.findAll({
 				include: [{
