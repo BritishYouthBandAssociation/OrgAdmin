@@ -29,11 +29,7 @@ router.get('/', validator.query(Joi.object({
 		return res.redirect('/no-access');
 	}
 
-	const [types, season] = await Promise.all([req.db.MembershipType.findAll({
-		where: {
-			IsActive: true
-		}
-	}), req.db.Season.getCurrent()]);
+	const [types, season] = await Promise.all([req.db.MembershipType.getActive(), req.db.Season.getCurrent()]);
 
 	if (!season) {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
@@ -82,33 +78,29 @@ router.post('/test', validator.body(Joi.object({
 
 	await t.commit();
 
-	const [types, season, rawMember] = await Promise.all([req.db.MembershipType.findAll({
-		where: {
-			IsActive: true
-		}
-	}), req.db.Season.getCurrent(),
-	req.db.Membership.findAll({
-		include: [
-			req.db.Label,
-			req.db.MembershipType,
-			{
-				model: req.db.IndividualMembership,
-				include: [req.db.User]
-			},
-			{
-				model: req.db.OrganisationMembership,
-				include: {
-					model: req.db.Organisation,
-					include: [req.db.OrganisationType]
+	const [types, season, rawMember] = await Promise.all([req.db.MembershipType.getActive(), req.db.Season.getCurrent(),
+		req.db.Membership.findAll({
+			include: [
+				req.db.Label,
+				req.db.MembershipType,
+				{
+					model: req.db.IndividualMembership,
+					include: [req.db.User]
+				},
+				{
+					model: req.db.OrganisationMembership,
+					include: {
+						model: req.db.Organisation,
+						include: [req.db.OrganisationType]
+					}
+				}
+			],
+			where: {
+				id: {
+					[Op.in]: req.body.membership
 				}
 			}
-		],
-		where: {
-			id: {
-				[Op.in]: req.body.membership
-			}
-		}
-	})
+		})
 	]);
 
 	if (!season) {
@@ -205,11 +197,7 @@ router.post('/send', validator.body(Joi.object({
 
 		t.rollback();
 
-		const [types, season] = await Promise.all([req.db.MembershipType.findAll({
-			where: {
-				IsActive: true
-			}
-		}), req.db.Season.getCurrent()]);
+		const [types, season] = await Promise.all([req.db.MembershipType.getActive(), req.db.Season.getCurrent()]);
 
 		if (!season) {
 			return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);

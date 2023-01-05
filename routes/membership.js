@@ -60,11 +60,7 @@ router.get('/new', validator.query(Joi.object({
 	org: Joi.number()
 })), async (req, res, next) => {
 	const promises = [
-		req.db.MembershipType.findAll({
-			where: {
-				IsActive: true
-			}
-		}),
+		req.db.MembershipType.getActive(),
 		req.db.Season.getCurrent(),
 		req.db.Division.findAll({
 			where: {
@@ -291,12 +287,9 @@ router.get('/import', async (req, res) => {
 		return res.redirect('/no-access');
 	}
 
-	const [config, season, membershipTypes] = await Promise.all([req.db.WooCommerceImportConfig.findOne(), req.db.Season.getCurrent(), req.db.MembershipType.findAll({
-		where: {
-			LinkedImportId: {
-				[Op.ne]: null
-			},
-			IsActive: true
+	const [config, season, membershipTypes] = await Promise.all([req.db.WooCommerceImportConfig.findOne(), req.db.Season.getCurrent(), req.db.MembershipType.getActive({
+		LinkedImportId: {
+			[Op.ne]: null
 		}
 	})]);
 

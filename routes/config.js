@@ -158,11 +158,8 @@ router.get('/event-type', checkAdmin, validator.query(Joi.object({
 			['id'],
 			[req.db.EventTypeDiscount, 'DiscountAfter']
 		]
-	}), req.db.MembershipType.findAll({
-		where: {
-			IsOrganisation: true,
-			IsActive: true
-		}
+	}), req.db.MembershipType.getActive({
+		IsOrganisation: true
 	})]);
 
 	return res.render('config/event-type.hbs', {
