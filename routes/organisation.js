@@ -17,15 +17,7 @@ const idParamSchema = Joi.object({
 		.required()
 });
 
-const {checkAdmin} = require('../middleware');
-
-const checkAccess = (req, res, next) => {
-	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
-	next();
-};
+const {checkAdmin, matchingID} = require('../middleware');
 
 async function getImageToken(config) {
 	try {
@@ -150,7 +142,7 @@ router.post('/new', checkAdmin, validator.query(Joi.object({
 	res.redirect(`${org.id}/`);
 });
 
-router.get('/:orgID', validator.params(idParamSchema), checkAccess, validator.query(Joi.object({
+router.get('/:orgID', validator.params(idParamSchema), matchingID('orgID', ['band', 'id']), validator.query(Joi.object({
 	saved: Joi.boolean(),
 	error: [Joi.boolean(), Joi.string()],
 })), async (req, res, next) => {
@@ -215,7 +207,7 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 		.required(),
 	logo: Joi.string().guid().allow(''),
 	header: Joi.string().guid().allow('')
-})), checkAccess, async (req, res, next) => {
+})), matchingID('orgID', ['band', 'id']), async (req, res, next) => {
 	const org = await req.db.Organisation.findByPk(req.params.orgID);
 
 	if (!org) {
@@ -311,7 +303,7 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 	return res.redirect('?saved=true');
 });
 
-router.post('/:orgID/address', validator.params(idParamSchema), checkAccess, validator.body(Joi.object({
+router.post('/:orgID/address', validator.params(idParamSchema), matchingID('orgID', ['band', 'id']), validator.body(Joi.object({
 	lineOne: Joi.string()
 		.required(),
 	lineTwo: Joi.string()
@@ -321,10 +313,6 @@ router.post('/:orgID/address', validator.params(idParamSchema), checkAccess, val
 	postcode: Joi.string()
 		.required(),
 })), async (req, res, next) => {
-	if (req.params.orgID !== req.session.band?.id && !req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
 	const org = await req.db.Organisation.findByPk(req.params.orgID);
 
 	if (!org) {
@@ -342,7 +330,7 @@ router.post('/:orgID/address', validator.params(idParamSchema), checkAccess, val
 	res.redirect('./?saved=true');
 });
 
-router.get('/:orgID/changes', validator.params(idParamSchema), checkAccess, async (req, res, next) => {
+router.get('/:orgID/changes', validator.params(idParamSchema), matchingID('orgID', ['band', 'id']), async (req, res, next) => {
 	const org = await req.db.Organisation.findByPk(req.params.orgID, {
 		include: [{
 			model: req.db.OrgChangeRequest,
@@ -372,7 +360,7 @@ router.post('/:orgID/changes/:changeID', validator.params(Joi.object({
 })), validator.body(Joi.object({
 	approve: Joi.boolean()
 		.required()
-})), checkAccess, async (req, res, next) => {
+})), matchingID('orgID', ['band', 'id']), async (req, res, next) => {
 	const [org, change] = await Promise.all([req.db.Organisation.findByPk(req.params.orgID), req.db.OrgChangeRequest.findByPk(req.params.changeID)]);
 
 	if (!org || !change || change.IsApproved) {
@@ -391,7 +379,7 @@ router.post('/:orgID/changes/:changeID', validator.params(Joi.object({
 	res.redirect('../changes?saved=true');
 });
 
-router.get('/:orgID/contacts', validator.params(idParamSchema), checkAccess, validator.query(Joi.object({
+router.get('/:orgID/contacts', validator.params(idParamSchema), matchingID('orgID', ['band', 'id']), validator.query(Joi.object({
 	added: Joi.boolean(),
 	removed: Joi.boolean()
 })), async (req, res, next) => {
@@ -418,7 +406,7 @@ router.get('/:orgID/contacts', validator.params(idParamSchema), checkAccess, val
 	});
 });
 
-router.get('/:orgID/contacts/add', validator.params(idParamSchema), checkAccess, validator.query(Joi.object({
+router.get('/:orgID/contacts/add', validator.params(idParamSchema), matchingID('orgID', ['band', 'id']), validator.query(Joi.object({
 	email: Joi.string()
 		.email()
 		.required()
@@ -430,7 +418,7 @@ router.get('/:orgID/contacts/add/:email', validator.params(idParamSchema.keys({
 	email: Joi.string()
 		.email()
 		.required()
-})), checkAccess, validator.query(Joi.object({
+})), matchingID('orgID', ['band', 'id']), validator.query(Joi.object({
 	exists: Joi.boolean()
 })), async (req, res, next) => {
 	const org = await req.db.Organisation.findByPk(req.params.orgID, {
@@ -457,7 +445,7 @@ router.post('/:orgID/contacts/add/:email', validator.params(idParamSchema.keys({
 	email: Joi.string()
 		.email()
 		.required()
-})), checkAccess, async (req, res, next) => {
+})), matchingID('orgID', ['band', 'id']), async (req, res, next) => {
 	const org = await req.db.Organisation.findByPk(req.params.orgID);
 	if (!org) {
 		return next();
@@ -490,7 +478,7 @@ router.post('/:orgID/contacts/add/:email', validator.params(idParamSchema.keys({
 router.get('/:orgID/contacts/:contactID/remove', validator.params(idParamSchema.keys({
 	contactID: Joi.number()
 		.required()
-})), checkAccess, async (req, res, next) => {
+})), matchingID('orgID', ['band', 'id']), async (req, res, next) => {
 	const contact = await req.db.OrganisationUser.findByPk(req.params.contactID, {
 		include: [req.db.Organisation, req.db.User]
 	});
@@ -509,7 +497,7 @@ router.get('/:orgID/contacts/:contactID/remove', validator.params(idParamSchema.
 router.post('/:orgID/contacts/:contactID/remove', validator.params(idParamSchema.keys({
 	contactID: Joi.number()
 		.required()
-})), checkAccess, async (req, res, next) => {
+})), matchingID('orgID', ['band', 'id']), async (req, res, next) => {
 	const contact = await req.db.OrganisationUser.findByPk(req.params.contactID, {
 		include: [req.db.Organisation, req.db.User]
 	});

@@ -18,7 +18,7 @@ const idParamSchema = Joi.object({
 		.required()
 });
 
-const {checkAdmin} = require('../middleware');
+const {checkAdmin, matchingID} = require('../middleware');
 
 function getDiscountMultiplier(num, thresholds) {
 	let multiplier = 1;
@@ -854,7 +854,7 @@ router.post('/:id/organisations/withdraw/:orgID', async (req, res, next) => {
 	return res.redirect('../');
 });
 
-router.post('/:id/organisations/add', validator.params(idParamSchema), validator.body(Joi.object({
+router.post('/:id/organisations/add', matchingID('id', ['band', 'id']), validator.params(idParamSchema), validator.body(Joi.object({
 	// eslint-disable-next-line camelcase
 	organisation_search: Joi.string()
 		.allow('')
@@ -879,10 +879,6 @@ router.post('/:id/organisations/add', validator.params(idParamSchema), validator
 
 	if (!org) {
 		return next();
-	}
-
-	if (!req.session.user.IsAdmin && (!req.session.band || req.session.band.id !== org.id)) {
-		return res.redirect('/no-access');
 	}
 
 	const details = {

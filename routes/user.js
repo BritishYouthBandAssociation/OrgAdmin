@@ -16,15 +16,7 @@ const idParamSchema = Joi.object({
 		.required()
 });
 
-const {checkAdmin} = require('../middleware');
-
-const checkAccess = (req, res, next) => {
-	if (!req.session.user.IsAdmin && req.session.user.id !== req.params.id){
-		return res.redirect('/no-access');
-	}
-
-	next();
-};
+const {checkAdmin, matchingID} = require('../middleware');
 
 router.get('/', checkAdmin, async (req, res, next) => {
 	const users = await req.db.User.findAll();
@@ -132,7 +124,7 @@ router.post('/new', checkAdmin, validator.body(Joi.object({
 	return res.redirect(user.id);
 });
 
-router.post('/:id/password', validator.params(idParamSchema), checkAccess, validator.body(Joi.object({
+router.post('/:id/password', validator.params(idParamSchema), matchingID('id', ['user', 'id']), validator.body(Joi.object({
 	password: Joi.string()
 		.required(),
 	confirm: Joi.ref('password')
@@ -151,7 +143,7 @@ router.post('/:id/password', validator.params(idParamSchema), checkAccess, valid
 	return res.redirect('./?saved=true');
 });
 
-router.get('/:id', validator.params(idParamSchema), checkAccess, async (req, res, next) => {
+router.get('/:id', validator.params(idParamSchema), matchingID('id', ['user', 'id']), async (req, res, next) => {
 	const user = await req.db.User.findByPk(req.params.id, {
 		include: [req.db.Caption]
 	});
@@ -169,7 +161,7 @@ router.get('/:id', validator.params(idParamSchema), checkAccess, async (req, res
 	});
 });
 
-router.post('/:id', validator.params(idParamSchema), checkAccess, validator.body(Joi.object({
+router.post('/:id', validator.params(idParamSchema), matchingID('id', ['user', 'id']), validator.body(Joi.object({
 	firstName: Joi.string()
 		.required(),
 	surname: Joi.string()
@@ -223,7 +215,7 @@ async function loadCaption(db, parent){
 	return parent;
 }
 
-router.get('/:id/captions', validator.params(idParamSchema), checkAccess, validator.query(Joi.object({
+router.get('/:id/captions', validator.params(idParamSchema), matchingID('id', ['user', 'id']), validator.query(Joi.object({
 	saved: Joi.boolean()
 })), async (req, res, next) => {
 	const user = await req.db.User.findByPk(req.params.id, {
@@ -254,7 +246,7 @@ router.get('/:id/captions', validator.params(idParamSchema), checkAccess, valida
 	});
 });
 
-router.post('/:id/captions', validator.params(idParamSchema), checkAccess, validator.body(Joi.object({
+router.post('/:id/captions', validator.params(idParamSchema), matchingID('id', ['user', 'id']), validator.body(Joi.object({
 	caption: Joi.array()
 		.items(Joi.number())
 })), async (req, res, next) => {
