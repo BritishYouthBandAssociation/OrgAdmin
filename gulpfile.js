@@ -109,7 +109,7 @@ function overwriteReadme(cb) {
 	const readmePath = path.join(__dirname, 'README.md');
 	const templatePath = path.join(__dirname, 'TEMPLATE_README.md');
 
-	if (!fs.existsSync(readmePath) | !fs.existsSync(templatePath)) {
+	if (!fs.existsSync(readmePath) || !fs.existsSync(templatePath)) {
 		return cb();
 	}
 
