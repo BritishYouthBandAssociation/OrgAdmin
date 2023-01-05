@@ -446,33 +446,7 @@ router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
 
 	if (!event.ScoresReleased && req.body.scoresReleased) {
 		//we are releasing scores here - trigger league calculation
-		const [results, _] = await req.db.sequelize.query(`
-			UPDATE OrganisationMemberships om
-			INNER JOIN Organisations o ON o.id = om.OrganisationId
-			INNER JOIN EventRegistrations er ON er.OrganisationId = o.id
-			
-			SET LeagueScore = (
-				SELECT SUM(TotalScore) / 2
-				FROM
-				(
-					SELECT cast(TotalScore as decimal(10, 5)) AS TotalScore
-					FROM EventRegistrations
-					INNER JOIN Events e ON e.id = EventRegistrations.EventId
-					WHERE OrganisationId = o.id
-					AND e.SeasonId = e.SeasonId
-					AND IFNULL(TotalScore, -1) > 0
-					AND IsWithdrawn = 0
-					LIMIT 2
-				) scores
-			)
-			
-			WHERE er.EventId = :eventID
-			AND er.IsWithdrawn = 0;
-		`, {
-			replacements: {
-				eventID: event.id
-			}
-		});
+		await event.updateLeagueScoreForParticipants();
 	}
 
 	await event.update({
@@ -998,28 +972,13 @@ router.get('/:id/schedule/automatic', checkAdmin, async (req, res, next) => {
 				IsWithdrawn: false
 			}
 		}),
-		req.db.sequelize.query(`
-			SELECT 1
-			FROM EventRegistrations er
-			INNER JOIN Events e ON e.id = er.EventId
-			WHERE er.EventID = :eventID
-			AND er.IsWithdrawn = 0
-			AND NOT EXISTS (
-				SELECT 1
-				FROM OrganisationMemberships om
-				INNER JOIN Memberships m ON m.id = om.MembershipId
-				WHERE om.OrganisationId = er.OrganisationId
-				AND m.SeasonId = e.SeasonId
-			)
-		`, {
-			replacements: {
-				eventID: req.params.id
-			}
-		})
+
 	]);
 
-	const [event, , entries, [hasUnregistered]] = result;
+	const [event, , entries] = result;
 	let [, divisions] = result;
+
+	const hasUnregistered = await event.hasUnregisteredParticipants();
 
 	if (!event) {
 		return next();
