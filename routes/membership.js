@@ -16,16 +16,7 @@ router.get('/', async (req, res, next) => {
 		return res.redirect('/no-access');
 	}
 
-	const season = await req.db.Season.findOne({
-		where: {
-			Start: {
-				[Op.lte]: Date.now()
-			},
-			End: {
-				[Op.gte]: Date.now()
-			}
-		}
-	});
+	const season = await req.db.Season.getCurrent();
 
 	if (!season) {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
@@ -74,16 +65,7 @@ router.get('/new', validator.query(Joi.object({
 				IsActive: true
 			}
 		}),
-		req.db.Season.findOne({
-			where: {
-				Start: {
-					[Op.lte]: Date.now()
-				},
-				End: {
-					[Op.gte]: Date.now()
-				}
-			}
-		}),
+		req.db.Season.getCurrent(),
 		req.db.Division.findAll({
 			where: {
 				IsActive: true
@@ -309,16 +291,7 @@ router.get('/import', async (req, res) => {
 		return res.redirect('/no-access');
 	}
 
-	const [config, season, membershipTypes] = await Promise.all([req.db.WooCommerceImportConfig.findOne(), req.db.Season.findOne({
-		where: {
-			Start: {
-				[Op.lte]: Date.now()
-			},
-			End: {
-				[Op.gte]: Date.now()
-			}
-		}
-	}), req.db.MembershipType.findAll({
+	const [config, season, membershipTypes] = await Promise.all([req.db.WooCommerceImportConfig.findOne(), req.db.Season.getCurrent(), req.db.MembershipType.findAll({
 		where: {
 			LinkedImportId: {
 				[Op.ne]: null

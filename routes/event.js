@@ -266,16 +266,7 @@ async function generateSchedule(req, next, eventID, config, divisionOrder) {
 }
 
 router.get('/', async (req, res, next) => {
-	const season = await req.db.Season.findOne({
-		where: {
-			Start: {
-				[Op.lte]: Date.now()
-			},
-			End: {
-				[Op.gte]: Date.now()
-			}
-		}
-	});
+	const season = await req.db.Season.getCurrent();
 
 	if (!season) {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
@@ -305,16 +296,7 @@ router.get('/', async (req, res, next) => {
 router.get('/new', validator.query(Joi.object({
 	error: Joi.boolean()
 })), async (req, res, next) => {
-	const season = await req.db.Season.findOne({
-		where: {
-			Start: {
-				[Op.lte]: Date.now()
-			},
-			End: {
-				[Op.gte]: Date.now()
-			}
-		}
-	});
+	const season = await req.db.Season.getCurrent();
 
 	if (!season) {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);

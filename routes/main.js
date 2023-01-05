@@ -102,16 +102,7 @@ router.get('/home', async (req, res) => {
 			model: req.db.EventRegistration,
 			include: [req.db.Organisation]
 		}]
-	}), req.db.Season.findOne({
-		where: {
-			Start: {
-				[Op.lte]: Date.now()
-			},
-			End: {
-				[Op.gte]: Date.now()
-			}
-		}
-	}), req.db.EventCaption.findAll({
+	}), req.db.Season.getCurrent(), req.db.EventCaption.findAll({
 		include: [req.db.Caption,
 			{
 				model: req.db.User,

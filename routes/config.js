@@ -431,16 +431,7 @@ router.get('/season', checkAdmin, validator.query(Joi.object({
 	next: Joi.string(),
 	needsSeason: Joi.boolean()
 })), async (req, res) => {
-	const season = await req.db.Season.findOne({
-		where: {
-			Start: {
-				[Op.lte]: Date.now()
-			},
-			End: {
-				[Op.gte]: Date.now()
-			}
-		}
-	});
+	const season = await req.db.Season.getCurrent();
 
 	const others = await req.db.Season.findAll({
 		where: {

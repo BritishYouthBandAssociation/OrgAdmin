@@ -33,16 +33,7 @@ router.get('/', validator.query(Joi.object({
 		where: {
 			IsActive: true
 		}
-	}), req.db.Season.findOne({
-		where: {
-			Start: {
-				[Op.lte]: Date.now()
-			},
-			End: {
-				[Op.gte]: Date.now()
-			}
-		}
-	})]);
+	}), req.db.Season.getCurrent()]);
 
 	if (!season) {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
@@ -95,16 +86,7 @@ router.post('/test', validator.body(Joi.object({
 		where: {
 			IsActive: true
 		}
-	}), req.db.Season.findOne({
-		where: {
-			Start: {
-				[Op.lte]: Date.now()
-			},
-			End: {
-				[Op.gte]: Date.now()
-			}
-		}
-	}),
+	}), req.db.Season.getCurrent(),
 	req.db.Membership.findAll({
 		include: [
 			req.db.Label,
@@ -227,16 +209,7 @@ router.post('/send', validator.body(Joi.object({
 			where: {
 				IsActive: true
 			}
-		}), req.db.Season.findOne({
-			where: {
-				Start: {
-					[Op.lte]: Date.now()
-				},
-				End: {
-					[Op.gte]: Date.now()
-				}
-			}
-		})]);
+		}), req.db.Season.getCurrent()]);
 
 		if (!season) {
 			return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
