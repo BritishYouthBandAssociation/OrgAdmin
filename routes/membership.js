@@ -8,14 +8,11 @@ const { helpers } = require(global.__lib);
 
 const validator = require('@byba/express-validator');
 const WPOrderProcessor = require('../WPOrderProcessor');
+const { checkAdmin } = require('../middleware');
 
 const router = express.Router();
 
-router.get('/', async (req, res, next) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
+router.get('/', checkAdmin, async (req, res, next) => {
 	const season = await req.db.Season.getCurrent();
 
 	if (!season) {
@@ -230,11 +227,7 @@ router.post('/new/individual', validator.body(Joi.object({
 	return res.redirect(`/membership/${newMembership.id}/`);
 });
 
-router.get('/import-prep', async (req, res) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
+router.get('/import-prep', checkAdmin, async (req, res) => {
 	const [mappings, config] = await Promise.all([req.db.MembershipType.count({
 		where: {
 			LinkedImportId: {
@@ -253,15 +246,11 @@ router.get('/import-prep', async (req, res) => {
 	});
 });
 
-router.post('/import-prep', validator.body(Joi.object({
+router.post('/import-prep', checkAdmin, validator.body(Joi.object({
 	url: Joi.string(), //not .uri() in case someone puts e.g. byba.online instead of http://byba.online
 	key: Joi.string(),
 	secret: Joi.string()
 })), async (req, res) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
 	let config = await req.db.WooCommerceImportConfig.findOne();
 	const found = config != null;
 
@@ -282,11 +271,7 @@ router.post('/import-prep', validator.body(Joi.object({
 	res.redirect('import');
 });
 
-router.get('/import', async (req, res) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
+router.get('/import', checkAdmin, async (req, res) => {
 	const [config, season, membershipTypes] = await Promise.all([req.db.WooCommerceImportConfig.findOne(), req.db.Season.getCurrent(), req.db.MembershipType.getActive({
 		LinkedImportId: {
 			[Op.ne]: null

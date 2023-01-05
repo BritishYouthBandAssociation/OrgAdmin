@@ -18,13 +18,7 @@ const idParamSchema = Joi.object({
 		.required()
 });
 
-const checkAdmin = (req, res, next) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
-	next();
-};
+const {checkAdmin} = require('../middleware');
 
 function getDiscountMultiplier(num, thresholds) {
 	let multiplier = 1;

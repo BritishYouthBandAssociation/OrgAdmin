@@ -8,13 +8,7 @@ const validator = require('@byba/express-validator');
 
 const router = express.Router();
 
-const checkAdmin = (req, res, next) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
-	next();
-};
+const {checkAdmin} = require('../middleware');
 
 router.get('/', checkAdmin, (req, res) => {
 	const sections = ['Membership Type', 'Organisation Type', 'Event Type', 'Payment Type', 'Division', 'Caption', 'Season'];

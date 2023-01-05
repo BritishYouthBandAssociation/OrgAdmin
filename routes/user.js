@@ -16,13 +16,7 @@ const idParamSchema = Joi.object({
 		.required()
 });
 
-const checkAdmin = (req, res, next) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
-	next();
-};
+const {checkAdmin} = require('../middleware');
 
 const checkAccess = (req, res, next) => {
 	if (!req.session.user.IsAdmin && req.session.user.id !== req.params.id){

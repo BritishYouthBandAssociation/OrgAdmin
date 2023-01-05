@@ -6,6 +6,8 @@ const { Op } = require('sequelize');
 
 const validator = require('@byba/express-validator');
 
+const {checkAdmin} = require('../middleware');
+
 const router = express.Router();
 
 const replaceMessageTokens = (msg, user, org) => {
@@ -22,13 +24,9 @@ const replaceMessageTokens = (msg, user, org) => {
 	return msg;
 };
 
-router.get('/', validator.query(Joi.object({
+router.get('/', checkAdmin, validator.query(Joi.object({
 	success: Joi.boolean()
 })), async (req, res, next) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
 	const [types, season] = await Promise.all([req.db.MembershipType.getActive(), req.db.Season.getCurrent()]);
 
 	if (!season) {
@@ -44,7 +42,7 @@ router.get('/', validator.query(Joi.object({
 	});
 });
 
-router.post('/test', validator.body(Joi.object({
+router.post('/test', checkAdmin, validator.body(Joi.object({
 	membership: Joi.array()
 		.items(Joi.number())
 		.required(),
@@ -55,10 +53,6 @@ router.post('/test', validator.body(Joi.object({
 	message: Joi.string()
 		.required()
 })), async (req, res, next) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
 	const t = await req.db.sequelize.transaction();
 	const msg = await req.db.Message.create({
 		Sender: req.body.sender,
@@ -127,7 +121,7 @@ router.post('/test', validator.body(Joi.object({
 	});
 });
 
-router.post('/send', validator.body(Joi.object({
+router.post('/send', checkAdmin, validator.body(Joi.object({
 	membership: Joi.array()
 		.items(Joi.number())
 		.required(),
@@ -138,10 +132,6 @@ router.post('/send', validator.body(Joi.object({
 	message: Joi.string()
 		.required()
 })), async (req, res, next) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
 	const t = await req.db.sequelize.transaction();
 
 	try {
