@@ -4,7 +4,6 @@
 
 const express = require('express');
 const Joi = require('joi');
-const { Op } = require('sequelize');
 
 const validator = require('@byba/express-validator');
 
@@ -18,7 +17,7 @@ const idParamSchema = Joi.object({
 		.required()
 });
 
-const {checkAdmin, matchingID} = require('../middleware');
+const { checkAdmin, matchingID } = require('../middleware');
 
 function getDiscountMultiplier(num, thresholds) {
 	let multiplier = 1;
@@ -501,32 +500,6 @@ router.post('/:id/registration', validator.params(idParamSchema), validator.body
 	return res.redirect('./?saved=true');
 });
 
-async function loadCaption(db, parent, scoresFor = null) {
-	const criteria = {
-		where: {
-			ParentID: parent.id
-		}
-	};
-
-	if (scoresFor != null) {
-		criteria.include = [{
-			model: db.EventRegistrationScore,
-			where: {
-				EventRegistrationId: scoresFor
-			},
-			required: false
-		}];
-	}
-
-	parent.Subcaptions = await db.Caption.findAll(criteria);
-
-	await Promise.all(parent.Subcaptions.map(s => {
-		return loadCaption(db, s);
-	}));
-
-	return parent;
-}
-
 function filterCaptions(arr, caption) {
 	if (caption.Subcaptions.length > 0 && caption.Subcaptions[0].Subcaptions.length === 0) {
 		//we have found our weird mid-level!
@@ -565,19 +538,8 @@ router.get('/:id/judges', validator.params(idParamSchema), validator.query(Joi.o
 		return res.redirect('?success=true');
 	}
 
-	//load top level
-	const captionData = await req.db.Caption.findAll({
-		where: {
-			ParentID: null
-		}
-	});
-
+	const captionData = await req.db.Caption.loadTree();
 	const noCaptions = captionData.length === 0;
-
-	//load the rest
-	await Promise.all(captionData.map(c => {
-		return loadCaption(req.db, c);
-	}));
 
 	let captions = [];
 	captionData.forEach(c => filterCaptions(captions, c));
@@ -653,20 +615,7 @@ router.post('/:id/judges/reset', validator.params(idParamSchema), async (req, re
 		return next();
 	}
 
-	//load top level
-	const captionData = await req.db.Caption.findAll({
-		where: {
-			ParentID: null
-		}
-	});
-
-	//load the rest
-	await Promise.all(captionData.map(c => {
-		return loadCaption(req.db, c);
-	}));
-
-	const captions = [];
-	captionData.forEach(c => filterCaptions(captions, c));
+	const captions = await req.db.Caption.loadForJudges();
 
 	await req.db.EventCaption.destroy({
 		where: {
@@ -674,7 +623,7 @@ router.post('/:id/judges/reset', validator.params(idParamSchema), async (req, re
 		}
 	});
 
-	Promise.all(captions.map(c => {
+	await Promise.all(captions.map(c => {
 		return req.db.EventCaption.create({
 			EventId: req.params.id,
 			CaptionId: c.id
@@ -1042,7 +991,7 @@ router.get('/:id/scores/:current?', async (req, res, next) => {
 	}
 
 	await Promise.all(event.EventCaptions.map(ec => {
-		return loadCaption(req.db, ec.Caption, req.params.current);
+		return req.db.Caption.loadCaption(ec.Caption, req.params.current);
 	}));
 
 	const currentRegistration = event.EventRegistrations.find(x => x.id == req.params.current);
