@@ -59,11 +59,7 @@ router.get('/new', validator.query(Joi.object({
 	const promises = [
 		req.db.MembershipType.getActive(),
 		req.db.Season.getCurrent(),
-		req.db.Division.findAll({
-			where: {
-				IsActive: true
-			}
-		})
+		req.db.Division.getActive()
 	];
 
 	if (req.query.org) {
@@ -347,16 +343,8 @@ router.get('/:id', validator.params(Joi.object({
 				}
 			]
 		}),
-		req.db.PaymentType.findAll({
-			where: {
-				IsActive: true
-			}
-		}),
-		req.db.Division.findAll({
-			where: {
-				IsActive: true
-			}
-		})
+		req.db.PaymentType.getActive(),
+		req.db.Division.getActive()
 	]);
 
 	if (!membership) {

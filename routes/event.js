@@ -274,7 +274,7 @@ router.get('/', async (req, res, next) => {
 				SeasonId: season.id
 			}
 		}),
-		req.db.EventType.findAll()
+		req.db.EventType.getActive()
 	]);
 
 	return res.render('event/index.hbs', {
@@ -295,11 +295,7 @@ router.get('/new', validator.query(Joi.object({
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
 	}
 
-	const types = await req.db.EventType.findAll({
-		where: {
-			IsActive: true
-		}
-	});
+	const types = await req.db.EventType.getActive();
 
 	return res.render('event/add.hbs', {
 		title: 'Add New Event',
@@ -365,11 +361,7 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 				req.db.EventSchedule
 			]
 		}),
-		req.db.EventType.findAll({
-			where: {
-				IsActive: true
-			}
-		}),
+		req.db.EventType.getActive(),
 		req.db.EventRegistration.count({
 			where: {
 				EventId: req.params.id,
@@ -660,13 +652,7 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 		return next();
 	}
 
-	const promises = [];
-
-	promises.push(req.db.PaymentType.findAll({
-		where: {
-			IsActive: true
-		}
-	}));
+	const promises = [req.db.PaymentType.getActive()];
 
 	if (req.query.org) {
 		promises.push(req.db.Organisation.findByPk(req.query.org));
