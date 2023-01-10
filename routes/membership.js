@@ -19,21 +19,7 @@ router.get('/', checkAdmin, async (req, res, next) => {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
 	}
 
-	const memberships = await req.db.Membership.findAll({
-		where: { SeasonId: season.id },
-		include: [
-			req.db.Label,
-			req.db.MembershipType,
-			{
-				model: req.db.IndividualMembership,
-				include: [req.db.User]
-			},
-			{
-				model: req.db.OrganisationMembership,
-				include: [req.db.Organisation]
-			}
-		]
-	});
+	const memberships = await req.db.Membership.getAll({ SeasonId: season.id });
 
 	const labels = await req.db.Label.findAll({
 		where: { '$Memberships.SeasonId$': season.id },
@@ -101,7 +87,7 @@ router.post('/new/organisation', validator.body(Joi.object({
 
 		req.db.Membership.findOne({
 			where: {
-				SeasonId: req.body.season,
+				SeasonId: req.body.season
 			},
 			include: [{
 				model: req.db.OrganisationMembership,

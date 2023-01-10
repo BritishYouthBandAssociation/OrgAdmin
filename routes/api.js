@@ -65,24 +65,7 @@ router.get('/membership/:season', validator.query(Joi.object({
 		where.MembershipTypeId = req.query.type;
 	}
 
-	const members = await req.db.Membership.findAll({
-		include: [
-			req.db.Label,
-			req.db.MembershipType,
-			{
-				model: req.db.IndividualMembership,
-				include: [req.db.User]
-			},
-			{
-				model: req.db.OrganisationMembership,
-				include: {
-					model: req.db.Organisation,
-					include: [req.db.OrganisationType]
-				}
-			}
-		],
-		where: where
-	});
+	const members = await req.db.Membership.getAll(where);
 
 	res.json(members);
 });

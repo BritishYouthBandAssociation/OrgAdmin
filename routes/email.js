@@ -73,26 +73,9 @@ router.post('/test', checkAdmin, validator.body(Joi.object({
 	await t.commit();
 
 	const [types, season, rawMember] = await Promise.all([req.db.MembershipType.getActive(), req.db.Season.getCurrent(),
-		req.db.Membership.findAll({
-			include: [
-				req.db.Label,
-				req.db.MembershipType,
-				{
-					model: req.db.IndividualMembership,
-					include: [req.db.User]
-				},
-				{
-					model: req.db.OrganisationMembership,
-					include: {
-						model: req.db.Organisation,
-						include: [req.db.OrganisationType]
-					}
-				}
-			],
-			where: {
-				id: {
-					[Op.in]: req.body.membership
-				}
+		req.db.Membership.getAll({
+			id: {
+				[Op.in]: req.body.membership
 			}
 		})
 	]);
@@ -136,26 +119,7 @@ router.post('/send', checkAdmin, validator.body(Joi.object({
 
 	try {
 		await Promise.all(req.body.membership.map(async m => {
-			const member = await req.db.Membership.findByPk(m, {
-				include: [
-					req.db.Label,
-					req.db.MembershipType,
-					{
-						model: req.db.IndividualMembership,
-						include: [req.db.User]
-					},
-					{
-						model: req.db.OrganisationMembership,
-						include: {
-							model: req.db.Organisation,
-							include: [req.db.OrganisationType, {
-								model: req.db.OrganisationUser,
-								include: [req.db.User]
-							}]
-						}
-					}
-				]
-			});
+			const member = await req.db.Membership.getById(m);
 
 			const contacts = member.OrganisationMembership?.Organisation?.OrganisationUsers
 				?? [member.IndividualMembership];
