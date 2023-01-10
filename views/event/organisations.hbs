@@ -13,8 +13,7 @@
 <div class='p-5 my-4 bg-default text-light rounded-3 text-center'>
 	<p>Register an organistation for the event</p>
 	<form action='add' method='post' id='app'>
-		<search-box class='text-dark' name="organisation" placeholder="Start typing to search for an organisation"
-			url="/_api/organisation/search" text-prop="Name" value-prop="id" text="{{org.Name}}" value="{{org.id}}">
+		<search-box class='text-dark' name="organisation" placeholder="Start typing to search for an organisation" url="/_api/organisation/search" text-prop="Name" value-prop="id" text="{{org.Name}}" value="{{org.id}}">
 		</search-box>
 
 		<label for="organisation-not-found" class='d-flex my-3 justify-content-center align-items-center gap-2'>
@@ -42,17 +41,15 @@
 	{{#each this}}
 	<div class="accordion-item">
 		{{#with Organisation}}
-		<button class="accordion-button collapsed{{#if ../IsWithdrawn}} bg-danger text-light{{/if}}" type="button" data-bs-toggle="collapse"
-			data-bs-target="#collapse-{{id}}" aria-expanded="false" aria-controls="collapse-{{id}}">
+		<button class="accordion-button collapsed{{#if ../IsWithdrawn}} bg-danger text-light{{/if}}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{id}}" aria-expanded="false" aria-controls="collapse-{{id}}">
 			<span class="accordion-header header" id="heading-{{id}}">
-        {{Name}} {{#if ../IsWithdrawn}}(Withdrawn){{/if}}
-      </span>
+				{{Name}} {{#if ../IsWithdrawn}}(Withdrawn){{/if}}
+			</span>
 		</button>
 
-		<div id="collapse-{{id}}" class="accordion-collapse collapse" aria-labelledby="heading-{{id}}"
-			data-bs-parent="#accordion">
+		<div id="collapse-{{id}}" class="accordion-collapse collapse" aria-labelledby="heading-{{id}}" data-bs-parent="#accordion">
 			{{/with}}
-      
+
 			<div class="accordion-body">
 				<div>
 					<p>
@@ -65,35 +62,36 @@
 					<p>
 						Cost: &pound;{{RegistrationFee.Total}}
 						{{#unless RegistrationFee.IsPaid}}
-							<span class="text-danger">Fee Outstanding</span>
+						<span class="text-danger">Fee Outstanding</span>
 						{{else}}
 						<span class="text-success">Fee Paid</span>
 						{{/unless}}
 					</p>
 
 					{{> fee fee=RegistrationFee type="registration" paymentTypes=../../paymentTypes isAdmin=../../session.user.IsAdmin}}
-				{{/if}}
+					{{/if}}
 
-				<form action="withdraw/{{OrganisationId}}" method="post">
-					<p>Entry Status: 
-						<span class="{{#if IsWithdrawn}}text-danger{{else}}text-success{{/if}}">{{#if IsWithdrawn}}Withdrawn{{else}}Entered{{/if}}</span> 
-						{{#if HasAdminAccess}}
+					<form action="withdraw/{{OrganisationId}}" method="post">
+						<p>Entry Status:
+							<span class="{{#if IsWithdrawn}}text-danger{{else}}text-success{{/if}}">{{#if IsWithdrawn}}Withdrawn{{else}}Entered{{/if}}</span>
+							{{#if HasAdminAccess}}
 							{{#if IsWithdrawn}}
-								{{#if CanReinstate}}
-									<button class="btn btn-success">Reinstate</button>
-								{{/if}}
-							{{else}}
-								{{#if CanWithdraw}}
-									<button class="btn btn-danger">Withdraw</button>
-								{{/if}}
+							{{#if CanReinstate}}
+							<button class="btn btn-success">Reinstate</button>
 							{{/if}}
-						{{/if}}
-					</p>
-				</form>
+							{{else}}
+							{{#if CanWithdraw}}
+							<button class="btn btn-danger">Withdraw</button>
+							{{/if}}
+							{{/if}}
+							{{/if}}
+						</p>
+					</form>
 
-				{{#if HasAdminAccess}}
+					{{#if HasAdminAccess}}
 					{{> fee fee=WithdrawalFee type="withdrawal" paymentTypes=../../paymentTypes isAdmin=../../session.user.IsAdmin}}
-				{{/if}}
+					{{/if}}
+				</div>
 			</div>
 		</div>
 	</div>

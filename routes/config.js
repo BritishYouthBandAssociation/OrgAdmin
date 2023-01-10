@@ -190,7 +190,7 @@ router.post('/event-type', checkAdmin,
 	})),
 	async (req, res, next) => {
 		await Promise.all(req.body.type.map((_, i) => {
-			return (async function(){
+			return (async function() {
 				const details = {
 					Name: req.body.type[i],
 					EntryCost: req.body.cost[i],
@@ -216,27 +216,29 @@ router.post('/event-type', checkAdmin,
 					}
 				});
 
-				await Promise.all(req.body.discountAfter[i].map((_, d) => {
-					return (async function() {
-						const allPos = (req.body.membershipType[i][d] ?? []).indexOf(-1);
-						if (allPos > -1) {
-							req.body.membershipType[i][d].splice(allPos, 1);
-						}
+				if (req.body.discountAfter && req.body.discountAfter.length > i) {
+					await Promise.all(req.body.discountAfter[i].map((_, d) => {
+						return (async function() {
+							const allPos = (req.body.membershipType[i][d] ?? []).indexOf(-1);
+							if (allPos > -1) {
+								req.body.membershipType[i][d].splice(allPos, 1);
+							}
 
-						const discountDetails = {
-							DiscountAfter: req.body.discountAfter[i][d],
-							DiscountMultiplier: req.body.multiplier[i][d],
-							MembersOnly: req.body.membersOnly[i][d],
-							AllMembers: allPos > -1
-						};
+							const discountDetails = {
+								DiscountAfter: req.body.discountAfter[i][d],
+								DiscountMultiplier: req.body.multiplier[i][d],
+								MembersOnly: req.body.membersOnly[i][d],
+								AllMembers: allPos > -1
+							};
 
-						const discount = await type.createEventTypeDiscount(discountDetails);
+							const discount = await type.createEventTypeDiscount(discountDetails);
 
-						if (discount.MembersOnly) {
-							await discount.addMembershipTypes(req.body.membershipType[i][d]);
-						}
-					})();
-				}));
+							if (discount.MembersOnly) {
+								await discount.addMembershipTypes(req.body.membershipType[i][d]);
+							}
+						})();
+					}));
+				}
 			})();
 		}));
 
