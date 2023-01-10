@@ -8,7 +8,7 @@ const { Op } = require('sequelize');
 
 const validator = require('@byba/express-validator');
 
-const { helpers: { SlugHelper: { formatSlug } } } = require(__lib);
+const { helpers: { StringHelper: { formatSlug } } } = require(__lib);
 
 const router = express.Router();
 
