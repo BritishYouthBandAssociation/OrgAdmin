@@ -288,7 +288,10 @@ router.get('/', async (req, res, next) => {
 			],
 			where: {
 				SeasonId: season.id
-			}
+			},
+			order: [
+				['Start']
+			]
 		}),
 		req.db.EventType.findAll()
 	]);

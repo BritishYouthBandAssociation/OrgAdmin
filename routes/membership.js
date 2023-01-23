@@ -9,6 +9,12 @@ const { helpers } = require(global.__lib);
 const validator = require('@byba/express-validator');
 const WPOrderProcessor = require('../WPOrderProcessor');
 
+const {
+	helpers: {
+		SortHelper
+	}
+} = require(global.__lib);
+
 const router = express.Router();
 
 router.get('/', async (req, res, next) => {
@@ -31,7 +37,7 @@ router.get('/', async (req, res, next) => {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
 	}
 
-	const memberships = await req.db.Membership.findAll({
+	const memberships = (await req.db.Membership.findAll({
 		where: { SeasonId: season.id },
 		include: [
 			req.db.Label,
@@ -45,7 +51,7 @@ router.get('/', async (req, res, next) => {
 				include: [req.db.Organisation]
 			}
 		]
-	});
+	})).sort((a, b) => SortHelper.stringProp('Name', a, b));
 
 	const labels = await req.db.Label.findAll({
 		where: { '$Memberships.SeasonId$': season.id },
