@@ -25,7 +25,7 @@ router.get('/', checkAdmin, async (req, res, next) => {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
 	}
 
-	const memberships = await req.db.Membership.getAll({ SeasonId: season.id }).sort((a, b) => SortHelper.stringProp('Name', a, b));
+	const memberships = (await req.db.Membership.getAll({ SeasonId: season.id })).sort((a, b) => SortHelper.stringProp('Name', a, b));
 
 	const labels = await req.db.Label.findAll({
 		where: { '$Memberships.SeasonId$': season.id },
