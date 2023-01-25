@@ -3,7 +3,8 @@
 const {
 	helpers: {
 		SlugHelper
-	}
+	},
+	constants
 } = require(global.__lib);
 
 class WPOrderProcessor {
@@ -51,7 +52,7 @@ class WPOrderProcessor {
 			Name: orgName,
 			Slug: slug,
 			Description: '',
-			OrganisationTypeId: 1
+			OrganisationTypeId: constants.ORGANISATION_TYPE.BAND
 		};
 
 		let matchedOrg = await this.#db.Organisation.findOne({

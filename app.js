@@ -14,7 +14,8 @@ const {
 	helpers: {
 		ConfigHelper,
 	},
-	Server
+	Server,
+	constants
 } = require(libPath);
 
 //set global base dir
@@ -91,7 +92,7 @@ async function main() {
 					attributes: []
 				}],
 				where: {
-					OrganisationTypeId: 1 //we only want associated bands here
+					OrganisationTypeId: constants.ORGANISATION_TYPE.BAND
 				}
 			});
 
