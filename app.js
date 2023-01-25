@@ -1,16 +1,9 @@
 'use strict';
 
 // Import modules
-const express = require('express');
-const { engine } = require('express-handlebars');
-const fs = require('fs');
-const morgan = require('morgan');
 const path = require('path');
-const serveFavicon = require('serve-favicon');
 const session = require('express-session');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
-const os = require('os');
-const formData = require('express-form-data');
 
 // Initialise library path
 const libPath = path.join(__dirname, process.env.LIB_PATH ?? '../Library');
@@ -20,80 +13,35 @@ global.__lib = libPath;
 const {
 	helpers: {
 		ConfigHelper,
-		HandlebarsHelper
-	}
+	},
+	Server
 } = require(libPath);
 
 //set global base dir
 global.__approot = __dirname;
 
-/**
- * loadRoutes() Loads all of the routes from /routers into a map
- *
- * @return {Array<Array<String, Object>>} All of the routes
- */
-function loadRoutes() {
-	const routes = [];
-
-	const routeFiles = fs.readdirSync(path.join(__dirname, 'routes'))
-		.filter(file => file.endsWith('.js'));
-
-	for (const file of routeFiles) {
-		const route = require(path.join(__dirname, 'routes', file));
-		routes.push([route.root, route.router]);
-	}
-
-	return routes;
-}
-
 async function main() {
 	// Initialise express app
-	const app = express();
+	const app = Server({
+		dir: __dirname
+	});
 
 	// Import configuration
 	const serverOptions = ConfigHelper.importJSON(path.join(__dirname, 'config'), 'server');
 
 	// Add logging middleware
 	if (serverOptions.logging) {
-		app.use(morgan('tiny', {
-			// don't log out static files and unnecessary fluff
-			skip: (req, res) => {
-				return /(^\/(js|css|fonts|assets|favicon)|(png|jpg|css))/.test(req.path);
-			}
-		}));
+		app.enableLogging('tiny', (req) => /(^\/(js|css|fonts|assets|favicon)|(png|jpg|css))/.test(req.path));
 	}
 
 	// Set up handlebars templating engine
-	app.engine(
-		'hbs',
-		engine({
-			extname: '.hbs',
-			helpers: HandlebarsHelper,
-			runtimeOptions: {
-				allowProtoPropertiesByDefault: true,
-				allowProtoMethodsByDefault: true
-			}
-		})
-	);
-	app.set('view engine', 'hbs');
-	app.set('views', path.join(__dirname, 'views'));
-
-	//allow file uploads
-	app.use(formData.parse({
-		uploadDir: os.tmpdir(),
-		autoClean: true
-	}));
-	app.use(formData.format());
-
-	// Set up parsers to allow access to POST bodies
-	app.use(express.json());
-	app.use(express.urlencoded({
-		extended: true
-	}));
-
-	// Set up routes for static files
-	app.use(serveFavicon(
-		path.join(__dirname, 'public/assets/favicon.ico')));
+	app.useHandlebars('hbs', {
+		extname: '.hbs',
+		runtimeOptions: {
+			allowProtoPropertiesByDefault: true,
+			allowProtoMethodsByDefault: true
+		}
+	});
 
 	// Serve the production vue script if in production environment
 	app.get('/js/vue.js', (req, res, next) => {
@@ -104,22 +52,12 @@ async function main() {
 		next();
 	});
 
-	app.use(express.static(path.join(__dirname, 'public')));
-
-	// Serve uploads locally
-	if (serverOptions.serveUploads) {
-		app.use('/uploads', express.static(path.resolve(serverOptions.uploadPath)));
-	}
+	app.addStaticDir(path.join(__dirname, 'public'));
 
 	// Get database models and connection
 	const dbPath = path.join(libPath, 'models');
 	const db = await require(dbPath)(path.join(__dirname, 'config/db'));
-
-	//add global db
-	app.use((req, res, next) => {
-		req.db = db;
-		next();
-	});
+	app.registerGlobals({db});
 
 	//... and use it for our session stuff too!
 	const sessionStore = new SequelizeStore({ db: db.sequelize });
@@ -187,17 +125,14 @@ async function main() {
 		next();
 	});
 
-	// Add external routers to express
-	for (const route of loadRoutes()) {
-		app.use(route[0], route[1]);
-	}
+	app.loadRoutes();
 
 	/*
 	 * If the request gets to the bottom of the route stack, it doesn't
 	 * have a defined route and therefore a HTTP status code 404 is sent
 	 * and an error page shown
 	 */
-	app.use((req, res) => {
+	app.use((_, res) => {
 		res.status(404).render('error', {
 			title: 'Error',
 			code: 404,
