@@ -10,6 +10,12 @@ const validator = require('@byba/express-validator');
 const WPOrderProcessor = require('../WPOrderProcessor');
 const { checkAdmin } = require('../middleware');
 
+const {
+	helpers: {
+		SortHelper
+	}
+} = require(global.__lib);
+
 const router = express.Router();
 
 router.get('/', checkAdmin, async (req, res, next) => {
@@ -19,7 +25,7 @@ router.get('/', checkAdmin, async (req, res, next) => {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
 	}
 
-	const memberships = await req.db.Membership.getAll({ SeasonId: season.id });
+	const memberships = await req.db.Membership.getAll({ SeasonId: season.id }).sort((a, b) => SortHelper.stringProp('Name', a, b));
 
 	const labels = await req.db.Label.findAll({
 		where: { '$Memberships.SeasonId$': season.id },
