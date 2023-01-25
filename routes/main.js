@@ -29,12 +29,7 @@ router.post('/', validator.body(Joi.object({
 })), validator.query(Joi.object({
 	next: Joi.string()
 })), async (req, res, next) => {
-	const user = await req.db.User.findOne({
-		where: {
-			Email: req.body.email,
-			IsActive: true
-		}
-	});
+	const user = await req.db.User.findByEmail(req.body.email);
 
 	// either returns if the password is valid, or undefined if no user was found
 	const validLogin = await user?.validPassword(req.body.password);
@@ -105,16 +100,7 @@ router.get('/home', async (req, res) => {
 		order: [
 			['Start']
 		]
-	}), req.db.Season.findOne({
-		where: {
-			Start: {
-				[Op.lte]: Date.now()
-			},
-			End: {
-				[Op.gte]: Date.now()
-			}
-		}
-	}), req.db.EventCaption.findAll({
+	}), req.db.Season.getCurrent(), req.db.EventCaption.findAll({
 		include: [req.db.Caption,
 			{
 				model: req.db.User,

@@ -8,16 +8,10 @@ const validator = require('@byba/express-validator');
 
 const router = express.Router();
 
-const checkAdmin = (req, res, next) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
-	next();
-};
+const {checkAdmin} = require('../middleware');
 
 router.get('/', checkAdmin, (req, res) => {
-	const sections = ['Membership Type', 'Organisation Type', 'Event Type', 'Payment Type', 'Division', 'Caption', 'Season'];
+	const sections = ['Membership Type', 'Event Type', 'Payment Type', 'Division', 'Caption', 'Season'];
 
 	return res.render('config/index.hbs', {
 		title: 'Configuration',
@@ -106,46 +100,6 @@ router.post('/membership-type', checkAdmin, validator.body(Joi.object({
 	return res.redirect('?saved=true');
 });
 
-router.get('/organisation-type', checkAdmin, validator.query(Joi.object({
-	saved: Joi.boolean()
-})), async (req, res, next) => {
-	const types = await req.db.OrganisationType.findAll();
-
-	return res.render('config/organisation-type.hbs', {
-		title: 'Organisation Types',
-		types: types,
-		saved: req.query.saved ?? false
-	});
-});
-
-router.post('/organisation-type', checkAdmin, validator.body(Joi.object({
-	id: Joi.array()
-		.items(Joi.number()),
-	type: Joi.array()
-		.items(Joi.string()),
-	isActive: Joi.array()
-		.items(Joi.boolean().falsy('0').truthy('1')),
-})), async (req, res, next) => {
-	await Promise.all(req.body.type.map((t, i) => {
-		const details = {
-			Name: req.body.type[i],
-			IsActive: req.body.isActive[i]
-		};
-
-		if (req.body.id[i] < 0) {
-			return req.db.OrganisationType.create(details);
-		}
-
-		return req.db.OrganisationType.update(details, {
-			where: {
-				id: req.body.id[i]
-			}
-		});
-	}));
-
-	return res.redirect('?saved=true');
-});
-
 router.get('/event-type', checkAdmin, validator.query(Joi.object({
 	saved: Joi.boolean()
 })), async (req, res, next) => {
@@ -158,11 +112,8 @@ router.get('/event-type', checkAdmin, validator.query(Joi.object({
 			['id'],
 			[req.db.EventTypeDiscount, 'DiscountAfter']
 		]
-	}), req.db.MembershipType.findAll({
-		where: {
-			IsOrganisation: true,
-			IsActive: true
-		}
+	}), req.db.MembershipType.getActive({
+		IsOrganisation: true
 	})]);
 
 	return res.render('config/event-type.hbs', {
@@ -433,16 +384,7 @@ router.get('/season', checkAdmin, validator.query(Joi.object({
 	next: Joi.string(),
 	needsSeason: Joi.boolean()
 })), async (req, res) => {
-	const season = await req.db.Season.findOne({
-		where: {
-			Start: {
-				[Op.lte]: Date.now()
-			},
-			End: {
-				[Op.gte]: Date.now()
-			}
-		}
-	});
+	const season = await req.db.Season.getCurrent();
 
 	const others = await req.db.Season.findAll({
 		where: {

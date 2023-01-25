@@ -4,7 +4,6 @@
 
 const express = require('express');
 const Joi = require('joi');
-const { Op } = require('sequelize');
 
 const validator = require('@byba/express-validator');
 
@@ -18,13 +17,7 @@ const idParamSchema = Joi.object({
 		.required()
 });
 
-const checkAdmin = (req, res, next) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
-	next();
-};
+const { checkAdmin, matchingID } = require('../middleware');
 
 function getDiscountMultiplier(num, thresholds) {
 	let multiplier = 1;
@@ -229,16 +222,7 @@ async function generateSchedule(req, next, eventID, config, divisionOrder) {
 }
 
 router.get('/', async (req, res, next) => {
-	const season = await req.db.Season.findOne({
-		where: {
-			Start: {
-				[Op.lte]: Date.now()
-			},
-			End: {
-				[Op.gte]: Date.now()
-			}
-		}
-	});
+	const season = await req.db.Season.getCurrent();
 
 	if (!season) {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
@@ -256,7 +240,7 @@ router.get('/', async (req, res, next) => {
 				['Start']
 			]
 		}),
-		req.db.EventType.findAll()
+		req.db.EventType.getActive()
 	]);
 
 	return res.render('event/index.hbs', {
@@ -271,26 +255,13 @@ router.get('/', async (req, res, next) => {
 router.get('/new', validator.query(Joi.object({
 	error: Joi.boolean()
 })), async (req, res, next) => {
-	const season = await req.db.Season.findOne({
-		where: {
-			Start: {
-				[Op.lte]: Date.now()
-			},
-			End: {
-				[Op.gte]: Date.now()
-			}
-		}
-	});
+	const season = await req.db.Season.getCurrent();
 
 	if (!season) {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
 	}
 
-	const types = await req.db.EventType.findAll({
-		where: {
-			IsActive: true
-		}
-	});
+	const types = await req.db.EventType.getActive();
 
 	return res.render('event/add.hbs', {
 		title: 'Add New Event',
@@ -356,11 +327,7 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 				req.db.EventSchedule
 			]
 		}),
-		req.db.EventType.findAll({
-			where: {
-				IsActive: true
-			}
-		}),
+		req.db.EventType.getActive(),
 		req.db.EventRegistration.count({
 			where: {
 				EventId: req.params.id,
@@ -436,33 +403,7 @@ router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
 
 	if (!event.ScoresReleased && req.body.scoresReleased) {
 		//we are releasing scores here - trigger league calculation
-		const [results, _] = await req.db.sequelize.query(`
-			UPDATE OrganisationMemberships om
-			INNER JOIN Organisations o ON o.id = om.OrganisationId
-			INNER JOIN EventRegistrations er ON er.OrganisationId = o.id
-			
-			SET LeagueScore = (
-				SELECT SUM(TotalScore) / 2
-				FROM
-				(
-					SELECT cast(TotalScore as decimal(10, 5)) AS TotalScore
-					FROM EventRegistrations
-					INNER JOIN Events e ON e.id = EventRegistrations.EventId
-					WHERE OrganisationId = o.id
-					AND e.SeasonId = e.SeasonId
-					AND IFNULL(TotalScore, -1) > 0
-					AND IsWithdrawn = 0
-					LIMIT 2
-				) scores
-			)
-			
-			WHERE er.EventId = :eventID
-			AND er.IsWithdrawn = 0;
-		`, {
-			replacements: {
-				eventID: event.id
-			}
-		});
+		await event.updateLeagueScoreForParticipants();
 	}
 
 	await event.update({
@@ -517,32 +458,6 @@ router.post('/:id/registration', validator.params(idParamSchema), validator.body
 	return res.redirect('./?saved=true');
 });
 
-async function loadCaption(db, parent, scoresFor = null) {
-	const criteria = {
-		where: {
-			ParentID: parent.id
-		}
-	};
-
-	if (scoresFor != null) {
-		criteria.include = [{
-			model: db.EventRegistrationScore,
-			where: {
-				EventRegistrationId: scoresFor
-			},
-			required: false
-		}];
-	}
-
-	parent.Subcaptions = await db.Caption.findAll(criteria);
-
-	await Promise.all(parent.Subcaptions.map(s => {
-		return loadCaption(db, s);
-	}));
-
-	return parent;
-}
-
 function filterCaptions(arr, caption) {
 	if (caption.Subcaptions.length > 0 && caption.Subcaptions[0].Subcaptions.length === 0) {
 		//we have found our weird mid-level!
@@ -581,19 +496,8 @@ router.get('/:id/judges', validator.params(idParamSchema), validator.query(Joi.o
 		return res.redirect('?success=true');
 	}
 
-	//load top level
-	const captionData = await req.db.Caption.findAll({
-		where: {
-			ParentID: null
-		}
-	});
-
+	const captionData = await req.db.Caption.loadTree();
 	const noCaptions = captionData.length === 0;
-
-	//load the rest
-	await Promise.all(captionData.map(c => {
-		return loadCaption(req.db, c);
-	}));
 
 	let captions = [];
 	captionData.forEach(c => filterCaptions(captions, c));
@@ -669,20 +573,7 @@ router.post('/:id/judges/reset', validator.params(idParamSchema), async (req, re
 		return next();
 	}
 
-	//load top level
-	const captionData = await req.db.Caption.findAll({
-		where: {
-			ParentID: null
-		}
-	});
-
-	//load the rest
-	await Promise.all(captionData.map(c => {
-		return loadCaption(req.db, c);
-	}));
-
-	const captions = [];
-	captionData.forEach(c => filterCaptions(captions, c));
+	const captions = await req.db.Caption.loadForJudges();
 
 	await req.db.EventCaption.destroy({
 		where: {
@@ -690,7 +581,7 @@ router.post('/:id/judges/reset', validator.params(idParamSchema), async (req, re
 		}
 	});
 
-	Promise.all(captions.map(c => {
+	await Promise.all(captions.map(c => {
 		return req.db.EventCaption.create({
 			EventId: req.params.id,
 			CaptionId: c.id
@@ -727,13 +618,7 @@ router.get('/:id/organisations', validator.params(idParamSchema), validator.quer
 		return next();
 	}
 
-	const promises = [];
-
-	promises.push(req.db.PaymentType.findAll({
-		where: {
-			IsActive: true
-		}
-	}));
+	const promises = [req.db.PaymentType.getActive()];
 
 	if (req.query.org) {
 		promises.push(req.db.Organisation.findByPk(req.query.org));
@@ -844,7 +729,7 @@ router.post('/:id/organisations/withdraw/:orgID', async (req, res, next) => {
 	return res.redirect('../');
 });
 
-router.post('/:id/organisations/add', validator.params(idParamSchema), validator.body(Joi.object({
+router.post('/:id/organisations/add', matchingID('id', ['band', 'id']), validator.params(idParamSchema), validator.body(Joi.object({
 	// eslint-disable-next-line camelcase
 	organisation_search: Joi.string()
 		.allow('')
@@ -869,10 +754,6 @@ router.post('/:id/organisations/add', validator.params(idParamSchema), validator
 
 	if (!org) {
 		return next();
-	}
-
-	if (!req.session.user.IsAdmin && (!req.session.band || req.session.band.id !== org.id)) {
-		return res.redirect('/no-access');
 	}
 
 	const details = {
@@ -992,28 +873,13 @@ router.get('/:id/schedule/automatic', checkAdmin, async (req, res, next) => {
 				IsWithdrawn: false
 			}
 		}),
-		req.db.sequelize.query(`
-			SELECT 1
-			FROM EventRegistrations er
-			INNER JOIN Events e ON e.id = er.EventId
-			WHERE er.EventID = :eventID
-			AND er.IsWithdrawn = 0
-			AND NOT EXISTS (
-				SELECT 1
-				FROM OrganisationMemberships om
-				INNER JOIN Memberships m ON m.id = om.MembershipId
-				WHERE om.OrganisationId = er.OrganisationId
-				AND m.SeasonId = e.SeasonId
-			)
-		`, {
-			replacements: {
-				eventID: req.params.id
-			}
-		})
+
 	]);
 
-	const [event, , entries, [hasUnregistered]] = result;
+	const [event, , entries] = result;
 	let [, divisions] = result;
+
+	const hasUnregistered = await event.hasUnregisteredParticipants();
 
 	if (!event) {
 		return next();
@@ -1077,7 +943,7 @@ router.get('/:id/scores/:current?', async (req, res, next) => {
 	}
 
 	await Promise.all(event.EventCaptions.map(ec => {
-		return loadCaption(req.db, ec.Caption, req.params.current);
+		return req.db.Caption.loadCaption(ec.Caption, req.params.current);
 	}));
 
 	const currentRegistration = event.EventRegistrations.find(x => x.id == req.params.current);

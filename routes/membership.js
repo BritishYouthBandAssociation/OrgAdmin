@@ -8,6 +8,7 @@ const { helpers } = require(global.__lib);
 
 const validator = require('@byba/express-validator');
 const WPOrderProcessor = require('../WPOrderProcessor');
+const { checkAdmin } = require('../middleware');
 
 const {
 	helpers: {
@@ -17,41 +18,14 @@ const {
 
 const router = express.Router();
 
-router.get('/', async (req, res, next) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
-	const season = await req.db.Season.findOne({
-		where: {
-			Start: {
-				[Op.lte]: Date.now()
-			},
-			End: {
-				[Op.gte]: Date.now()
-			}
-		}
-	});
+router.get('/', checkAdmin, async (req, res, next) => {
+	const season = await req.db.Season.getCurrent();
 
 	if (!season) {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
 	}
 
-	const memberships = (await req.db.Membership.findAll({
-		where: { SeasonId: season.id },
-		include: [
-			req.db.Label,
-			req.db.MembershipType,
-			{
-				model: req.db.IndividualMembership,
-				include: [req.db.User]
-			},
-			{
-				model: req.db.OrganisationMembership,
-				include: [req.db.Organisation]
-			}
-		]
-	})).sort((a, b) => SortHelper.stringProp('Name', a, b));
+	const memberships = await req.db.Membership.getAll({ SeasonId: season.id }).sort((a, b) => SortHelper.stringProp('Name', a, b));
 
 	const labels = await req.db.Label.findAll({
 		where: { '$Memberships.SeasonId$': season.id },
@@ -75,26 +49,9 @@ router.get('/new', validator.query(Joi.object({
 	org: Joi.number()
 })), async (req, res, next) => {
 	const promises = [
-		req.db.MembershipType.findAll({
-			where: {
-				IsActive: true
-			}
-		}),
-		req.db.Season.findOne({
-			where: {
-				Start: {
-					[Op.lte]: Date.now()
-				},
-				End: {
-					[Op.gte]: Date.now()
-				}
-			}
-		}),
-		req.db.Division.findAll({
-			where: {
-				IsActive: true
-			}
-		})
+		req.db.MembershipType.getActive(),
+		req.db.Season.getCurrent(),
+		req.db.Division.getActive()
 	];
 
 	if (req.query.org) {
@@ -136,7 +93,7 @@ router.post('/new/organisation', validator.body(Joi.object({
 
 		req.db.Membership.findOne({
 			where: {
-				SeasonId: req.body.season,
+				SeasonId: req.body.season
 			},
 			include: [{
 				model: req.db.OrganisationMembership,
@@ -208,11 +165,7 @@ router.post('/new/individual', validator.body(Joi.object({
 	season: Joi.number().required()
 })), async (req, res, next) => {
 	const [exists, type] = await Promise.all([
-		req.db.User.findOne({
-			where: {
-				Email: req.body.email
-			}
-		}),
+		req.db.User.findByEmail(req.body.email),
 		req.db.MembershipType.findOne({
 			where: {
 				id: req.body.type
@@ -258,11 +211,7 @@ router.post('/new/individual', validator.body(Joi.object({
 	return res.redirect(`/membership/${newMembership.id}/`);
 });
 
-router.get('/import-prep', async (req, res) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
+router.get('/import-prep', checkAdmin, async (req, res) => {
 	const [mappings, config] = await Promise.all([req.db.MembershipType.count({
 		where: {
 			LinkedImportId: {
@@ -281,15 +230,11 @@ router.get('/import-prep', async (req, res) => {
 	});
 });
 
-router.post('/import-prep', validator.body(Joi.object({
+router.post('/import-prep', checkAdmin, validator.body(Joi.object({
 	url: Joi.string(), //not .uri() in case someone puts e.g. byba.online instead of http://byba.online
 	key: Joi.string(),
 	secret: Joi.string()
 })), async (req, res) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
 	let config = await req.db.WooCommerceImportConfig.findOne();
 	const found = config != null;
 
@@ -310,26 +255,10 @@ router.post('/import-prep', validator.body(Joi.object({
 	res.redirect('import');
 });
 
-router.get('/import', async (req, res) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
-	const [config, season, membershipTypes] = await Promise.all([req.db.WooCommerceImportConfig.findOne(), req.db.Season.findOne({
-		where: {
-			Start: {
-				[Op.lte]: Date.now()
-			},
-			End: {
-				[Op.gte]: Date.now()
-			}
-		}
-	}), req.db.MembershipType.findAll({
-		where: {
-			LinkedImportId: {
-				[Op.ne]: null
-			},
-			IsActive: true
+router.get('/import', checkAdmin, async (req, res) => {
+	const [config, season, membershipTypes] = await Promise.all([req.db.WooCommerceImportConfig.findOne(), req.db.Season.getCurrent(), req.db.MembershipType.getActive({
+		LinkedImportId: {
+			[Op.ne]: null
 		}
 	})]);
 
@@ -402,16 +331,8 @@ router.get('/:id', validator.params(Joi.object({
 				}
 			]
 		}),
-		req.db.PaymentType.findAll({
-			where: {
-				IsActive: true
-			}
-		}),
-		req.db.Division.findAll({
-			where: {
-				IsActive: true
-			}
-		})
+		req.db.PaymentType.getActive(),
+		req.db.Division.getActive()
 	]);
 
 	if (!membership) {

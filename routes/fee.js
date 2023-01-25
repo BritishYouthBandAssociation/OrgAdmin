@@ -5,6 +5,7 @@ const Joi = require('joi');
 const router = express.Router();
 
 const validator = require('@byba/express-validator');
+const { checkAdmin } = require('../middleware');
 
 router.get('/', (req, res, next) => {
 	return res.render('fee/index.hbs', {
@@ -13,7 +14,7 @@ router.get('/', (req, res, next) => {
 });
 
 //this is only an api route for now?
-router.post('/:id', validator.query(Joi.object({
+router.post('/:id', checkAdmin, validator.query(Joi.object({
 	redirect: Joi.string()
 })), validator.params(Joi.object({
 	id: Joi.number()
@@ -24,10 +25,6 @@ router.post('/:id', validator.query(Joi.object({
 		.integer()
 		.required()
 })), async (req, res, next) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access/');
-	}
-
 	const fee = await req.db.Fee.findByPk(req.params.id);
 	const redir = req.query.redirect ?? req.get('Referrer');
 
