@@ -56,7 +56,7 @@
 						<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="'#collapse-' + season.id" aria-expanded="false" :aria-controls="'collapse-' + season.id">
 							<span class="accordion-header header">${getTitle(season)} <span v-if="season.touched"> - edited</span></span>
 						</button>
-						<div :id="'collapse-' + season.id" class="accordion-collapse" :class="{'collapse': index < seasons.length, 'show': index == seasons.length - 1}" data-bs-parent="#seasons">
+						<div :id="'collapse-' + season.id" class="accordion-collapse" :class="{'collapse': index < seasons.length, 'show': index == seasons.length - 1 && season.touched}" data-bs-parent="#seasons">
 							<div class="accordion-body">
 								<div class="form-group mb-3">
 									<label :for="'name-' + season.id">Identifier</label>
@@ -85,7 +85,7 @@
 				{{/if}}
 
 				<div class="text-center">
-					<button class="btn btn-lg btn-success" @click="addSeason">+ Add</button>
+					<button type="button" class="btn btn-lg btn-success" @click="addSeason">+ Add</button>
 					<button type="submit" class="btn btn-default btn-lg" v-if="seasons.length > 0">Save Changes</button>
 				</div>
 			</form>
@@ -112,7 +112,7 @@
 				Start: '',
 				End: '',
 				Identifier: '',
-				touched: false
+				touched: true
 			});
 
 			Vue.nextTick(() => {

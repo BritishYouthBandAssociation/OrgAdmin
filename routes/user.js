@@ -33,7 +33,12 @@ const checkAccess = (req, res, next) => {
 };
 
 router.get('/', checkAdmin, async (req, res, next) => {
-	const users = await req.db.User.findAll();
+	const users = await req.db.User.findAll({
+		order: [
+			['FirstName'],
+			['Surname']
+		]
+	});
 	const active = [];
 	const inactive = [];
 
