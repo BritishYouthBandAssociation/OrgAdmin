@@ -133,9 +133,9 @@
 
 {{#gt events.length 0}}
 <h2>Upcoming Events</h2>
-<div class="row flex-row flex-nowrap">
+<div class="row flex-row flex-nowrap w-100 overflow-auto">
 	{{#each events}}
-	<div class="col-12 col-lg-4">
+	<div class="col-12 col-lg-4 mb-3">
 		<div class="card card-body h-100">
 			<h3><a href="/event/{{id}}/" class="text-dark">{{Name}} &gt;</a></h3>
 			<p><i>{{date Start}}, {{time Start}}</i></p>

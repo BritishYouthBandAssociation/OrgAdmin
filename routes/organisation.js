@@ -74,7 +74,10 @@ async function removeImage(config, id, origin, token = null) {
 
 router.get('/', checkAdmin, async (req, res, next) => {
 	const orgs = await req.db.Organisation.findAll({
-		include: [req.db.OrganisationType]
+		include: [req.db.OrganisationType],
+		order: [
+			['Name']
+		]
 	});
 
 	return res.render('organisation/index.hbs', {

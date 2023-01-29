@@ -7,7 +7,7 @@ const Joi = require('joi');
 
 const validator = require('@byba/express-validator');
 
-const { helpers: { SlugHelper: { formatSlug } } } = require(__lib);
+const { helpers: { StringHelper: { formatSlug } , SortHelper }} = require(__lib);
 
 const router = express.Router();
 
@@ -82,43 +82,6 @@ async function recalculateEntryFees(db, season, typeID, org) {
 			//TODO: handle already paid!
 		}
 	}
-}
-
-function shuffleArray(array) {
-	for (let i = array.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
-		[array[i], array[j]] = [array[j], array[i]];
-	}
-
-	return array;
-}
-
-function leagueSort(entries) {
-	entries.sort((a, b) => {
-		const aMember = a.Organisation.OrganisationMemberships;
-		const aScore = aMember.length == 0 ? 0 : aMember[0].LeagueScore;
-
-		const bMember = b.Organisation.OrganisationMemberships;
-		const bScore = bMember.length == 0 ? 0 : bMember[0].LeagueScore;
-
-		return aScore - bScore;
-	});
-
-	return entries;
-}
-
-function entrySort(array, direction) {
-	array.sort((a, b) => {
-		const d1 = new Date(a.EntryDate), d2 = new Date(b.EntryDate);
-
-		if (direction === 'asc') {
-			return d1 - d2;
-		}
-
-		return d2 - d1;
-	});
-
-	return array;
 }
 
 function splitEntries(entries, cutoff) {
@@ -211,15 +174,15 @@ async function generateSchedule(req, next, eventID, config, divisionOrder) {
 		let late = [], regular = div;
 		if (config.LateOnFirst) {
 			[late, regular] = splitEntries(div, cutoff);
-			entrySort(late, 'desc');
+			late = late.sort((a, b) => SortHelper.dateProp('EntryDate', a, b, false));
 		}
 
 		if (config.Type.indexOf('entry') > -1) {
-			entrySort(regular, config.Type.split('-')[1]);
+			regular = regular.sort((a, b) => SortHelper.dateProp('EntryDate', a, b, config.Type.split('-')[1] == 'asc'));
 		} else if (config.Type == 'league') {
-			leagueSort(regular);
+			regular = regular.sort((a, b) => SortHelper.compare(a.Organisation.OrganisationMemberships[0]?.LeagueScore, b.Organisation.OrganisationMemberships[0]?.LeagueScore));
 		} else {
-			shuffleArray(regular);
+			regular = SortHelper.shuffleArray(regular);
 		}
 
 		div = late.concat(regular);
@@ -272,7 +235,10 @@ router.get('/', async (req, res, next) => {
 			],
 			where: {
 				SeasonId: season.id
-			}
+			},
+			order: [
+				['Start']
+			]
 		}),
 		req.db.EventType.getActive()
 	]);

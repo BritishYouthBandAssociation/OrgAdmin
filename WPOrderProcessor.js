@@ -2,7 +2,7 @@
 
 const {
 	helpers: {
-		SlugHelper
+		StringHelper
 	},
 	constants
 } = require(global.__lib);
@@ -21,8 +21,8 @@ class WPOrderProcessor {
 	async getContact(order) {
 		const contact = {
 			Email: order.billing.email,
-			FirstName: order.billing.first_name,
-			Surname: order.billing.last_name,
+			FirstName: StringHelper.toTitleCase(order.billing.first_name),
+			Surname: StringHelper.toTitleCase(order.billing.last_name),
 			IsActive: true,
 			IsAdmin: false,
 			Password: `BYBA@${this.#season.Identifier}`
@@ -47,9 +47,9 @@ class WPOrderProcessor {
 	}
 
 	async getOrganisation(orgName) {
-		const slug = SlugHelper.formatSlug(orgName);
+		const slug = StringHelper.formatSlug(orgName);
 		const org = {
-			Name: orgName,
+			Name: StringHelper.toTitleCase(orgName),
 			Slug: slug,
 			Description: '',
 			OrganisationTypeId: constants.ORGANISATION_TYPE.BAND
