@@ -38,16 +38,8 @@ router.get('/organisation', validator.query(Joi.object({
 router.get('/organisation/search', validator.query(Joi.object({
 	q: Joi.string()
 		.required()
-})), async (req, res, next) => {
-	const orgs = await req.db.Organisation.findAll({
-		include: [req.db.OrganisationType],
-		where: {
-			Name: {
-				[req.db.Sequelize.Op.like]: `%${req.query.q}%`
-			}
-		}
-	});
-
+})), async (req, res) => {
+	const orgs = await req.db.Organisation.search(req.query.q);
 	res.json(orgs);
 });
 
@@ -65,24 +57,7 @@ router.get('/membership/:season', validator.query(Joi.object({
 		where.MembershipTypeId = req.query.type;
 	}
 
-	const members = await req.db.Membership.findAll({
-		include: [
-			req.db.Label,
-			req.db.MembershipType,
-			{
-				model: req.db.IndividualMembership,
-				include: [req.db.User]
-			},
-			{
-				model: req.db.OrganisationMembership,
-				include: {
-					model: req.db.Organisation,
-					include: [req.db.OrganisationType]
-				}
-			}
-		],
-		where: where
-	});
+	const members = await req.db.Membership.getAll(where);
 
 	res.json(members);
 });
@@ -100,24 +75,12 @@ router.get('/caption/:id/judges/search', validator.query(Joi.object({
 		return next();
 	}
 
-	const judges = await req.db.User.findAll({
-		include: [{
-			model: req.db.Caption,
-			where: {
-				id: caption.id
-			}
-		}],
+	const judges = await req.db.User.searchByName(req.query.q, [{
+		model: req.db.Caption,
 		where: {
-			[Op.or]: {
-				FirstName: {
-					[Op.like]: `%${req.query.q}%`
-				},
-				Surname: {
-					[Op.like]: `%${req.query.q}%`
-				}
-			}
+			id: caption.id
 		}
-	});
+	}]);
 
 	res.json(judges);
 });

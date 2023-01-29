@@ -3,7 +3,8 @@
 const {
 	helpers: {
 		StringHelper
-	}
+	},
+	constants
 } = require(global.__lib);
 
 class WPOrderProcessor {
@@ -51,7 +52,7 @@ class WPOrderProcessor {
 			Name: StringHelper.toTitleCase(orgName),
 			Slug: slug,
 			Description: '',
-			OrganisationTypeId: 1
+			OrganisationTypeId: constants.ORGANISATION_TYPE.BAND
 		};
 
 		let matchedOrg = await this.#db.Organisation.findOne({

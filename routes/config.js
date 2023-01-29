@@ -8,13 +8,7 @@ const validator = require('@byba/express-validator');
 
 const router = express.Router();
 
-const checkAdmin = (req, res, next) => {
-	if (!req.session.user.IsAdmin) {
-		return res.redirect('/no-access');
-	}
-
-	next();
-};
+const {checkAdmin} = require('../middleware');
 
 router.get('/', checkAdmin, (req, res) => {
 	const sections = ['Membership Type', 'Organisation Type', 'Event Type', 'Payment Type', 'Division', 'Caption', 'Season'];
@@ -158,11 +152,8 @@ router.get('/event-type', checkAdmin, validator.query(Joi.object({
 			['id'],
 			[req.db.EventTypeDiscount, 'DiscountAfter']
 		]
-	}), req.db.MembershipType.findAll({
-		where: {
-			IsOrganisation: true,
-			IsActive: true
-		}
+	}), req.db.MembershipType.getActive({
+		IsOrganisation: true
 	})]);
 
 	return res.render('config/event-type.hbs', {
@@ -433,16 +424,7 @@ router.get('/season', checkAdmin, validator.query(Joi.object({
 	next: Joi.string(),
 	needsSeason: Joi.boolean()
 })), async (req, res) => {
-	const season = await req.db.Season.findOne({
-		where: {
-			Start: {
-				[Op.lte]: Date.now()
-			},
-			End: {
-				[Op.gte]: Date.now()
-			}
-		}
-	});
+	const season = await req.db.Season.getCurrent();
 
 	const others = await req.db.Season.findAll({
 		where: {
