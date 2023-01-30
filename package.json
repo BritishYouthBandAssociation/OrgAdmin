@@ -21,7 +21,7 @@
 		"@byba/eslint-config": "^1.4.0",
 		"eslint": "^8.32.0",
 		"husky": "^8.0.1",
-		"lint-staged": "^13.0.3"
+		"lint-staged": "^13.1.0"
 	},
 	"dependencies": {
 		"@byba/express-validator": "^1.1.3",
