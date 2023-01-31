@@ -1016,9 +1016,9 @@ connect-multiparty@^2.2.0:
     qs "~6.5.2"
     type-is "~1.6.16"
 
-connect-session-sequelize@^7.1.4:
+connect-session-sequelize@^7.1.5:
   version "7.1.5"
-  resolved "https://registry.npmjs.org/connect-session-sequelize/-/connect-session-sequelize-7.1.5.tgz"
+  resolved "https://registry.yarnpkg.com/connect-session-sequelize/-/connect-session-sequelize-7.1.5.tgz#71da220fe1856249f28d07d258acbc581e46be66"
   integrity sha512-oCHmWlCqhWoq6GGJ9z9PWLk0mrEsIfKlLE4WHUBjRIcSRgUh4OEIDfGY7rfBnlD6clRwwYQfK6+ks0fuTFf6WA==
   dependencies:
     debug "^4.1.1"
@@ -2148,10 +2148,10 @@ human-signals@^3.0.1:
   resolved "https://registry.npmjs.org/human-signals/-/human-signals-3.0.1.tgz"
   integrity sha512-rQLskxnM/5OCldHo+wNXbpVgDn5A17CUoKX+7Sokwaknlq7CdSnphy0W39GU8dw59XiCXmFXDg4fRuckQRKewQ==
 
-husky@^8.0.1:
-  version "8.0.1"
-  resolved "https://registry.npmjs.org/husky/-/husky-8.0.1.tgz"
-  integrity sha512-xs7/chUH/CKdOCs7Zy0Aev9e/dKOMZf3K1Az1nar3tzlv0jfqnYtu235bstsWTmXOR0EfINrPa97yy4Lz6RiKw==
+husky@^8.0.3:
+  version "8.0.3"
+  resolved "https://registry.yarnpkg.com/husky/-/husky-8.0.3.tgz#4936d7212e46d1dea28fef29bb3a108872cd9184"
+  integrity sha512-+dQSyqPh4x1hlO1swXBiNb2HzTDN1I2IGLQx1GrBuiqFJfoMrnZWwVmatvSiO+Iz8fBUnf+lekwNo4c2LlXItg==
 
 iconv-lite@0.4.24:
   version "0.4.24"
