@@ -11,17 +11,17 @@
 <form method="post">
 	<div class="form-group mb-3">
 		<label for="url">Domain</label>
-			<input type="text" name="url" id="url" class="form-control" value="{{config.Domain}}" required/>
+			<input type="text" maxlength="255" name="url" id="url" class="form-control" value="{{config.Domain}}" required/>
 	</div>
 
 	<div class="form-group mb-3">
 		<label for="key">API Key</label>
-		<input type="text" name="key" id="key" class="form-control" value="{{config.Key}}" required/>
+		<input type="text" maxlength="255" name="key" id="key" class="form-control" value="{{config.Key}}" required/>
 	</div>
 
 	<div class="form-group mb-3">
 		<label for="secret">API Secret</label>
-		<input type="text" name="secret" id="secret" class="form-control" value="{{config.Secret}}" required/>
+		<input type="text" maxlength="255" name="secret" id="secret" class="form-control" value="{{config.Secret}}" required/>
 	</div>
 
 	<button type="submit" class="btn btn-default btn-lg">Start Import</button>

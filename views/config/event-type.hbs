@@ -13,7 +13,7 @@
 			<div class="card card-body">
 				<div class="form-group mb-3">
 					<label :for="'name-' + index">Event Type</label>
-					<input type="text" class="form-control" name="type[]" :id="'name-' + index" v-model="type.Name" required />
+					<input type="text" class="form-control" name="type[]" :id="'name-' + index" v-model="type.Name" maxlength="50" required />
 				</div>
 
 				<div class="form-group mb-3">

@@ -391,7 +391,10 @@ router.get('/season', checkAdmin, validator.query(Joi.object({
 			id: {
 				[Op.not]: season?.id ?? 0
 			}
-		}
+		},
+		order: [
+			['Start', 'DESC']
+		]
 	});
 
 	return res.render('config/season.hbs', {

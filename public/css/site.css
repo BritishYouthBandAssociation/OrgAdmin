@@ -1,0 +1,79 @@
+:root {
+	--byba-blue: #282360;
+}
+
+.bg-default {
+	background-color: var(--byba-blue) !important;
+}
+
+.btn-default {
+	--bs-btn-color: #FFF;
+	--bs-btn-bg: var(--byba-blue);
+}
+
+.btn-default:hover {
+	--bs-btn-hover-color: var(--bs-btn-color);
+	--bs-btn-hover-bg: var(--bs-btn-bg);
+}
+
+.btn-default:active {
+	--bs-btn-active-color: var(--bs-btn-color);
+	--bs-btn-active-bg: var(--bs-btn-bg);
+}
+
+.sidebar .nav-link.active {
+	background-color: #FFF;
+	color: var(--byba-blue);
+}
+
+@media (min-width: 992px) {
+	main {
+		display: flex;
+		min-height: 100vh;
+	}
+
+	.sidebar {
+		width: 280px;
+	}
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.header {
+	font-family: 'Asket';
+	text-transform: uppercase;
+}
+
+body {
+	font-family: 'Open Sans', 'OpenSans';
+}
+
+.search-results-container {
+	border: 1px solid rgba(0, 0, 0, 0.125);
+	position: relative;
+	top: -0.25rem;
+}
+
+.search-result {
+	padding: 0.5rem;
+	background-color: #EFEFEF;
+}
+
+.search-result:hover {
+	background-color: #FFF;
+	cursor: pointer;
+}
+
+.event-spacer {
+	height: 3rem;
+	width: 50%;
+	border-right: solid 3px #000;
+}
+
+.pointer {
+	cursor: pointer;
+}
