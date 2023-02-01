@@ -6,4 +6,84 @@
 	organisation{{else}}Please contact your system administrator{{/if}}.</div>
 {{/eq}}
 
-{{> organisation types=types required=true uploadToken=uploadToken}}
+<div class="accordion" id="orgAccordion">
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="basicDetails">
+			<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#basicDetailsCollapse" aria-expanded="true" aria-controls="basicDetailsCollapse">
+				Basic Details
+			</button>
+		</h2>
+		<div id="basicDetailsCollapse" class="accordion-collapse collapse show" aria-labelledby="basicDetails" data-bs-parent="#orgAccordion">
+			<div class="accordion-body">
+				<div class="row">
+					<div class="col-12 col-lg-8 mb-3">
+						<div class="row">
+							<div class="col-12 col-lg-6 mb-3">
+								<div class="form-group">
+									<label for="name">Name</label>
+									<input type="text" id="name" name="name" maxlength="255" class="form-control" placeholder="Organisation Name" required/>
+								</div>
+							</div>
+							<div class="col-12 col-lg-6 mb-3">
+								<div class="form-group">
+									<label for="slug">URL Slug</label>
+									<input type="text" id="slug" name="slug" maxlength="255" class="form-control" placeholder="URL Slug" required/>
+								</div>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label for="type">Organisation Type</label>
+							<select id="type" name="type" class="form-control" required>
+								<option value="">-- Please Select --</option>
+								{{#each types}}
+									<option value="{{id}}">{{Name}}</option>
+								{{/each}}
+							</select>
+						</div>
+					</div>
+
+					<div class="col-12 col-lg-4">
+						{{#unless uploadToken}}
+						<div class="alert alert-danger text-center">File uploads are currently unavailable</div>
+						{{else}}
+						<file-upload title="Logo" name="logo" accept="image/*" src="{{organisation.LogoId}}" token="{{uploadToken}}" v-on:start="addUpload" v-on:cancel="completeUpload" v-on:complete="completeUpload"></file-upload>
+						{{/unless}}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="profile">
+			<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#profileCollapse" aria-expanded="false" aria-controls="profileCollapse" disabled>
+				Profile
+			</button>
+		</h2>
+		<div id="profileCollapse" class="accordion-collapse collapse" aria-labelledby="profile" data-bs-parent="#orgAccordion">
+			<div class="accordion-body">
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="/js/vue.js"></script>
+<script src="/js/component/FileUpload.js"></script>
+
+<script>
+	const app = new Vue({
+		el: '#orgAccordion',
+		data: {
+			uploadsInProgress: 0
+		},
+		methods: {
+			addUpload() {
+				this.uploadsInProgress++;
+			},
+
+			completeUpload() {
+				this.uploadsInProgress--;
+			}
+		}
+	});
+</script>
