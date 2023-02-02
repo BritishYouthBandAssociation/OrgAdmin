@@ -9,11 +9,11 @@
 <div class="accordion" id="orgAccordion">
 	<div class="accordion-item">
 		<h2 class="accordion-header" id="basicDetails">
-			<button class="accordion-button" :class="{'collapsed': currentSection != 'basicDetails'}" type="button" data-bs-toggle="collapse" data-bs-target="#basicDetailsCollapse" aria-expanded="true" aria-controls="basicDetailsCollapse">
+			<button class="accordion-button" :class="{'collapsed': currentStep != 0}" type="button" data-bs-toggle="collapse" data-bs-target="#basicDetailsCollapse" aria-expanded="true" aria-controls="basicDetailsCollapse">
 				Basic Details
 			</button>
 		</h2>
-		<div id="basicDetailsCollapse" class="accordion-collapse collapse" :class="{'show': currentSection == 'basicDetails'}" aria-labelledby="basicDetails" data-bs-parent="#orgAccordion">
+		<div id="basicDetailsCollapse" class="accordion-collapse collapse" :class="{'show': currentStep == 0}" aria-labelledby="basicDetails" data-bs-parent="#orgAccordion">
 			<div class="accordion-body">
 				<div class="row">
 					<div class="col-12 col-lg-8 mb-3">
@@ -58,14 +58,33 @@
 			</div>
 		</div>
 	</div>
+	
 	<div class="accordion-item">
 		<h2 class="accordion-header" id="profile">
-			<button class="accordion-button" :class="{'collapsed': currentSection != 'profile'}" type="button" data-bs-toggle="collapse" data-bs-target="#profileCollapse" aria-expanded="false" aria-controls="profileCollapse" :disabled="currentSection == 'basicDetails'">
+			<button class="accordion-button" :class="{'collapsed': currentStep != 1}" type="button" data-bs-toggle="collapse" data-bs-target="#profileCollapse" aria-expanded="false" aria-controls="profileCollapse" :disabled="currentStep < 1">
 				Profile
 			</button>
 		</h2>
-		<div id="profileCollapse" class="accordion-collapse collapse" :class="{'show': currentSection == 'profile'}" aria-labelledby="profile" data-bs-parent="#orgAccordion">
+		<div id="profileCollapse" class="accordion-collapse collapse" :class="{'show': currentStep == 1}" aria-labelledby="profile" data-bs-parent="#orgAccordion">
 			<div class="accordion-body">
+				<div class="text-end">
+					<button type="button" class="btn btn-default" @click="completeSection('profile', 'contacts')">Next</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="contacts">
+			<button class="accordion-button" :class="{'collapsed': currentStep != 2}" type="button" data-bs-toggle="collapse" data-bs-target="#contactsCollapse" aria-expanded="false" aria-controls="contactsCollapse" :disabled="currentStep < 2">
+				Contacts
+			</button>
+		</h2>
+		<div id="contactsCollapse" class="accordion-collapse collapse" :class="{'show': currentStep == 2}" aria-labelledby="contacts" data-bs-parent="#orgAccordion">
+			<div class="accordion-body">
+				<div class="text-end">
+					<button type="button" class="btn btn-default" @click="completeSection('profile', 'contacts')">Next</button>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -80,7 +99,8 @@
 		data: {
 			uploadsInProgress: 0,
 			slug: '',
-			currentSection: 'basicDetails'
+			steps: ['basicDetails', 'profile'],
+			currentStep: 0
 		},
 		methods: {
 			addUpload() {
@@ -115,7 +135,10 @@
 					return;
 				}
 
-				this.currentSection = nextSectionId;
+				const nextStep = this.steps.indexOf(sectionId) + 1;
+				if(this.currentStep < nextStep){
+					this.currentStep = nextStep;
+				}
 			}
 		}
 	});
