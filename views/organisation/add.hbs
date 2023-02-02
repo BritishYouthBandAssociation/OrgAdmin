@@ -9,11 +9,11 @@
 <div class="accordion" id="orgAccordion">
 	<div class="accordion-item">
 		<h2 class="accordion-header" id="basicDetails">
-			<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#basicDetailsCollapse" aria-expanded="true" aria-controls="basicDetailsCollapse">
+			<button class="accordion-button" :class="{'collapsed': currentSection != 'basicDetails'}" type="button" data-bs-toggle="collapse" data-bs-target="#basicDetailsCollapse" aria-expanded="true" aria-controls="basicDetailsCollapse">
 				Basic Details
 			</button>
 		</h2>
-		<div id="basicDetailsCollapse" class="accordion-collapse collapse show" aria-labelledby="basicDetails" data-bs-parent="#orgAccordion">
+		<div id="basicDetailsCollapse" class="accordion-collapse collapse" :class="{'show': currentSection == 'basicDetails'}" aria-labelledby="basicDetails" data-bs-parent="#orgAccordion">
 			<div class="accordion-body">
 				<div class="row">
 					<div class="col-12 col-lg-8 mb-3">
@@ -21,13 +21,13 @@
 							<div class="col-12 col-lg-6 mb-3">
 								<div class="form-group">
 									<label for="name">Name</label>
-									<input type="text" id="name" name="name" maxlength="255" class="form-control" placeholder="Organisation Name" required/>
+									<input type="text" id="name" name="name" maxlength="255" autocomplete="off" class="form-control" placeholder="Organisation Name" required @keyUp="generateSlug"/>
 								</div>
 							</div>
 							<div class="col-12 col-lg-6 mb-3">
 								<div class="form-group">
 									<label for="slug">URL Slug</label>
-									<input type="text" id="slug" name="slug" maxlength="255" class="form-control" placeholder="URL Slug" required/>
+									<input type="text" id="slug" name="slug" maxlength="255" class="form-control" placeholder="URL Slug" required :value="slug" {{#unless session.user.IsAdmin}} readonly{{/unless}}/>
 								</div>
 							</div>
 						</div>
@@ -51,16 +51,20 @@
 						{{/unless}}
 					</div>
 				</div>
+
+				<div class="text-end">
+					<button type="button" class="btn btn-default" @click="completeSection('basicDetails', 'profile')">Next</button>
+				</div>
 			</div>
 		</div>
 	</div>
 	<div class="accordion-item">
 		<h2 class="accordion-header" id="profile">
-			<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#profileCollapse" aria-expanded="false" aria-controls="profileCollapse" disabled>
+			<button class="accordion-button" :class="{'collapsed': currentSection != 'profile'}" type="button" data-bs-toggle="collapse" data-bs-target="#profileCollapse" aria-expanded="false" aria-controls="profileCollapse" :disabled="currentSection == 'basicDetails'">
 				Profile
 			</button>
 		</h2>
-		<div id="profileCollapse" class="accordion-collapse collapse" aria-labelledby="profile" data-bs-parent="#orgAccordion">
+		<div id="profileCollapse" class="accordion-collapse collapse" :class="{'show': currentSection == 'profile'}" aria-labelledby="profile" data-bs-parent="#orgAccordion">
 			<div class="accordion-body">
 			</div>
 		</div>
@@ -74,7 +78,9 @@
 	const app = new Vue({
 		el: '#orgAccordion',
 		data: {
-			uploadsInProgress: 0
+			uploadsInProgress: 0,
+			slug: '',
+			currentSection: 'basicDetails'
 		},
 		methods: {
 			addUpload() {
@@ -83,6 +89,33 @@
 
 			completeUpload() {
 				this.uploadsInProgress--;
+			},
+
+			generateSlug(e) {
+				this.slug = e.target.value.toLowerCase()
+					.trim()
+					.replace(/[^\w ]+/g, '')
+					.replace(/ +/g, '-');
+			},
+
+			validateSection(id){
+				const els = document.querySelectorAll(`#${id} input, #${id} select`);
+
+				for(const el of els){
+					if(!el.reportValidity()){
+						return false;
+					}
+				}
+
+				return true;
+			},
+
+			completeSection(sectionId, nextSectionId){
+				if(!this.validateSection(sectionId + "Collapse")){
+					return;
+				}
+
+				this.currentSection = nextSectionId;
 			}
 		}
 	});
