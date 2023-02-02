@@ -13,7 +13,7 @@
 				Basic Details
 			</button>
 		</h2>
-		<div id="basicDetailsCollapse" class="accordion-collapse collapse" :class="{'show': currentStep == 0}" aria-labelledby="basicDetails" data-bs-parent="#orgAccordion">
+		<div id="basicDetailsCollapse" class="accordion-collapse collapse" :class="{'show': currentStep == 0}" aria-labelledby="basicDetails">
 			<div class="accordion-body">
 				<div class="row">
 					<div class="col-12 col-lg-8 mb-3">
@@ -65,7 +65,7 @@
 				Profile
 			</button>
 		</h2>
-		<div id="profileCollapse" class="accordion-collapse collapse" :class="{'show': currentStep == 1}" aria-labelledby="profile" data-bs-parent="#orgAccordion">
+		<div id="profileCollapse" class="accordion-collapse collapse" :class="{'show': currentStep == 1}" aria-labelledby="profile">
 			<div class="accordion-body">
 				<div class="text-end">
 					<button type="button" class="btn btn-default" @click="completeSection('profile', 'contacts')">Next</button>
@@ -80,10 +80,25 @@
 				Contacts
 			</button>
 		</h2>
-		<div id="contactsCollapse" class="accordion-collapse collapse" :class="{'show': currentStep == 2}" aria-labelledby="contacts" data-bs-parent="#orgAccordion">
+		<div id="contactsCollapse" class="accordion-collapse collapse" :class="{'show': currentStep == 2}" aria-labelledby="contacts">
 			<div class="accordion-body">
 				<div class="text-end">
-					<button type="button" class="btn btn-default" @click="completeSection('profile', 'contacts')">Next</button>
+					<button type="button" class="btn btn-default" @click="completeSection('contacts', 'address')">Next</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="address">
+			<button class="accordion-button" :class="{'collapsed': currentStep != 3}" type="button" data-bs-toggle="collapse" data-bs-target="#addressCollapse" aria-expanded="false" aria-controls="addressCollapse" :disabled="currentStep < 3">
+				Organisation Address
+			</button>
+		</h2>
+		<div id="addressCollapse" class="accordion-collapse collapse" :class="{'show': currentStep == 3}" aria-labelledby="address">
+			<div class="accordion-body">
+				<div class="text-end">
+					<button type="submit" class="btn btn-success">Create</button>
 				</div>
 			</div>
 		</div>
@@ -99,7 +114,7 @@
 		data: {
 			uploadsInProgress: 0,
 			slug: '',
-			steps: ['basicDetails', 'profile'],
+			steps: ['basicDetails', 'profile', 'contacts', 'address'],
 			currentStep: 0
 		},
 		methods: {
