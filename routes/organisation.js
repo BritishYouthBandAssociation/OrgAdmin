@@ -88,7 +88,9 @@ router.get('/', checkAdmin, async (req, res, next) => {
 
 router.get('/new', checkAdmin, async (req, res, next) => {
 	const config = ConfigHelper.importJSON(path.join(global.__approot, 'config'), 'server');
-	const [types, uploadToken] = await Promise.all([req.db.OrganisationType.getActive(), getImageToken(config)]);
+	const [types, uploadToken, membership] = await Promise.all([req.db.OrganisationType.getActive(), getImageToken(config), req.db.MembershipType.getActive({
+		IsOrganisation: true
+	})]);
 
 	return res.render('organisation/add.hbs', {
 		title: 'Add New Organisation',
@@ -96,7 +98,8 @@ router.get('/new', checkAdmin, async (req, res, next) => {
 		uploadToken,
 		organisation: {
 			Name: req.query.name ?? ''
-		}
+		},
+		membership
 	});
 });
 
