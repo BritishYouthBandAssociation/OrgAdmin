@@ -50,7 +50,7 @@
 						{{#unless uploadToken}}
 						<div class="alert alert-danger text-center">File uploads are currently unavailable</div>
 						{{else}}
-						<file-upload title="Logo" name="logo" accept="image/*" src="{{organisation.LogoId}}" token="{{uploadToken}}" v-on:start="addUpload" v-on:cancel="completeUpload" v-on:complete="completeUpload"></file-upload>
+						<file-upload title="Logo (optional)" name="logo" accept="image/*" src="{{organisation.LogoId}}" token="{{uploadToken}}" v-on:start="addUpload" v-on:cancel="completeUpload" v-on:complete="completeUpload"></file-upload>
 						{{/unless}}
 					</div>
 				</div>
@@ -69,11 +69,29 @@
 					<path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
 					<path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z" />
 				</svg>
-				Profile
+				Profile (Optional)
 			</button>
 		</h2>
 		<div id="profileCollapse" class="accordion-collapse collapse" :class="{'show': currentStep == 1}" aria-labelledby="profile">
 			<div class="accordion-body">
+				<div class="row">
+					<div class="col-12 col-lg-8 order-2 order-lg-1 mb-3">
+						<label for="description">Description</label>
+						<textarea rows="7" id="description" class="form-control" name="description" placeholder="Description"></textarea>
+					</div>
+
+					<div class="col-12 col-lg-4 order-1 order-lg-2 mb-3">
+						{{#unless uploadToken}}
+						<div class="alert alert-danger text-center">File uploads are currently unavailable</div>
+						{{else}}
+						<file-upload title="Logo" name="logo" accept="image/*" src="{{organisation.LogoId}}" token="{{uploadToken}}" v-on:start="addUpload" v-on:cancel="completeUpload" v-on:complete="completeUpload"></file-upload>
+						{{/unless}}
+
+						<colour-picker title="Primary Colour" name="primary" value="#FFFFFF"></colour-picker>
+						<colour-picker title="Secondary Colour" name="secondary" value="#000000"></colour-picker>
+					</div>
+				</div>
+
 				<div class="text-end">
 					<button type="button" class="btn btn-default" @click="completeSection('profile', 'contacts')">Next</button>
 				</div>
@@ -83,7 +101,7 @@
 
 	<div class="accordion-item">
 		<h2 class="accordion-header" id="contacts">
-			<button class="accordion-button header" :class="{'collapsed': currentStep != 2}" type="button" data-bs-toggle="collapse" data-bs-target="#contactsCollapse" aria-expanded="false" aria-controls="contactsCollapse" :disabled="currentStep < 2">
+			<button class="accordion-button header" :class="{'collapsed': currentStep != 2}" type="button" data-bs-toggle="collapse" data-bs-target="#contactsCollapse" aria-expanded="false" aria-controls="contactsCollapse" :disabled="currentStep < 1">
 				<svg class="me-3" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-lines-fill" viewBox="0 0 16 16">
 					<path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5 6s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zM11 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5zm.5 2.5a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1h-4zm2 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2zm0 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2z" />
 				</svg>
@@ -121,6 +139,9 @@
 
 <script src="/js/vue.js"></script>
 <script src="/js/component/FileUpload.js"></script>
+<script src="/js/component/ColourPicker.js"></script>
+
+<script src="/js/tinymce.min.js"></script>
 
 <script>
 	const app = new Vue({
@@ -148,7 +169,7 @@
 			},
 
 			validateSection(id) {
-				const els = document.querySelectorAll(`#${id} input, #${id} select`);
+				const els = document.querySelectorAll(['input', 'select', 'textarea'].map(e => `#${id} ${e}`).join(", "));
 
 				for (const el of els) {
 					if (!el.reportValidity()) {
@@ -169,6 +190,19 @@
 					this.currentStep = nextStep;
 				}
 			}
+		}
+	});
+</script>
+
+<script>
+	tinymce.init({
+		selector: '#description',
+		plugins: 'autolink lists advlist link preview code wordcount',
+		toolbar_mode: 'floating',
+		menubar: 'file edit view insert tools format',
+		contextmenu: 'link lists table',
+		setup: (editor) => {
+			editor.on('change', editor.save);
 		}
 	});
 </script>
