@@ -109,6 +109,49 @@
 			</button>
 		</h2>
 		<div id="contactsCollapse" class="accordion-collapse collapse" :class="{'show': currentStep == 2}" aria-labelledby="contacts">
+
+			<div class="row p-3">
+				<div class="col-12 col-lg-6 mb-3">
+					<div class="card card-body">
+						<h3 class="text-center">Primary Contact</h3>
+						<div class="row">
+							<div class="col-12 col-lg-6 mb-3">
+								<label for="primary-fname">First Name</label>
+								<input type="text" class="form-control" id="primary-fname" name="primary-fname" placeholder="First Name" required/>
+							</div>
+
+							<div class="col-12 col-lg-6 mb-3">
+								<label for="primary-sname">Surname</label>
+								<input type="text" class="form-control" id="primary-sname" name="primary-sname" placeholder="Surname" required/>
+							</div>
+						</div>
+
+						<label for="primary-email">Email</label>
+						<input type="email" class="form-control" id="primary-email" name="primary-email" placeholder="Email" required/>
+					</div>
+				</div>
+
+				<div class="col-12 col-lg-6 mb-3">
+					<div class="card card-body">
+						<h3 class="text-center">Secondary Contact (Optional)</h3>
+						<div class="row">
+							<div class="col-12 col-lg-6 mb-3">
+								<label for="secondary-fname">First Name</label>
+								<input type="text" class="form-control" id="secondary-fname" name="secondary-fname" placeholder="First Name" :required="secondaryContact" @keyup="triggerSecondaryContact"/>
+							</div>
+
+							<div class="col-12 col-lg-6 mb-3">
+								<label for="secondary-sname">Surname</label>
+								<input type="text" class="form-control" id="secondary-sname" name="secondary-sname" placeholder="Surname" :required="secondaryContact" @keyup="triggerSecondaryContact"/>
+							</div>
+						</div>
+
+						<label for="secondary-email">Email</label>
+						<input type="email" class="form-control" id="secondary-email" name="secondary-email" placeholder="Email" :required="secondaryContact" @keyup="triggerSecondaryContact"/>
+					</div>
+				</div>
+			</div>
+
 			<div class="accordion-body">
 				<div class="text-end">
 					<button type="button" class="btn btn-default" @click="completeSection('contacts', 'address')">Next</button>
@@ -150,7 +193,8 @@
 			uploadsInProgress: 0,
 			slug: '',
 			steps: ['basicDetails', 'profile', 'contacts', 'address'],
-			currentStep: 0
+			currentStep: 0,
+			secondaryContact: false
 		},
 		methods: {
 			addUpload() {
@@ -166,6 +210,10 @@
 					.trim()
 					.replace(/[^\w ]+/g, '')
 					.replace(/ +/g, '-');
+			},
+
+			triggerSecondaryContact(){
+				this.secondaryContact = ['fname', 'sname', 'email'].map(e => document.getElementById(`secondary-${e}`)).some(x => x.value.trim() != "");
 			},
 
 			validateSection(id) {
