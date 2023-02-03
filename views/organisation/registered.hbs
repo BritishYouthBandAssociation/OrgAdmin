@@ -1,0 +1,29 @@
+<div class="text-light fade-in">
+	<h1>Registration Complete!</h1>
+	<p>Thank you for registering with the British Youth Band Association!</p>
+	<p>We have received your details for {{org.Name}}</p>
+</div>
+
+<div class="row mb-3">
+	<div class="col-12 col-lg-6">
+			{{#isnt 0 fee}}
+		<div class="card card-body w-100 almost-solid text-center fade-in">
+			<h2>Membership Fee</h2>
+			<p>Before your registration can be processed, you must pay your membership fee of <strong>£{{fee}}</strong>.</p>
+			<p>You can <a href="TODO-payment-link-here">pay by card online</a> or <a href="/">sign into your account and download an invoice</a>.</p>
+			<a href="TODO-payment-link-here" class="btn btn-lg btn-default">Pay My Membership Fee</a>
+		</div>
+	</div>
+</div>
+
+			<div class="row">
+	<div class="col-12 col-lg-6 offset-lg-6">
+			{{/isnt}}
+		<div class="card card-body w-100 almost-solid text-center fade-in">
+			<h2>What Happens Next?</h2>
+			<p>Acknowledgements of your registration has been sent to the contacts you provided.</p>
+			<p>The registration has been forwarded to the Communications team, who are reviewing your details.</p>
+			<p>Once our checks are complete, the registered organisation will be welcomed into membership.</p>
+		</div>
+	</div>
+</div>

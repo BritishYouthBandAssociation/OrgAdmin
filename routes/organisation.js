@@ -103,6 +103,7 @@ router.get('/new', async (req, res) => {
 
 	if (!req.session.user) {
 		hbParams.layout = 'no-nav.hbs';
+		hbParams.background = '/assets/field-markings.jpg';
 	}
 
 	return res.render('organisation/add.hbs', hbParams);
@@ -137,6 +138,7 @@ router.post('/new', validator.query(Joi.object({
 	membership: Joi.number()
 })), async (req, res) => {
 	let org = null;
+	let primaryCreated = false;
 
 	await req.db.sequelize.transaction(async (transaction) => {
 		org = await req.db.Organisation.create({
@@ -153,7 +155,7 @@ router.post('/new', validator.query(Joi.object({
 			transaction
 		});
 
-		const [primary, secondary] = await Promise.all([
+		let [primary, secondary] = await Promise.all([
 			req.db.User.insertOrUpdate({
 				FirstName: req.body['primary-fname'],
 				Surname: req.body['primary-sname'],
@@ -189,6 +191,12 @@ router.post('/new', validator.query(Joi.object({
 			org.createMembership(req.body.membership, null, {transaction})
 		]);
 
+		[primary, primaryCreated] = primary;
+
+		if (secondary){
+			secondary = secondary[0];
+		}
+
 		await Promise.all([primary, secondary].map(u => {
 			return (async function(){
 				if (!u){
@@ -219,7 +227,7 @@ router.post('/new', validator.query(Joi.object({
 	});
 
 	if (!req.session.user){
-		return res.redirect(`/organisation/registration/?org=${org.id}`);
+		return res.redirect(`/organisation/registration/?org=${org.id}&newAccount=${primaryCreated}`);
 	}
 
 	if (req.query.eventId) {
@@ -227,6 +235,36 @@ router.post('/new', validator.query(Joi.object({
 	}
 
 	res.redirect(`${org.id}/`);
+});
+
+router.get('/registration/', validator.query(Joi.object({
+	org: Joi.number(),
+	newAccount: Joi.boolean()
+})), async (req, res, next) => {
+	if (req.session.user){
+		return res.redirect(`/organisation/${req.query.org}/`);
+	}
+
+	const org = await req.db.Organisation.findByPk(req.query.org, {
+		include: [{
+			model: req.db.OrganisationMembership,
+			include: [{
+				model: req.db.Membership,
+				include: [req.db.Fee]
+			}]
+		}]
+	});
+	if (!org){
+		return next();
+	}
+
+	res.render('organisation/registered.hbs', {
+		layout: 'no-nav.hbs',
+		title: 'Registration Complete',
+		background: '/assets/field-markings.jpg',
+		org,
+		fee: org.OrganisationMemberships[0].Membership.Fee.Total
+	});
 });
 
 router.get('/:orgID', validator.params(idParamSchema), matchingID('orgID', ['band', 'id']), validator.query(Joi.object({
