@@ -2,13 +2,12 @@
 
 // Import modules
 const express = require('express');
-const fs = require('fs');
 const Joi = require('joi');
 const path = require('path');
 
 const validator = require('@byba/express-validator');
 
-const { helpers: { ConfigHelper } } = require(global.__lib);
+const { helpers: { ConfigHelper, StringHelper } } = require(global.__lib);
 
 const router = express.Router();
 
@@ -17,7 +16,7 @@ const idParamSchema = Joi.object({
 		.required()
 });
 
-const {checkAdmin, matchingID} = require('../middleware');
+const { checkAdmin, matchingID } = require('../middleware');
 
 async function getImageToken(config) {
 	try {
@@ -86,13 +85,13 @@ router.get('/', checkAdmin, async (req, res, next) => {
 	});
 });
 
-router.get('/new', checkAdmin, async (req, res, next) => {
+router.get('/new', async (req, res) => {
 	const config = ConfigHelper.importJSON(path.join(global.__approot, 'config'), 'server');
 	const [types, uploadToken, membership] = await Promise.all([req.db.OrganisationType.getActive(), getImageToken(config), req.db.MembershipType.getActive({
 		IsOrganisation: true
 	})]);
 
-	return res.render('organisation/add.hbs', {
+	const hbParams = {
 		title: 'Add New Organisation',
 		types: types,
 		uploadToken,
@@ -100,45 +99,127 @@ router.get('/new', checkAdmin, async (req, res, next) => {
 			Name: req.query.name ?? ''
 		},
 		membership
-	});
+	};
+
+	if (!req.session.user) {
+		hbParams.layout = 'no-nav.hbs';
+	}
+
+	return res.render('organisation/add.hbs', hbParams);
 });
 
-router.post('/new', checkAdmin, validator.query(Joi.object({
-	membershipType: Joi.number(),
+router.post('/new', validator.query(Joi.object({
 	eventId: Joi.string()
 		.guid(),
 	name: Joi.string().optional().allow('', null) //does nothing but may be carried over from get
 })), validator.body(Joi.object({
-	name: Joi.string()
-		.required(),
-	slug: Joi.string()
-		.required(),
-	description: Joi.string()
-		.required(),
-	type: Joi.number()
-		.required(),
-	primary: Joi.string()
-		.regex(/#([\da-fA-F]{3}){1,2}/)
-		.required(),
-	secondary: Joi.string()
-		.regex(/#([\da-fA-F]{3}){1,2}/)
-		.required(),
-	logo: Joi.string().guid().allow(''),
-	header: Joi.string().guid().allow('')
+	name: Joi.string(),
+	type: Joi.number(),
+	logo: Joi.string().optional().allow('', null),
+	description: Joi.string().optional().allow('', null),
+	header: Joi.string().optional().allow('', null),
+	primary: Joi.string(),
+	secondary: Joi.string(),
+	'primary-fname': Joi.string(),
+	'primary-sname': Joi.string(),
+	'primary-email': Joi.string().email(),
+	'primary-address-lineOne': Joi.string().optional().allow('', null),
+	'primary-address-lineTwo': Joi.string().optional().allow('', null),
+	'primary-address-city': Joi.string().optional().allow('', null),
+	'primary-address-postcode': Joi.string().optional().allow('', null),
+	'secondary-fname': Joi.string().optional().allow('', null),
+	'secondary-sname': Joi.string().optional().allow('', null),
+	'secondary-email': Joi.string().optional().allow('', null),
+	'organisation-lineOne': Joi.string().optional().allow('', null),
+	'organisation-lineTwo': Joi.string().optional().allow('', null),
+	'organisation-city': Joi.string().optional().allow('', null),
+	'organisation-postcode': Joi.string().optional().allow('', null),
+	membership: Joi.number()
 })), async (req, res) => {
-	const org = await req.db.Organisation.create({
-		Name: req.body.name,
-		Slug: req.body.slug,
-		Description: req.body.description,
-		OrganisationTypeId: req.body.type,
-		PrimaryColour: req.body.primary,
-		SecondaryColour: req.body.secondary,
-		LogoId: req.body.logo,
-		HeaderId: req.body.header
+	let org = null;
+
+	await req.db.sequelize.transaction(async (transaction) => {
+		org = await req.db.Organisation.create({
+			Name: req.body.name,
+			Slug: StringHelper.formatSlug(req.body.name),
+			Description: req.body.description,
+			OrganisationTypeId: req.body.type,
+			PrimaryColour: req.body.primary,
+			SecondaryColour: req.body.secondary,
+			LogoId: req.body.logo,
+			HeaderId: req.body.header,
+			IsPending: !(req.session.user && req.session.user.IsAdmin)
+		}, {
+			transaction
+		});
+
+		const [primary, secondary] = await Promise.all([
+			req.db.User.insertOrUpdate({
+				FirstName: req.body['primary-fname'],
+				Surname: req.body['primary-sname'],
+				Email: req.body['primary-email']
+			}, {
+				transaction
+			}),
+			(async function() {
+				if (req.body['secondary-fname'].trim() == '') {
+					return null;
+				}
+
+				await req.db.User.insertOrUpdate({
+					FirstName: req.body['secondary-fname'],
+					Surname: req.body['secondary-sname'],
+					Email: req.body['secondary-email']
+				}, {
+					transaction
+				});
+			})(),
+			(async function() {
+				if (req.body['organisation-lineOne'].trim() != '') {
+					await req.db.Address.createAssignedOrUpdate({
+						Line1: req.body['organisation-lineOne'],
+						Line2: req.body['organisation-lineTwo'],
+						City: req.body['organisation-city'],
+						Postcode: req.body['organisation-postcode']
+					}, org, {
+						transaction
+					});
+				}
+			})(),
+			org.createMembership(req.body.membership, null, {transaction})
+		]);
+
+		await Promise.all([primary, secondary].map(u => {
+			return (async function(){
+				if (!u){
+					return;
+				}
+
+				console.log();
+				console.log(u);
+				console.log();
+
+				await req.db.OrganisationUser.create({
+					OrganisationId: org.id,
+					UserId: u.id
+				}, {transaction});
+			})();
+		}));
+
+		if (req.body['primary-address-lineOne'].trim() != '') {
+			await req.db.Address.createAssignedOrUpdate({
+				Line1: req.body['primary-address-lineOne'],
+				Line2: req.body['primary-address-lineTwo'],
+				City: req.body['primary-address-city'],
+				Postcode: req.body['primary-address-postcode']
+			}, primary, {
+				transaction
+			});
+		}
 	});
 
-	if (req.query.membershipType) {
-		return res.redirect(`/membership/new/?org=${org.id}&type=${req.query.membershipType}`);
+	if (!req.session.user){
+		return res.redirect(`/organisation/registration/?org=${org.id}`);
 	}
 
 	if (req.query.eventId) {
