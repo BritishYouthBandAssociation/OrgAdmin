@@ -1,4 +1,4 @@
-<h2 {{#unless req.session.user}}class="text-white"{{/unless}}>Register Organisation</h2>
+<h2 {{#eq null session.user}}class="text-white h1"{{/eq}}>Register Organisation</h2>
 
 {{#eq types.length 0}}
 <div class="alert alert-warning text-center">There are no organisation types currently configured. {{#if
@@ -23,7 +23,7 @@
 						<div class="col-12 col-lg-8 mb-3">
 							<div class="form-group mb-3">
 								<label for="name">Name</label>
-								<input type="text" id="name" name="name" maxlength="255" autocomplete="off" class="form-control" placeholder="Organisation Name" required/>
+								<input type="text" id="name" name="name" maxlength="255" autocomplete="off" class="form-control" placeholder="Organisation Name" value="{{name}}" required/>
 							</div>
 
 							<div class="form-group">
@@ -205,7 +205,7 @@
 						<div class="col mb-3">
 							<div class="card card-body h-100" style="background-color: {{Label.BackgroundColour}}; color: {{Label.ForegroundColour}}">
 								<div class="form-check">
-									<input class="form-check-input" type="radio" id="membership-{{id}}" name="membership" value="{{id}}" required />
+									<input class="form-check-input" type="radio" id="membership-{{id}}" name="membership" value="{{id}}" required {{#eq id ../type}}checked{{/eq}}/>
 									<label class="form-check-label d-block h3 header" for="membership-{{id}}">
 										<p>{{Name}} Membership</p>
 										<p>£{{Cost}}</p>

@@ -95,9 +95,8 @@ router.get('/new', async (req, res) => {
 		title: 'Add New Organisation',
 		types: types,
 		uploadToken,
-		organisation: {
-			Name: req.query.name ?? ''
-		},
+		name: req.query.name ?? '',
+		type: req.query.membershipType ?? '',
 		membership
 	};
 
