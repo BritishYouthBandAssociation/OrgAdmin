@@ -180,6 +180,7 @@
 
 					{{>address required=true prefix="organisation-"}}
 
+{{#if showMembership}}
 					<div class="text-end">
 						<button type="button" class="btn btn-default" @click="completeSection('address', 'membership')">Next</button>
 					</div>
@@ -215,7 +216,7 @@
 						</div>
 						{{/each}}
 					</div>
-
+{{/if}}
 					<div class="text-end">
 						<button type="submit" class="btn btn-success">Create</button>
 					</div>
