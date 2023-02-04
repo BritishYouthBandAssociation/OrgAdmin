@@ -103,6 +103,7 @@ router.get('/new', async (req, res) => {
 	if (!req.session.user) {
 		hbParams.layout = 'no-nav.hbs';
 		hbParams.background = '/assets/field-markings.jpg';
+		hbParams.darkenBG = true;
 	}
 
 	return res.render('organisation/add.hbs', hbParams);
@@ -268,6 +269,7 @@ router.get('/registration/', validator.query(Joi.object({
 		layout: 'no-nav.hbs',
 		title: 'Registration Complete',
 		background: '/assets/field-markings.jpg',
+		darkenBG: true,
 		org,
 		fee: org.OrganisationMemberships[0].Membership.Fee.Total,
 		duplicate: req.query.duplicate
