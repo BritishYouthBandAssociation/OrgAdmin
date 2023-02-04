@@ -16,7 +16,8 @@ router.get('/', (req, res, next) => {
 
 	return res.render('login', {
 		title: 'Please Log In',
-		layout: 'no-nav.hbs'
+		layout: 'no-nav.hbs',
+		background: '/assets/field-markings.jpg'
 	});
 });
 

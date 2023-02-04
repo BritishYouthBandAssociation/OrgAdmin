@@ -1,0 +1,43 @@
+{{#if duplicate}}
+<div class="row mb-3 fade-in">
+	<div class="col-12 col-lg-6">
+			<h1 class="text-light">Welcome Back!</h1>
+		<div class="card card-body w-100 almost-solid">
+			<p>{{org.Name}} has already been registered with the British Youth Band Association!</p>
+			<p>Registration is a one-time action that grants you access to our systems (as opposed to a yearly membership). You can <a href="/">log into your account</a> to manage your details and renewals.</p>
+			<p>If you are unaware of an account being created on behalf of {{org.Name}}, please contact the {{getConfigValue "config/site" "adminName" "Admin Team" }} at <a href='mailto:{{getConfigValue "config/site" "adminEmail" "#" }}' class="text-dark">{{getConfigValue "config/site" "adminEmail" "" }}</a></p>
+		</div>
+	</div>
+</div>
+{{else}}
+<div class="text-light fade-in">
+	<h1>Registration Complete!</h1>
+	<p>Thank you for registering with the British Youth Band Association!</p>
+	<p>We have received your details for {{org.Name}}</p>
+</div>
+
+<div class="row mb-3">
+	<div class="col-12 col-lg-6">
+		<!-- just gonna hide this for a bit dw about it
+		{{#isnt 0 fee}}
+		<div class="card card-body w-100 almost-solid text-center fade-in">
+			<h2>Membership Fee</h2>
+			<p>Before your registration can be processed, you must pay your membership fee of <strong>£{{fee}}</strong>.</p>
+			<p>You can <a href="TODO-payment-link-here">pay by card online</a> or <a href="/">sign into your account and download an invoice</a>.</p>
+			<a href="TODO-payment-link-here" class="btn btn-lg btn-default">Pay My Membership Fee</a>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-12 col-lg-6 offset-lg-6">
+		{{/isnt}}-->
+		<div class="card card-body w-100 almost-solid text-center fade-in">
+			<h2>What Happens Next?</h2>
+			<p>Acknowledgements of your registration has been sent to the contacts you provided.</p>
+			<p>The registration has been forwarded to the Communications team, who are reviewing your details.</p>
+			<p>Once our checks are complete, the registered organisation will be welcomed into membership.</p>
+		</div>
+	</div>
+</div>
+{{/if}}
