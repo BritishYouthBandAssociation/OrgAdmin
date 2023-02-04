@@ -34,7 +34,7 @@
 
 					<div class="col-12 col-lg-6 mb-3">
 						<label :for="'name-' + index">Description</label>
-						<input type="text" name="name[]" :id="'name-' + index" class="form-control"
+						<input type="text" name="name[]" :id="'name-' + index" class="form-control" maxlength="255"
 							v-model="item.Description" required />
 					</div>
 
