@@ -136,13 +136,19 @@ router.post('/new', validator.query(Joi.object({
 	'organisation-postcode': Joi.string().optional().allow('', null),
 	membership: Joi.number()
 })), async (req, res) => {
-	let org = null;
+	const slug = StringHelper.formatSlug(req.body.name);
+	let org = await req.db.Organisation.findBySlug(slug);
+
+	if (org){
+		return res.redirect(`/organisation/registration/?org=${org.id}&duplicate=true`);
+	}
+
 	let primaryCreated = false;
 
 	await req.db.sequelize.transaction(async (transaction) => {
 		org = await req.db.Organisation.create({
 			Name: req.body.name,
-			Slug: StringHelper.formatSlug(req.body.name),
+			Slug: slug,
 			Description: req.body.description,
 			OrganisationTypeId: req.body.type,
 			PrimaryColour: req.body.primary,
@@ -238,7 +244,8 @@ router.post('/new', validator.query(Joi.object({
 
 router.get('/registration/', validator.query(Joi.object({
 	org: Joi.number(),
-	newAccount: Joi.boolean()
+	newAccount: Joi.boolean(),
+	duplicate: Joi.boolean().optional().falsy(null)
 })), async (req, res, next) => {
 	if (req.session.user){
 		return res.redirect(`/organisation/${req.query.org}/`);
@@ -262,7 +269,8 @@ router.get('/registration/', validator.query(Joi.object({
 		title: 'Registration Complete',
 		background: '/assets/field-markings.jpg',
 		org,
-		fee: org.OrganisationMemberships[0].Membership.Fee.Total
+		fee: org.OrganisationMemberships[0].Membership.Fee.Total,
+		duplicate: req.query.duplicate
 	});
 });
 

@@ -1,3 +1,15 @@
+{{#if duplicate}}
+<div class="row mb-3 fade-in">
+	<div class="col-12 col-lg-6">
+			<h1 class="text-light">Welcome Back!</h1>
+		<div class="card card-body w-100 almost-solid">
+			<p>{{org.Name}} has already been registered with the British Youth Band Association!</p>
+			<p>Registration is a one-time action that grants you access to our systems (as opposed to a yearly membership). You can <a href="/">log into your account</a> to manage your details and renewals.</p>
+			<p>If you are unaware of an account being created on behalf of {{org.Name}}, please contact the {{getConfigValue "config/site" "adminName" "Admin Team" }} at <a href='mailto:{{getConfigValue "config/site" "adminEmail" "#" }}' class="text-dark">{{getConfigValue "config/site" "adminEmail" "" }}</a></p>
+		</div>
+	</div>
+</div>
+{{else}}
 <div class="text-light fade-in">
 	<h1>Registration Complete!</h1>
 	<p>Thank you for registering with the British Youth Band Association!</p>
@@ -28,3 +40,4 @@
 		</div>
 	</div>
 </div>
+{{/if}}
