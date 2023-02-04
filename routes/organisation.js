@@ -103,6 +103,7 @@ router.get('/new', async (req, res) => {
 	if (!req.session.user) {
 		hbParams.layout = 'no-nav.hbs';
 		hbParams.background = '/assets/field-markings.jpg';
+		hbParams.darkenBG = true;
 	}
 
 	return res.render('organisation/add.hbs', hbParams);
@@ -139,7 +140,7 @@ router.post('/new', validator.query(Joi.object({
 	const slug = StringHelper.formatSlug(req.body.name);
 	let org = await req.db.Organisation.findBySlug(slug);
 
-	if (org){
+	if (org) {
 		return res.redirect(`/organisation/registration/?org=${org.id}&duplicate=true`);
 	}
 
@@ -160,63 +161,58 @@ router.post('/new', validator.query(Joi.object({
 			transaction
 		});
 
-		let [primary, secondary] = await Promise.all([
+		const promises = [
 			req.db.User.insertOrUpdate({
 				FirstName: req.body['primary-fname'],
 				Surname: req.body['primary-sname'],
 				Email: req.body['primary-email']
 			}, {
 				transaction
-			}),
-			(async function() {
-				if (req.body['secondary-fname'].trim() == '') {
-					return null;
-				}
+			})
+		];
 
-				await req.db.User.insertOrUpdate({
-					FirstName: req.body['secondary-fname'],
-					Surname: req.body['secondary-sname'],
-					Email: req.body['secondary-email']
-				}, {
-					transaction
-				});
-			})(),
-			(async function() {
-				if (req.body['organisation-lineOne'].trim() != '') {
-					await req.db.Address.createAssignedOrUpdate({
-						Line1: req.body['organisation-lineOne'],
-						Line2: req.body['organisation-lineTwo'],
-						City: req.body['organisation-city'],
-						Postcode: req.body['organisation-postcode']
-					}, org, {
-						transaction
-					});
-				}
-			})(),
-			org.createMembership(req.body.membership, null, {transaction})
-		]);
+		if (req.body['secondary-fname'].trim() != '') {
+			promises.push(req.db.User.insertOrUpdate({
+				FirstName: req.body['secondary-fname'],
+				Surname: req.body['secondary-sname'],
+				Email: req.body['secondary-email']
+			}, {
+				transaction
+			}));
+		}
+
+		if (req.body['organisation-lineOne'].trim() != '') {
+			promises.push(req.db.Address.createAssignedOrUpdate({
+				Line1: req.body['organisation-lineOne'],
+				Line2: req.body['organisation-lineTwo'],
+				City: req.body['organisation-city'],
+				Postcode: req.body['organisation-postcode']
+			}, org, {
+				transaction
+			}));
+		}
+
+		if (req.body.membership) {
+			promises.push(org.createMembership(req.body.membership, null, { transaction }));
+		}
+
+		let [primary, secondary] = await Promise.all(promises);
 
 		[primary, primaryCreated] = primary;
 
-		if (secondary){
+		if (secondary) {
 			secondary = secondary[0];
 		}
 
 		await Promise.all([primary, secondary].map(u => {
-			return (async function(){
-				if (!u){
-					return;
-				}
+			if (!u) {
+				return null;
+			}
 
-				console.log();
-				console.log(u);
-				console.log();
-
-				await req.db.OrganisationUser.create({
-					OrganisationId: org.id,
-					UserId: u.id
-				}, {transaction});
-			})();
+			return req.db.OrganisationUser.create({
+				OrganisationId: org.id,
+				UserId: u.id
+			}, { transaction });
 		}));
 
 		if (req.body['primary-address-lineOne'].trim() != '') {
@@ -231,7 +227,7 @@ router.post('/new', validator.query(Joi.object({
 		}
 	});
 
-	if (!req.session.user){
+	if (!req.session.user) {
 		return res.redirect(`/organisation/registration/?org=${org.id}&newAccount=${primaryCreated}`);
 	}
 
@@ -247,7 +243,7 @@ router.get('/registration/', validator.query(Joi.object({
 	newAccount: Joi.boolean(),
 	duplicate: Joi.boolean().optional().falsy(null)
 })), async (req, res, next) => {
-	if (req.session.user){
+	if (req.session.user) {
 		return res.redirect(`/organisation/${req.query.org}/`);
 	}
 
@@ -260,7 +256,7 @@ router.get('/registration/', validator.query(Joi.object({
 			}]
 		}]
 	});
-	if (!org){
+	if (!org) {
 		return next();
 	}
 
@@ -268,6 +264,7 @@ router.get('/registration/', validator.query(Joi.object({
 		layout: 'no-nav.hbs',
 		title: 'Registration Complete',
 		background: '/assets/field-markings.jpg',
+		darkenBG: true,
 		org,
 		fee: org.OrganisationMemberships[0].Membership.Fee.Total,
 		duplicate: req.query.duplicate

@@ -9,6 +9,9 @@
 	<style>
 		body::before{
 			background-image: url("{{background}}");
+			{{#if darkenBG}}
+			filter: brightness(0.65);
+			{{/if}}
 		}
 	</style>
 	{{/if}}
