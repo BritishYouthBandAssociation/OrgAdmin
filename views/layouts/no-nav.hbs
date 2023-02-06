@@ -1,11 +1,30 @@
 <!DOCTYPE html>
 <html lang='en'>
-{{> head title=title }}
+
+<head>
+	{{> head title=title }}
+
+	{{#if background}}
+	<link rel="stylesheet" href="/css/fullscreen-bg.css" />
+	<style>
+		body::before{
+			background-image: url("{{background}}");
+			{{#if darkenBG}}
+			filter: brightness(0.65);
+			{{/if}}
+		}
+	</style>
+	{{/if}}
+</head>
 
 <body>
 	<div class="container">
+		<img src="/assets/logo.png" width="150" class="mx-auto d-block py-3" />
+
 		{{{body}}}
 	</div>
+
+	<script src="/js/bootstrap.min.js"></script>
 </body>
 
 </html>

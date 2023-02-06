@@ -1,4 +1,4 @@
-<h2>Add Organisation</h2>
+<h2 {{#eq null session.user}}class="text-white h1"{{/eq}}>Register Organisation</h2>
 
 {{#eq types.length 0}}
 <div class="alert alert-warning text-center">There are no organisation types currently configured. {{#if
@@ -6,4 +6,314 @@
 	organisation{{else}}Please contact your system administrator{{/if}}.</div>
 {{/eq}}
 
-{{> organisation types=types required=true uploadToken=uploadToken}}
+<form method="post">
+	<div class="accordion pb-3" id="orgAccordion">
+		<div class="accordion-item">
+			<h2 class="accordion-header" id="basicDetails">
+				<button class="accordion-button header" :class="{'collapsed': currentStep != 0}" type="button" data-bs-toggle="collapse" data-bs-target="#basicDetailsCollapse" aria-expanded="true" aria-controls="basicDetailsCollapse">
+					<svg class="me-3" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
+						<path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z" />
+					</svg>
+					Basic Details
+				</button>
+			</h2>
+			<div id="basicDetailsCollapse" class="accordion-collapse collapse" :class="{'show': currentStep == 0}" aria-labelledby="basicDetails">
+				<div class="accordion-body">
+					<div class="row">
+						<div class="col-12 col-lg-8 mb-3">
+							<div class="form-group mb-3">
+								<label for="name">Name</label>
+								<input type="text" id="name" name="name" maxlength="255" autocomplete="off" class="form-control" placeholder="Organisation Name" value="{{name}}" required/>
+							</div>
+
+							<div class="form-group">
+								<label for="type">Organisation Type</label>
+								<select id="type" name="type" class="form-control" required>
+									<option value="">-- Please Select --</option>
+									{{#each types}}
+									<option value="{{id}}">{{Name}}</option>
+									{{/each}}
+								</select>
+							</div>
+						</div>
+
+						<div class="col-12 col-lg-4">
+							{{#unless uploadToken}}
+							<div class="alert alert-danger text-center">File uploads are currently unavailable</div>
+							{{else}}
+							<file-upload title="Logo (optional)" name="logo" accept="image/*" src="{{organisation.LogoId}}" token="{{uploadToken}}" v-on:start="addUpload" v-on:cancel="completeUpload" v-on:complete="completeUpload"></file-upload>
+							{{/unless}}
+						</div>
+					</div>
+
+					<div class="text-end">
+						<button type="button" class="btn btn-default" @click="completeSection('basicDetails', 'profile')">Next</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="accordion-item">
+			<h2 class="accordion-header" id="profile">
+				<button class="accordion-button header" :class="{'collapsed': currentStep != 1}" type="button" data-bs-toggle="collapse" data-bs-target="#profileCollapse" aria-expanded="false" aria-controls="profileCollapse" :disabled="currentStep < 1">
+					<svg class="me-3" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+						<path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
+						<path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z" />
+					</svg>
+					Profile (Optional)
+				</button>
+			</h2>
+			<div id="profileCollapse" class="accordion-collapse collapse" :class="{'show': currentStep == 1}" aria-labelledby="profile">
+				<div class="accordion-body">
+					<div class="alert alert-info text-center">This information controls how the organisation will be presented in promotional material</div>
+
+					<div class="row">
+						<div class="col-12 col-lg-8 order-2 order-lg-1 mb-3">
+							<label for="description">Description</label>
+							<textarea rows="7" id="description" class="form-control" name="description" placeholder="Description"></textarea>
+						</div>
+
+						<div class="col-12 col-lg-4 order-1 order-lg-2 mb-3">
+							{{#unless uploadToken}}
+							<div class="alert alert-danger text-center">File uploads are currently unavailable</div>
+							{{else}}
+							<file-upload title="Header Image" name="header" accept="image/*" src="{{organisation.LogoId}}" token="{{uploadToken}}" v-on:start="addUpload" v-on:cancel="completeUpload" v-on:complete="completeUpload"></file-upload>
+							{{/unless}}
+
+							<colour-picker title="Primary Colour" name="primary" value="#FFFFFF"></colour-picker>
+							<colour-picker title="Secondary Colour" name="secondary" value="#000000"></colour-picker>
+						</div>
+					</div>
+
+					<div class="text-end">
+						<button type="button" class="btn btn-default" @click="completeSection('profile', 'contacts')">Next</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="accordion-item">
+			<h2 class="accordion-header" id="contacts">
+				<button class="accordion-button header" :class="{'collapsed': currentStep != 2}" type="button" data-bs-toggle="collapse" data-bs-target="#contactsCollapse" aria-expanded="false" aria-controls="contactsCollapse" :disabled="currentStep < 2">
+					<svg class="me-3" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-lines-fill" viewBox="0 0 16 16">
+						<path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5 6s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zM11 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5zm.5 2.5a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1h-4zm2 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2zm0 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2z" />
+					</svg>
+					Contacts
+				</button>
+			</h2>
+			<div id="contactsCollapse" class="accordion-collapse collapse" :class="{'show': currentStep == 2}" aria-labelledby="contacts">
+				<div class="accordion-body">
+					<div class="alert alert-info text-center">The two named contacts will receive correspondence for the band to the specified email addresses. They will also be able to carry out administrative tasks on behalf of the band, such as registering for membership or events</div>
+
+					<div class="row">
+						<div class="col-12 col-lg-6 mb-3">
+							<div class="card card-body">
+								<h3 class="text-center">Primary Contact</h3>
+								<div class="row">
+									<div class="col-12 col-lg-6 mb-3">
+										<label for="primary-fname">First Name</label>
+										<input type="text" class="form-control" id="primary-fname" name="primary-fname" placeholder="First Name" required />
+									</div>
+
+									<div class="col-12 col-lg-6 mb-3">
+										<label for="primary-sname">Surname</label>
+										<input type="text" class="form-control" id="primary-sname" name="primary-sname" placeholder="Surname" required />
+									</div>
+								</div>
+
+								<label for="primary-email">Email</label>
+								<input type="email" class="form-control mb-3" id="primary-email" name="primary-email" placeholder="Email" required />
+
+								<div class="card">
+									<div class="card-header">Address (Optional)</div>
+									<div class="card-body">
+										{{>address prefix="primary-address-"}}
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-12 col-lg-6 mb-3">
+							<div class="card card-body">
+								<h3 class="text-center">Secondary Contact (Optional)</h3>
+								<div class="row">
+									<div class="col-12 col-lg-6 mb-3">
+										<label for="secondary-fname">First Name</label>
+										<input type="text" class="form-control" id="secondary-fname" name="secondary-fname" placeholder="First Name" :required="secondaryContact" @keyup="triggerSecondaryContact" />
+									</div>
+
+									<div class="col-12 col-lg-6 mb-3">
+										<label for="secondary-sname">Surname</label>
+										<input type="text" class="form-control" id="secondary-sname" name="secondary-sname" placeholder="Surname" :required="secondaryContact" @keyup="triggerSecondaryContact" />
+									</div>
+								</div>
+
+								<label for="secondary-email">Email</label>
+								<input type="email" class="form-control" id="secondary-email" name="secondary-email" placeholder="Email" :required="secondaryContact" @keyup="triggerSecondaryContact" />
+							</div>
+						</div>
+					</div>
+
+					<div class="text-end">
+						<button type="button" class="btn btn-default" @click="completeSection('contacts', 'address')">Next</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="accordion-item">
+			<h2 class="accordion-header" id="address">
+				<button class="accordion-button header" :class="{'collapsed': currentStep != 3}" type="button" data-bs-toggle="collapse" data-bs-target="#addressCollapse" aria-expanded="false" aria-controls="addressCollapse" :disabled="currentStep < 3">
+					<svg class="me-3" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-house-fill" viewBox="0 0 16 16">
+						<path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L8 2.207l6.646 6.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5Z" />
+						<path d="m8 3.293 6 6V13.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5V9.293l6-6Z" />
+					</svg>
+					Organisation Address (Optional)
+				</button>
+			</h2>
+			<div id="addressCollapse" class="accordion-collapse collapse" :class="{'show': currentStep == 3}" aria-labelledby="address">
+				<div class="accordion-body">
+					<div class="alert alert-info text-center">
+						<p>The organisation's address is used to power a map of member bands and is also displayed on the public membership list.</p>
+						<p>Either a primary contact or organisation address is required for billing purposes.</p>
+					</div>
+
+					{{>address required=true prefix="organisation-"}}
+
+{{#if showMembership}}
+					<div class="text-end">
+						<button type="button" class="btn btn-default" @click="completeSection('address', 'membership')">Next</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="accordion-item">
+			<h2 class="accordion-header" id="membership">
+				<button class="accordion-button header" :class="{'collapsed': currentStep != 4}" type="button" data-bs-toggle="collapse" data-bs-target="#membershipCollapse" aria-expanded="false" aria-controls="membershipCollapse" :disabled="currentStep < 4">
+					<svg class="me-3" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-award" viewBox="0 0 16 16">
+						<path d="M9.669.864 8 0 6.331.864l-1.858.282-.842 1.68-1.337 1.32L2.6 6l-.306 1.854 1.337 1.32.842 1.68 1.858.282L8 12l1.669-.864 1.858-.282.842-1.68 1.337-1.32L13.4 6l.306-1.854-1.337-1.32-.842-1.68L9.669.864zm1.196 1.193.684 1.365 1.086 1.072L12.387 6l.248 1.506-1.086 1.072-.684 1.365-1.51.229L8 10.874l-1.355-.702-1.51-.229-.684-1.365-1.086-1.072L3.614 6l-.25-1.506 1.087-1.072.684-1.365 1.51-.229L8 1.126l1.356.702 1.509.229z" />
+						<path d="M4 11.794V16l4-1 4 1v-4.206l-2.018.306L8 13.126 6.018 12.1 4 11.794z" />
+					</svg>
+					Membership Type
+				</button>
+			</h2>
+			<div id="membershipCollapse" class="accordion-collapse collapse" :class="{'show': currentStep == 4}" aria-labelledby="membership">
+				<div class="accordion-body">
+
+					<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3">
+						{{#each membership}}
+						<div class="col mb-3">
+							<div class="card card-body h-100" style="background-color: {{Label.BackgroundColour}}; color: {{Label.ForegroundColour}}">
+								<div class="form-check">
+									<input class="form-check-input" type="radio" id="membership-{{id}}" name="membership" value="{{id}}" required {{#eq id ../type}}checked{{/eq}}/>
+									<label class="form-check-label d-block h3 header" for="membership-{{id}}">
+										<p>{{Name}} Membership</p>
+										<p>£{{Cost}}</p>
+									</label>
+								</div>
+							</div>
+						</div>
+						{{/each}}
+					</div>
+{{/if}}
+					<div class="text-end">
+						<button type="submit" class="btn btn-success">Create</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>
+
+<script src="/js/vue.js"></script>
+<script src="/js/component/FileUpload.js"></script>
+<script src="/js/component/ColourPicker.js"></script>
+
+<script src="/js/tinymce.min.js"></script>
+
+<script>
+	const app = new Vue({
+		el: '#orgAccordion',
+		data: {
+			uploadsInProgress: 0,
+			steps: ['basicDetails', 'profile', 'contacts', 'address'],
+			currentStep: 0,
+			secondaryContact: false
+		},
+		methods: {
+			addUpload() {
+				this.uploadsInProgress++;
+			},
+
+			completeUpload() {
+				this.uploadsInProgress--;
+			},
+
+			triggerSecondaryContact() {
+				this.secondaryContact = ['fname', 'sname', 'email'].map(e => document.getElementById(`secondary-${e}`)).some(x => x.value.trim() != "");
+			},
+
+			validateSection(id) {
+				const els = document.querySelectorAll(['input', 'select', 'textarea'].map(e => `#${id} ${e}`).join(", "));
+
+				for (const el of els) {
+					if (!el.reportValidity()) {
+						return false;
+					}
+				}
+
+				return true;
+			},
+
+			completeSection(sectionId, nextSectionId) {
+				if (!this.validateSection(sectionId + "Collapse")) {
+					return;
+				}
+
+				const nextStep = this.steps.indexOf(sectionId) + 1;
+				if (this.currentStep < nextStep) {
+					this.currentStep = nextStep;
+				}
+			}
+		}
+	});
+
+	//grr - using partials put them outside of Vue
+	const addressEls = ['lineOne', 'lineTwo', 'city', 'postcode'];
+	const contactEls = addressEls.map(e => document.getElementById(`primary-address-${e}`));
+	const orgAddressEls = addressEls.map(e => document.getElementById(`organisation-${e}`));
+
+	const contactRequired = false;
+	const orgRequired = true;
+
+	contactEls.forEach(e => {
+		e.addEventListener("change", () => updateRequired(contactEls, orgAddressEls, orgRequired));
+	});
+
+	orgAddressEls.forEach(e => {
+		e.addEventListener("change", () => updateRequired(orgAddressEls, contactEls, contactRequired));
+	});
+
+	function updateRequired(queryArr, updateArr, currentState) {
+		const notEmpty = queryArr.some(x => x.value.trim().length > 0);
+
+		if (notEmpty == currentState) {
+			updateArr.forEach(e => e.required = !notEmpty);
+			queryArr.forEach(e => e.required = notEmpty);
+		}
+	}
+</script>
+
+<script>
+	tinymce.init({
+		selector: '#description',
+		plugins: 'autolink lists advlist link preview code wordcount',
+		toolbar_mode: 'floating',
+		menubar: 'file edit view insert tools format',
+		contextmenu: 'link lists table',
+		setup: (editor) => {
+			editor.on('change', editor.save);
+		}
+	});
+</script>
