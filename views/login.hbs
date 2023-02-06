@@ -10,12 +10,12 @@
 		{{/if}}
 
 		<div class="form-floating mb-3">
-			<input type="email" name="email" id="email" placeholder="Email address" class="form-control" value="{{email}}" required />
+			<input type="email" name="email" id="email" maxlength="255" placeholder="Email address" class="form-control" value="{{email}}" required />
 			<label class="form-label" for="email">Email address</label>
 		</div>
 
 		<div class="form-floating mb-3">
-			<input type="password" name="password" id="password" placeholder="Password" class="form-control" required />
+			<input type="password" name="password" maxlength="72" id="password" placeholder="Password" class="form-control" required />
 			<label class="form-label" for="password">Password</label>
 		</div>
 

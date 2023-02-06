@@ -23,7 +23,7 @@
 				<form id="single" method="post" :action="currentSeason.id" v-if="currentSeason != null">
 					<div class="form-group mb-3">
 						<label for="name">Identifier</label>
-						<input type="text" name="name" id="name" class="form-control" maxlength=10 required v-model="currentSeason.Identifier" />
+						<input type="text" name="name" id="name" class="form-control" maxlength="10" required v-model="currentSeason.Identifier" />
 					</div>
 
 					<div class="form-group mb-3">
