@@ -32,7 +32,11 @@ router.get('/', checkAdmin, async (req, res, next) => {
 		});
 	}
 
-	const seasons = await req.db.Season.findAll();
+	const seasons = await req.db.Season.findAll({
+		order: [
+			['Start', 'DESC'],
+		]
+	});
 
 	if (!selectedSeason && !season) {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
