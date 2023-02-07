@@ -21,7 +21,7 @@ const router = express.Router();
 router.get('/', checkAdmin, async (req, res, next) => {
 	const selectedSeason = req.query.season;
 	let season;
-	if (selectedSeason == null) {
+	if (!selectedSeason) {
 		season = await req.db.Season.getCurrent();
 	}
 	else {
@@ -34,7 +34,7 @@ router.get('/', checkAdmin, async (req, res, next) => {
 
 	const seasons = await req.db.Season.findAll();
 
-	if (!season) {
+	if (!selectedSeason && !season) {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
 	}
 
