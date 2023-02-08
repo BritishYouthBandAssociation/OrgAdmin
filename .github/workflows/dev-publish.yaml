@@ -1,0 +1,19 @@
+name: dev-publish
+on:
+  push:
+    branches: [ dev ]
+  workflow_dispatch:
+  
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - name: fetch latest
+        run: |
+          cd ${{ secrets.SITE_PATH_DEV }}${{ secrets.SITE_NAME_DEV }}
+          git reset HEAD --hard
+          git fetch
+          git pull
+          
+      - name: restart server
+        run: pm2 restart ${{ secrets.SITE_NAME_DEV }}
