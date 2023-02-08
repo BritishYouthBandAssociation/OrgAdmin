@@ -750,7 +750,7 @@ router.post('/:id/organisations/add', matchingID('id', ['band', 'id']), validato
 	}
 
 	if (req.body.notFound) {
-		return res.redirect(`/organisation/new?eventId=${req.params.id}`);
+		return res.redirect(`/organisation/new?eventId=${req.params.id}&name=${req.body.organisation_search}`);
 	}
 
 	const org = await req.db.Organisation.findByPk(req.body.organisation);

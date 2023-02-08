@@ -13,7 +13,7 @@
 			<div class="card card-body">
 				<div class="form-group mb-3">
 					<label :for="'name-' + index">Division Name</label>
-					<input type="text" class="form-control" name="division[]" :id="'name-' + index" v-model="division.Name" required />
+					<input type="text" class="form-control" name="division[]" :id="'name-' + index" v-model="division.Name" maxlength="255" required />
 				</div>
 
 				<div class="form-group mb-3">

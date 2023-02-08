@@ -16,7 +16,9 @@ router.get('/', (req, res, next) => {
 
 	return res.render('login', {
 		title: 'Please Log In',
-		layout: 'no-nav.hbs'
+		layout: 'no-nav.hbs',
+		background: '/assets/field-markings.jpg',
+		darkenBG: true
 	});
 });
 
@@ -96,7 +98,10 @@ router.get('/home', async (req, res) => {
 		include: [req.db.Address, {
 			model: req.db.EventRegistration,
 			include: [req.db.Organisation]
-		}]
+		}],
+		order: [
+			['Start']
+		]
 	}), req.db.Season.getCurrent(), req.db.EventCaption.findAll({
 		include: [req.db.Caption,
 			{

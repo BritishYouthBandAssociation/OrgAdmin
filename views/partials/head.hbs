@@ -1,102 +1,20 @@
-<head>
-	<!-- Meta tags -->
-	<meta charset='utf-8'>
-	<meta name='viewport' content='width=device-width, initial-scale=1'>
-	<meta http-equiv='X-UA-Compatible' content='IE=edge'>
+<!-- Meta tags -->
+<meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge'>
 
-	<!-- Title -->
-	<title>{{ title }} | {{getConfigValue 'config/site' 'title' 'Org'}}</title>
+<!-- Title -->
+<title>{{ title }} | {{getConfigValue 'config/site' 'title' 'Org'}}</title>
 
-	<link href="/css/bootstrap.min.css" rel="stylesheet" />
+<link href="/css/bootstrap.min.css" rel="stylesheet" />
 
-	<link href="/fonts/asket/font.css" rel="stylesheet">
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-	<link href="https://fonts.googleapis.com/css2?family=Open+Sans&amp;display=swap" rel="stylesheet">
+<link href="/fonts/asket/font.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans&amp;display=swap" rel="stylesheet">
 
-	<style>
-		:root {
-			--byba-blue: #282360;
-		}
+<link href="/css/site.css" rel="stylesheet" />
 
-		.bg-default {
-			background-color: var(--byba-blue) !important;
-		}
-
-		.btn-default {
-			--bs-btn-color: #FFF;
-			--bs-btn-bg: var(--byba-blue);
-		}
-
-		.btn-default:hover {
-			--bs-btn-hover-color: var(--bs-btn-color);
-			--bs-btn-hover-bg: var(--bs-btn-bg);
-		}
-
-		.btn-default:active {
-			--bs-btn-active-color: var(--bs-btn-color);
-			--bs-btn-active-bg: var(--bs-btn-bg);
-		}
-
-		.sidebar .nav-link.active {
-			background-color: #FFF;
-			color: var(--byba-blue);
-		}
-
-		@media (min-width: 992px) {
-			main {
-				display: flex;
-				min-height: 100vh;
-			}
-
-			.sidebar {
-				width: 280px;
-			}
-		}
-
-		h1,
-		h2,
-		h3,
-		h4,
-		h5,
-		h6,
-		.header {
-			font-family: 'Asket';
-			text-transform: uppercase;
-		}
-
-		body {
-			font-family: 'Open Sans', 'OpenSans';
-		}
-
-		.search-results-container {
-			border: 1px solid rgba(0, 0, 0, 0.125);
-			position: relative;
-			top: -0.25rem;
-		}
-
-		.search-result {
-			padding: 0.5rem;
-			background-color: #EFEFEF;
-		}
-
-		.search-result:hover {
-			background-color: #FFF;
-			cursor: pointer;
-		}
-
-		.event-spacer {
-			height: 3rem;
-			width: 50%;
-			border-right: solid 3px #000;
-		}
-
-		.pointer {
-			cursor: pointer;
-		}
-	</style>
-
-	<script>
-		window.uploadServer = "{{uploadServer}}";
-	</script>
-</head>
+<script>
+	window.uploadServer = "{{uploadServer}}";
+</script>

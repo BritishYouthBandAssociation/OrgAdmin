@@ -13,7 +13,7 @@
 {{#if contacts}}
 <div class="row text-center row-cols-1 row-cols-lg-2">
 	{{#each contacts}}
-	{{# with User }}
+	{{#with User }}
 	<div class="col mb-3">
 		<div class="card card-body">
 			<h3>{{FirstName}} {{Surname}}</h3>
@@ -41,7 +41,7 @@
 				<form action="contacts/add">
 					<div class="form-group mb-3">
 						<label class="form-label" for="email">Email</label>
-						<input id="email" name="email" type="email" placeholder="Email" class="form-control" required />
+						<input id="email" name="email" type="email" maxlength="255" placeholder="Email" class="form-control" required />
 					</div>
 
 					<button class="btn btn-default">Add Contact</button>

@@ -259,11 +259,23 @@ router.post('/import-prep', checkAdmin, validator.body(Joi.object({
 });
 
 router.get('/import', checkAdmin, async (req, res) => {
-	const [config, season, membershipTypes] = await Promise.all([req.db.WooCommerceImportConfig.findOne(), req.db.Season.getCurrent(), req.db.MembershipType.getActive({
+	const promises = [req.db.WooCommerceImportConfig.findOne(), req.db.MembershipType.getActive({
 		LinkedImportId: {
 			[Op.ne]: null
 		}
-	})]);
+	})];
+
+	if (req.query.season){
+		promises.push(req.db.Season.findOne({
+			where: {
+				id: req.query.season
+			}
+		}));
+	} else {
+		promises.push(req.db.Season.getCurrent());
+	}
+
+	const [config, membershipTypes, season] = await Promise.all(promises);
 
 	if (!season) {
 		return res.redirect('/config/season?needsSeason=true&next=/membership/import');
@@ -281,7 +293,10 @@ router.get('/import', checkAdmin, async (req, res) => {
 		};
 	});
 
-	let url = `${config.Domain}wp-json/wc/v3/orders?after=${season.Start.toISOString()}&per_page=50`;
+	const start = new Date(season.Start.setMinutes(-1));
+	const end = new Date(season.End.setHours(24));
+
+	let url = `${config.Domain}wp-json/wc/v3/orders?after=${start.toISOString()}&before=${end.toISOString()}&per_page=50`;
 	if (products.length === 1) {
 		url += `&product=${products[0].ExternalId}`;
 	}
