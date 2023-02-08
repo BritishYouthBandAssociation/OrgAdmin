@@ -19,26 +19,12 @@ const {
 const router = express.Router();
 
 router.get('/', checkAdmin, async (req, res, next) => {
-	const selectedSeason = req.query.season;
-	let season;
-	if (!selectedSeason) {
-		season = await req.db.Season.getCurrent();
-	}
-	else {
-		season = await req.db.Season.findOne({
-			where: {
-				id: req.query.season
-			}
-		});
-	}
+	const [season, seasons] = await Promise.all([
+		req.db.Season.getSeasonOrDefault(req.query.season),
+		req.db.Season.getSeasons()
+	]);
 
-	const seasons = await req.db.Season.findAll({
-		order: [
-			['Start', 'DESC'],
-		]
-	});
-
-	if (!selectedSeason && !season) {
+	if (!season) {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
 	}
 
