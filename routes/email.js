@@ -44,8 +44,7 @@ router.get('/', checkAdmin, validator.query(Joi.object({
 
 router.post('/test', checkAdmin, validator.body(Joi.object({
 	membership: Joi.array()
-		.items(Joi.number())
-		.required(),
+		.items(Joi.number()),
 	sender: Joi.string()
 		.required(),
 	subject: Joi.string()
@@ -75,7 +74,7 @@ router.post('/test', checkAdmin, validator.body(Joi.object({
 	const [types, season, rawMember] = await Promise.all([req.db.MembershipType.getActive(), req.db.Season.getCurrent(),
 		req.db.Membership.getAll({
 			id: {
-				[Op.in]: req.body.membership
+				[Op.in]: req.body.membership ?? []
 			}
 		})
 	]);

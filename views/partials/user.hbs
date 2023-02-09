@@ -1,16 +1,16 @@
 <div class="row row-cols-1 row-cols-md-2">
 	<div class="col mb-3">
 		<label for="firstName">First Name</label>
-		<input type="text" class="form-control" id="firstName" name="firstName" required value="{{user.FirstName}}" />
+		<input type="text" class="form-control" id="firstName" name="firstName" maxlength="50" required value="{{user.FirstName}}" />
 	</div>
 	<div class="col mb-3">
 		<label for="surname">Surname</label>
-		<input type="text" class="form-control" id="surname" name="surname" required value="{{user.Surname}}" />
+		<input type="text" class="form-control" id="surname" name="surname" maxlength="50" required value="{{user.Surname}}" />
 	</div>
 </div>
 
 <label for="email">Email Address</label>
-<input type="email" class="form-control mb-3" id="email" name="email" required value="{{user.Email}}" />
+<input type="email" class="form-control mb-3" id="email" name="email" maxlength="255" required value="{{user.Email}}" />
 
 {{#if password}}
 {{> password}}

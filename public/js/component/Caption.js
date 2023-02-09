@@ -8,7 +8,7 @@ Vue.component('caption-selector', {
 		<div class="card card-body mb-3" :id="'caption-' + caption.id">
 			<div class="form-group mb-3">
 				<label :for="'name-' + caption.id">Name</label>
-				<input type="text" class="form-control" :id="'name-' + caption.id" v-model="caption.Name" />
+				<input type="text" class="form-control" :id="'name-' + caption.id" v-model="caption.Name" maxlength="255" />
 			</div>
 
 			<div class="form-group mb-3">

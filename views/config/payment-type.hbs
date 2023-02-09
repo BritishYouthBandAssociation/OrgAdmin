@@ -12,7 +12,7 @@
 			<div class="card card-body">
 				<div class="form-group mb-3">
 					<label :for="'description-' + index">Payment Type</label>
-					<input type="text" class="form-control" name="type[]" :id="'description-' + index" v-model="type.Description" required />
+					<input type="text" class="form-control" name="type[]" :id="'description-' + index" v-model="type.Description" maxlength="255" required />
 				</div>
 
 				<div class="row row-cols-2 align-items-center mb-3">

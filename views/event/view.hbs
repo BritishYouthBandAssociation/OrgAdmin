@@ -56,7 +56,7 @@
 					<div class='col form-group mb-3'>
 						<label class='form-label' for='name'>Name</label>
 						<input type='text' class='form-control' id='name' name='name' placeholder='Name'
-							value='{{event.Name}}' {{#unless session.user.IsAdmin}}readonly{{/unless}} required />
+							value='{{event.Name}}' {{#unless session.user.IsAdmin}}readonly{{/unless}} maxlength="255" required />
 					</div>
 					<div class='col form-group text-start mb-3'>
 						<label class='form-label' for='type'>Event Type</label>
@@ -71,7 +71,7 @@
 				</div>
 				<div class='form-group mb-3'>
 					<label class='form-label' for='slug'>Slug</label>
-					<input type='text' class='form-control' id='slug' name='slug' placeholder='Slug'
+					<input type='text' class='form-control' id='slug' name='slug' placeholder='Slug' maxlength="255"
 						value='{{event.Slug}}' {{#unless session.user.IsAdmin}}readonly{{/unless}} required />
 				</div>
 				<div class='row row-cols-1 row-cols-lg-2 form mb-3'>
@@ -79,13 +79,13 @@
 						<label class='form-label' for='start'>Start</label>
 						<input type='datetime-local' class='form-control' id='start' name='start'
 							value='{{datetimeFieldValue event.Start}}' {{#unless
-							session.user.IsAdmin}}readonly{{/unless}} required \>
+							session.user.IsAdmin}}readonly{{/unless}} required />
 					</div>
 					<div class='col form-group mb-3'>
 						<label class='form-label' for='end'>End Time</label>
 						<input type='datetime-local' class='form-control' id='end' name='end'
 							value='{{datetimeFieldValue event.End}}' {{#unless session.user.IsAdmin}}readonly{{/unless}}
-							required \>
+							required />
 					</div>
 				</div>
 
