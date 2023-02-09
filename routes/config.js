@@ -11,7 +11,7 @@ const router = express.Router();
 const {checkAdmin} = require('../middleware');
 
 router.get('/', checkAdmin, (req, res) => {
-	const sections = ['Membership Type', 'Organisation Type', 'Event Type', 'Payment Type', 'Division', 'Caption', 'Season'];
+	const sections = ['Membership Type', 'Event Type', 'Payment Type', 'Division', 'Caption', 'Season'];
 
 	return res.render('config/index.hbs', {
 		title: 'Configuration',
@@ -96,46 +96,6 @@ router.post('/membership-type', checkAdmin, validator.body(Joi.object({
 			});
 		}
 	}
-
-	return res.redirect('?saved=true');
-});
-
-router.get('/organisation-type', checkAdmin, validator.query(Joi.object({
-	saved: Joi.boolean()
-})), async (req, res, next) => {
-	const types = await req.db.OrganisationType.findAll();
-
-	return res.render('config/organisation-type.hbs', {
-		title: 'Organisation Types',
-		types: types,
-		saved: req.query.saved ?? false
-	});
-});
-
-router.post('/organisation-type', checkAdmin, validator.body(Joi.object({
-	id: Joi.array()
-		.items(Joi.number()),
-	type: Joi.array()
-		.items(Joi.string()),
-	isActive: Joi.array()
-		.items(Joi.boolean().falsy('0').truthy('1')),
-})), async (req, res, next) => {
-	await Promise.all(req.body.type.map((t, i) => {
-		const details = {
-			Name: req.body.type[i],
-			IsActive: req.body.isActive[i]
-		};
-
-		if (req.body.id[i] < 0) {
-			return req.db.OrganisationType.create(details);
-		}
-
-		return req.db.OrganisationType.update(details, {
-			where: {
-				id: req.body.id[i]
-			}
-		});
-	}));
 
 	return res.redirect('?saved=true');
 });

@@ -98,8 +98,7 @@ router.get('/home', async (req, res) => {
 		include: [req.db.Address, {
 			model: req.db.EventRegistration,
 			include: [req.db.Organisation]
-		}
-		],
+		}],
 		order: [
 			['Start']
 		]
