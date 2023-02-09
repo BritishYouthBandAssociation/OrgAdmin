@@ -6,7 +6,6 @@ const rename = require('gulp-rename');
 const fs = require('fs');
 const path = require('path');
 const prompt = require('prompt-sync')({ sigint: true });
-const del = require('del');
 
 // Initialise library path
 const libPath = process.env.LIB_PATH ?? '../Library';
@@ -14,12 +13,12 @@ const libPath = process.env.LIB_PATH ?? '../Library';
 // Import library functions
 const { helpers: { ConfigHelper } } = require(libPath);
 
-function cleanConfig() {
-	const configFiles = fs.readdirSync(path.join(__dirname, 'config'))
+function cleanConfig(done) {
+	fs.readdirSync(path.join(__dirname, 'config'))
 		.filter(file => !file.endsWith('.sample.json'))
-		.map(file => `./config/${file}`);
+		.forEach(file => fs.unlinkSync(`./config/${file}`));
 
-	return del(configFiles);
+	done();
 }
 
 function copyConfig() {

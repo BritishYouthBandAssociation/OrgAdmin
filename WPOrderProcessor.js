@@ -203,7 +203,7 @@ class WPOrderProcessor {
 		const memberships = [];
 
 		for (let i = 0; i < order.line_items.length; i++) {
-			if (order.needs_payment) {
+			if (order.needs_payment || order.refunds.length > 0 || !order.date_completed) {
 				continue;
 			}
 
