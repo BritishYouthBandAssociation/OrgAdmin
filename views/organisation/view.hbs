@@ -123,8 +123,8 @@
 
 					<small>{{consentNote.Description}}</small>
 
-					<div class="form-group" v-if="consentType != originalConsentType">
-						<label for="consentDetails">What details have led to this change?</label>
+					<div class="form-group" v-if="consentType != originalConsentType && consentType == 2">
+						<label for="consentDetails">Please give details</label>
 						<textarea class="form-control" id="consentDetails" name="consentDetails" rows="5" required></textarea>
 					</div>
 				</div>
