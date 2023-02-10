@@ -103,21 +103,21 @@ body {
 }
 
 select.style-by-value, select.style-by-value option[value=""]{
-	background-color: #FFF;
-	color: #222;
+	background-color: var(--bs-white);
+	color: var(--bs-dark);
 }
 
 select#consent[data-chosen="1"], select#consent option[value="1"]{
-	background-color: #F00;
-	color: #FFF;
+	background-color: var(--bs-danger);
+	color: var(--bs-white);
 }
 
 select#consent[data-chosen="2"], select#consent option[value="2"]{
-	background-color: #FFFF00;
-	color: #222;
+	background-color: var(--bs-warning);
+	color: var(--bs-dark);
 }
 
 select#consent[data-chosen="3"], select#consent option[value="3"]{
-	background-color: #0F0;
-	color: #222;
+	background-color: var(--bs-success);
+	color: var(--bs-white);
 }
