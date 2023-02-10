@@ -87,9 +87,18 @@ router.get('/', checkAdmin, async (req, res, next) => {
 
 router.get('/new', async (req, res) => {
 	const config = ConfigHelper.importJSON(path.join(global.__approot, 'config'), 'server');
-	const [types, uploadToken, membership] = await Promise.all([req.db.OrganisationType.getActive(), getImageToken(config), req.db.MembershipType.getActive({
-		IsOrganisation: true
-	})]);
+	const [types, uploadToken, membership, consentTypes] = await Promise.all([
+		req.db.OrganisationType.getActive(),
+		getImageToken(config),
+		req.db.MembershipType.getActive({
+			IsOrganisation: true
+		}),
+		req.db.PhotoConsentType.findAll({
+			order: [
+				['id']
+			]
+		})
+	]);
 
 	const hbParams = {
 		title: 'Add New Organisation',
@@ -97,7 +106,8 @@ router.get('/new', async (req, res) => {
 		uploadToken,
 		name: req.query.name ?? '',
 		type: req.query.membershipType ?? '',
-		membership
+		membership,
+		consentTypes
 	};
 
 	if (!req.session.user) {
@@ -135,7 +145,9 @@ router.post('/new', validator.query(Joi.object({
 	'organisation-lineTwo': Joi.string().optional().allow('', null),
 	'organisation-city': Joi.string().optional().allow('', null),
 	'organisation-postcode': Joi.string().optional().allow('', null),
-	membership: Joi.number()
+	membership: Joi.number(),
+	consent: Joi.number(),
+	consentDetails: Joi.string()
 })), async (req, res) => {
 	const slug = StringHelper.formatSlug(req.body.name);
 	let org = await req.db.Organisation.findBySlug(slug);
@@ -156,7 +168,8 @@ router.post('/new', validator.query(Joi.object({
 			SecondaryColour: req.body.secondary,
 			LogoId: req.body.logo,
 			HeaderId: req.body.header,
-			IsPending: !(req.session.user && req.session.user.IsAdmin)
+			IsPending: !(req.session.user && req.session.user.IsAdmin),
+			PhotoConsentTypeId: req.body.consent
 		}, {
 			transaction
 		});
@@ -166,6 +179,15 @@ router.post('/new', validator.query(Joi.object({
 				FirstName: req.body['primary-fname'],
 				Surname: req.body['primary-sname'],
 				Email: req.body['primary-email']
+			}, {
+				transaction
+			}),
+			req.db.PhotoConsentHistory.create({
+				Description: 'Membership created through website\n' + req.body.consentDetails,
+				OldConsentTypeId: null,
+				NewConsentTypeId: req.body.consent,
+				OrganisationId: org.id,
+				UserId: null
 			}, {
 				transaction
 			})
