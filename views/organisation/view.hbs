@@ -113,7 +113,7 @@
 					<h3 class="text-center">Photo Consent</h3>
 					<div class="form-group mb-3">
 						<label for="consent">Can we take photos and videos of this organisation?</label>
-						<select class="form-control style-by-value" name="consent" id="consent" required>
+						<select class="form-control style-by-value" name="consent" id="consent" required v-model="consentType">
 							<option value="">-- Please Select --</option>
 							{{#each consentTypes}}
 							<option value="{{id}}">{{Name}}</option>
@@ -121,9 +121,11 @@
 						</select>
 					</div>
 
-					<div class="form-group">
-						<label for="consent-details">What details have led to this change?</label>
-						<textarea class="form-control" id="consent-details" name="consent-details" rows="5" required></textarea>
+					<small>{{consentNote.Description}}</small>
+
+					<div class="form-group" v-if="consentType != originalConsentType">
+						<label for="consentDetails">What details have led to this change?</label>
+						<textarea class="form-control" id="consentDetails" name="consentDetails" rows="5" required></textarea>
 					</div>
 				</div>
 
@@ -175,7 +177,9 @@
 		el: '#app',
 		data: {
 			uploadsInProgress: 0,
-			slug: '{{ organisation.Slug }}'
+			slug: '{{ organisation.Slug }}',
+			originalConsentType: {{organisation.PhotoConsentTypeId}},
+			consentType: {{organisation.PhotoConsentTypeId}}
 		},
 		methods: {
 			addUpload() {

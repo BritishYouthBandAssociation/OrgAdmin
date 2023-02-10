@@ -275,7 +275,7 @@ router.get('/:orgID', validator.params(idParamSchema), matchingID('orgID', ['ban
 	saved: Joi.boolean(),
 	error: [Joi.boolean(), Joi.string()],
 })), async (req, res, next) => {
-	const [org, types, consentTypes] = await Promise.all([
+	const [org, types, consentTypes, consentNote] = await Promise.all([
 		req.db.Organisation.findByPk(req.params.orgID, {
 			include: [
 				req.db.Address,
@@ -296,6 +296,14 @@ router.get('/:orgID', validator.params(idParamSchema), matchingID('orgID', ['ban
 		req.db.OrganisationType.getActive(),
 		req.db.PhotoConsentType.findAll({
 			order: [['id']]
+		}),
+		req.db.PhotoConsentHistory.findOne({
+			where: {
+				OrganisationId: req.params.orgID
+			},
+			order: [
+				['createdAt', 'DESC']
+			]
 		})
 	]);
 
@@ -320,7 +328,8 @@ router.get('/:orgID', validator.params(idParamSchema), matchingID('orgID', ['ban
 		error: req.query.error ?? false,
 		enableUpload: config.uploadPath != null,
 		uploadToken: token,
-		consentTypes
+		consentTypes,
+		consentNote
 	});
 });
 
@@ -339,7 +348,9 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 		.regex(/#([\da-fA-F]{3}){1,2}/)
 		.required(),
 	logo: Joi.string().guid().allow(''),
-	header: Joi.string().guid().allow('')
+	header: Joi.string().guid().allow(''),
+	consent: Joi.number(),
+	consentDetails: Joi.string()
 })), matchingID('orgID', ['band', 'id']), async (req, res, next) => {
 	const org = await req.db.Organisation.findByPk(req.params.orgID);
 
@@ -390,6 +401,18 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 
 	org.PrimaryColour = req.body.primary;
 	org.SecondaryColour = req.body.secondary;
+
+	if (org.PhotoConsentTypeId != req.body.consent){
+		await req.db.PhotoConsentHistory.create({
+			Description: req.body.consentDetails,
+			OldConsentTypeId: org.PhotoConsentTypeId,
+			NewConsentTypeId: req.body.consent,
+			OrganisationId: org.id,
+			UserId: req.session.user.id
+		});
+
+		org.PhotoConsentTypeId = req.body.consent;
+	}
 
 	let token = null;
 	const origin = req.headers.host;
