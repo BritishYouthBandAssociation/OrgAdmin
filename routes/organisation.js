@@ -107,7 +107,8 @@ router.get('/new', async (req, res) => {
 		name: req.query.name ?? '',
 		type: req.query.membershipType ?? '',
 		membership,
-		consentTypes
+		consentTypes,
+		showMembership: req.query.eventId == null
 	};
 
 	if (!req.session.user) {
