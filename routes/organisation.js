@@ -459,6 +459,35 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 	return res.redirect('?saved=true');
 });
 
+router.get('/:orgID/consent', validator.params(idParamSchema), matchingID('orgID', ['band', 'id']), async (req, res, next) => {
+	const [organisation, history] = await Promise.all([
+		req.db.Organisation.findByPk(req.params.orgID),
+		req.db.PhotoConsentHistory.findAll({
+			where: {
+				OrganisationId: req.params.orgID
+			},
+			include: [
+				req.db.User,
+				'OldConsentType',
+				'NewConsentType'
+			],
+			order: [
+				['createdAt', 'DESC']
+			]
+		})
+	]);
+
+	if (!organisation){
+		return next();
+	}
+
+	return res.render('organisation/consent-history.hbs', {
+		title: `Consent History for ${organisation.Name}`,
+		organisation,
+		history
+	});
+});
+
 router.post('/:orgID/address', validator.params(idParamSchema), matchingID('orgID', ['band', 'id']), validator.body(Joi.object({
 	lineOne: Joi.string()
 		.required(),
