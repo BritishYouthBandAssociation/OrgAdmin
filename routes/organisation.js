@@ -275,7 +275,7 @@ router.get('/:orgID', validator.params(idParamSchema), matchingID('orgID', ['ban
 	saved: Joi.boolean(),
 	error: [Joi.boolean(), Joi.string()],
 })), async (req, res, next) => {
-	const [org, types] = await Promise.all([
+	const [org, types, consentTypes] = await Promise.all([
 		req.db.Organisation.findByPk(req.params.orgID, {
 			include: [
 				req.db.Address,
@@ -293,7 +293,10 @@ router.get('/:orgID', validator.params(idParamSchema), matchingID('orgID', ['ban
 				}
 			]
 		}),
-		req.db.OrganisationType.getActive()
+		req.db.OrganisationType.getActive(),
+		req.db.PhotoConsentType.findAll({
+			order: [['id']]
+		})
 	]);
 
 	if (!org) {
@@ -316,7 +319,8 @@ router.get('/:orgID', validator.params(idParamSchema), matchingID('orgID', ['ban
 		saved: req.query.saved ?? false,
 		error: req.query.error ?? false,
 		enableUpload: config.uploadPath != null,
-		uploadToken: token
+		uploadToken: token,
+		consentTypes
 	});
 });
 
