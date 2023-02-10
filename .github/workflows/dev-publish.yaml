@@ -6,7 +6,7 @@ on:
   
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: dev
     steps:
       - name: fetch latest
         run: |
