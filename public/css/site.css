@@ -44,8 +44,11 @@ body {
 .search-results-container {
 	position: absolute;
 	border: 1px solid rgba(0, 0, 0, 0.125);
+	background-color: rgba(0, 0, 0, 0.125);
 	left: 0;
 	right: 0;
+	z-index: 100;
+	box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, .15);
 }
 
 .search-result {
