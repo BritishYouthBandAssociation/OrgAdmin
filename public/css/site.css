@@ -26,17 +26,6 @@
 	color: var(--byba-blue);
 }
 
-@media (min-width: 992px) {
-	main {
-		display: flex;
-		min-height: 100vh;
-	}
-
-	.sidebar {
-		width: 280px;
-	}
-}
-
 h1,
 h2,
 h3,
@@ -86,16 +75,8 @@ body {
 	animation: fade-up ease-in-out 3s;
 }
 
-@keyframes fade-up {
-	0% {
-		opacity: 0;
-		transform: translateY(50px);
-	}
-
-	100% {
-		opacity: 1;
-		transform: translateY(0);
-	}
+.accordion-button[disabled] {
+	opacity: 60%;
 }
 
 .accordion-button[disabled] {
@@ -120,4 +101,37 @@ select#consent[data-chosen="2"], select#consent option[value="2"]{
 select#consent[data-chosen="3"], select#consent option[value="3"]{
 	background-color: var(--bs-success);
 	color: var(--bs-white);
+}
+
+/** lg and up **/
+@media (min-width: 992px) {
+	main {
+		display: flex;
+		min-height: 100vh;
+	}
+
+	.sidebar {
+		width: 280px;
+	}
+
+	/** mobile devices struggle with the concept of hover, so only hide on desktop **/
+	.label-container .add{
+		display: none;
+	}
+
+	.label-container:hover > .add{
+		display: inline-block;
+	}
+}
+
+@keyframes fade-up {
+	0% {
+		opacity: 0;
+		transform: translateY(50px);
+	}
+
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
