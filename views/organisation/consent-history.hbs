@@ -4,12 +4,12 @@
 {{#eq history.length 0}}
 <div class="alert alert-info text-center">There have been no changes to {{organisation.Name}}'s media consent</div>
 {{else}}
-<div class="card card-body text-center mb-3">
+<div class="card card-body text-center mb-3 {{#eq history.[0].NewConsentType.id 1}}text-bg-danger{{else}}{{#eq history.[0].NewConsentType.id 3}}text-bg-success{{else}}text-bg-warning{{/eq}}{{/eq}}">
 	<p class="h4">Current Media Consent: {{history.[0].NewConsentType.Name}}</p>
 </div>
 
 {{#each history}}
-<div class="card card-body text-center mb-3">
+<div class="card card-body text-center mb-3 {{#eq NewConsentType.id 1}}text-bg-danger{{else}}{{#eq NewConsentType.id 3}}text-bg-success{{else}}text-bg-warning{{/eq}}{{/eq}}">
 	<p class="h4">Consent changed from {{OldConsentType.Name}} to {{NewConsentType.Name}}</p>
 
 	{{#if Description}}
