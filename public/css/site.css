@@ -26,17 +26,6 @@
 	color: var(--byba-blue);
 }
 
-@media (min-width: 992px) {
-	main {
-		display: flex;
-		min-height: 100vh;
-	}
-
-	.sidebar {
-		width: 280px;
-	}
-}
-
 h1,
 h2,
 h3,
@@ -86,6 +75,31 @@ body {
 	animation: fade-up ease-in-out 3s;
 }
 
+.accordion-button[disabled] {
+	opacity: 60%;
+}
+
+/** lg and up **/
+@media (min-width: 992px) {
+	main {
+		display: flex;
+		min-height: 100vh;
+	}
+
+	.sidebar {
+		width: 280px;
+	}
+
+	/** mobile devices struggle with the concept of hover, so only hide on desktop **/
+	.label-container .add{
+		display: none;
+	}
+
+	.label-container:hover > .add{
+		display: inline-block;
+	}
+}
+
 @keyframes fade-up {
 	0% {
 		opacity: 0;
@@ -96,8 +110,4 @@ body {
 		opacity: 1;
 		transform: translateY(0);
 	}
-}
-
-.accordion-button[disabled] {
-	opacity: 60%;
 }
