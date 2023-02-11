@@ -42,9 +42,10 @@ body {
 }
 
 .search-results-container {
+	position: absolute;
 	border: 1px solid rgba(0, 0, 0, 0.125);
-	position: relative;
-	top: -0.25rem;
+	left: 0;
+	right: 0;
 }
 
 .search-result {
