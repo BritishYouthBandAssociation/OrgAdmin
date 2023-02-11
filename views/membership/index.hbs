@@ -34,7 +34,12 @@
 				<p class="h4"><a href="{{id}}/" class="stretched-link text-reset text-decoration-none">{{Name}}</a></p>
 			</div>
 
-			{{> labels labels=Labels membership=id editable=../session.user.IsAdmin classes="card-footer"}}
+			<div class="card-footer label-container">
+				{{#each Labels}}
+				<span class="badge" style="background-color: {{BackgroundColour}}; color: {{ForegroundColour}}" data-type="{{id}}">{{Name}}</span>
+				{{/each}}
+				<a href="#" class="badge rounded-pill text-dark text-decoration-none border add">+ Add</a>
+			</div>
 		</div>
 	</div>
 	{{/each}}
