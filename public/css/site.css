@@ -44,7 +44,7 @@ body {
 .search-results-container {
 	position: absolute;
 	border: 1px solid rgba(0, 0, 0, 0.125);
-	background-color: rgba(0, 0, 0, 0.7);
+	background-color: rgba(0, 0, 0, 0.125);
 	left: 0;
 	right: 0;
 	z-index: 100;
