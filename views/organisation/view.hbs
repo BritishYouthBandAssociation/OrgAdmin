@@ -121,7 +121,9 @@
 						</select>
 					</div>
 
+{{#if consentNote.Description}}
 					<small>{{{withLineBreaks consentNote.Description}}}</small>
+{{/if}}
 
 					<div class="form-group" v-if="consentType != originalConsentType && consentType == 2">
 						<label for="consentDetails">Please give details</label>
