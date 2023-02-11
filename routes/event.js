@@ -222,7 +222,10 @@ async function generateSchedule(req, next, eventID, config, divisionOrder) {
 }
 
 router.get('/', async (req, res, next) => {
-	const season = await req.db.Season.getCurrent();
+	const [season, seasons] = await Promise.all([
+		req.db.Season.getSeasonOrDefault(req.query.season),
+		req.db.Season.getSeasons()
+	]);
 
 	if (!season) {
 		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
@@ -245,9 +248,9 @@ router.get('/', async (req, res, next) => {
 
 	return res.render('event/index.hbs', {
 		title: 'Events',
-		years: [season.id],
-		year: season.id,
-		events,
+		seasons: seasons,
+		season: season.id,
+		events: events,
 		filters: eventTypes
 	});
 });
