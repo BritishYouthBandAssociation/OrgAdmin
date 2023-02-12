@@ -1,44 +1,94 @@
 'use strict';
 
-(function(){
-	const hasVue = typeof Vue != 'undefined';
-
-	function initLabelButtons(labels){
+(function() {
+	function initLabelButtons(labels) {
 		const elements = document.querySelectorAll('.label-container .add');
-		if (elements.length > 0 && !hasVue){
-			console.warn('Vue was not detected - make sure you\'re handling label addition properly!');
-		}
-
 		elements.forEach(el => {
 			let results = null;
 			let search = null;
+			let noneFound = null;
+			const create = null;
 
 			el.addEventListener('click', (e) => {
 				e.preventDefault();
 
-				if (results == null){
+				if (results == null) {
+					const existing = Array.from(el.parentElement.querySelectorAll('[data-type]')).map(e => e.dataset.type);
 					results = document.createElement('div');
 					results.className = 'search-results-container';
 					el.parentElement.appendChild(results);
-					console.log(labels);
 
+					let added = 0;
 					labels.forEach(l => {
+						if (existing.some(e => e == l.id)) {
+							return;
+						}
+
 						const cont = document.createElement('div');
 						cont.className = 'search-result';
+						cont.style.backgroundColor = l.BackgroundColour;
+						cont.style.color = l.ForegroundColour;
+						cont.dataset.type = l.id;
 						cont.innerHTML = l.Name;
+						cont.addEventListener('click', () => {
+							const placeholder = document.createElement('badge');
+							placeholder.className = 'badge placeholder me-3';
+							placeholder.dataset.type = l.id;
+							placeholder.innerHTML = l.Name;
+							placeholder.style.backgroundColor = l.BackgroundColour;
+							placeholder.style.color = l.ForegroundColour;
+							el.parentElement.insertBefore(placeholder, el);
+							el.parentElement.removeChild(results);
+							results = null;
+							search = null;
+						});
 						results.appendChild(cont);
+						added++;
 					});
+
+					noneFound = document.createElement('span');
+					noneFound.className = 'fst-italic text-white d-none';
+					noneFound.innerHTML = 'No labels found that have not already been added';
+					results.appendChild(noneFound);
+
+					if (added === 0){
+						noneFound.classList.remove('d-none');
+					}
 				}
 
-				if (search == null){
+				if (search == null) {
 					search = document.createElement('input');
-					search.className = 'form-control mb-1';
+					search.className = 'form-control rounded-0 mb-1';
 					search.placeholder = 'Label Name';
+
+					search.addEventListener('keyup', () => {
+						let shown = 0;
+						results.childNodes.forEach(e => {
+							if (e == noneFound || e == search){
+								return;
+							}
+
+							if (e.innerHTML.indexOf(search.value) > -1){
+								e.classList.remove('d-none');
+								shown++;
+							} else {
+								e.classList.add('d-none');
+							}
+						});
+
+						if (shown > 0){
+							noneFound.classList.add('d-none');
+						} else {
+							noneFound.classList.remove('d-none');
+						}
+					});
+
 					results.insertBefore(search, results.firstChild);
+					search.focus();
 				}
 			});
 		});
 	}
 
-	initLabelButtons([{id: 1, Name: 'Test', BackgroundColour: '#000', ForegroundColour: '#FFF'}]);
+	initLabelButtons([{ id: 1, Name: 'Test', BackgroundColour: '#000', ForegroundColour: '#FFF' }]);
 })();
