@@ -111,6 +111,15 @@
 			<div class="col-12 col-lg-5 float-end order-1">
 				<div class="card card-body mb-3">
 					<h3 class="text-center"><a href="consent">Photo Consent</a></h3>
+
+					{{#if consentNote.Description}}
+						<div class="alert alert-info text-center">
+							<strong>Current Consent Notes:</strong>
+							<br />
+							{{{withLineBreaks consentNote.Description}}}
+						</div>
+					{{/if}}
+
 					<div class="form-group mb-3">
 						<label for="consent">Can we take photos and videos of this organisation?</label>
 						<select class="form-control style-by-value" name="consent" id="consent" required v-model="consentType">
@@ -121,13 +130,9 @@
 						</select>
 					</div>
 
-{{#if consentNote.Description}}
-					<small>{{{withLineBreaks consentNote.Description}}}</small>
-{{/if}}
-
-					<div class="form-group" v-if="consentType != originalConsentType && consentType == 2">
-						<label for="consentDetails">Please give details</label>
-						<textarea class="form-control" id="consentDetails" name="consentDetails" rows="5" required></textarea>
+					<div class="form-group">
+						<label for="consentDetails">Please give details <span v-if="!needsConsentComments">(Optional)</span></label>
+						<textarea class="form-control" id="consentDetails" name="consentDetails" rows="5" :required="needsConsentComments"></textarea>
 					</div>
 				</div>
 			</div>
@@ -199,6 +204,11 @@
 					.trim()
 					.replace(/[^\w ]+/g, '')
 					.replace(/ +/g, '-');
+			}
+		},
+		computed: {
+			needsConsentComments(){
+				return this.consentType != this.originalConsentType && this.consentType == 2;
 			}
 		},
 		mounted() {
