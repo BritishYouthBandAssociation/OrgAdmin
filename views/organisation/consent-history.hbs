@@ -10,7 +10,11 @@
 
 {{#each history}}
 <div class="card card-body text-center mb-3 {{#eq NewConsentType.id 1}}text-bg-danger{{else}}{{#eq NewConsentType.id 3}}text-bg-success{{else}}text-bg-warning{{/eq}}{{/eq}}">
+	{{#isnt OldConsentType.id NewConsentType.id}}
 	<p class="h4">Consent changed from {{OldConsentType.Name}} to {{NewConsentType.Name}}</p>
+	{{else}}
+	<p class="h4">Notes Updated</p>
+	{{/isnt}}
 
 	{{#if Description}}
 	<div class="card my-3 mx-lg-5 text-dark">

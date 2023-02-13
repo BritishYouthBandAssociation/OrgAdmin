@@ -373,7 +373,7 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 	logo: Joi.string().guid().allow(''),
 	header: Joi.string().guid().allow(''),
 	consent: Joi.number(),
-	consentDetails: Joi.string()
+	consentDetails: Joi.string().allow('')
 })), matchingID('orgID', ['band', 'id']), async (req, res, next) => {
 	const org = await req.db.Organisation.findByPk(req.params.orgID);
 
@@ -425,7 +425,7 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 	org.PrimaryColour = req.body.primary;
 	org.SecondaryColour = req.body.secondary;
 
-	if (org.PhotoConsentTypeId != req.body.consent){
+	if (org.PhotoConsentTypeId != req.body.consent || req.body.consentDetails){
 		await req.db.PhotoConsentHistory.create({
 			Description: req.body.consentDetails,
 			OldConsentTypeId: org.PhotoConsentTypeId,
