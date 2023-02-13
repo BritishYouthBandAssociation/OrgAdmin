@@ -87,9 +87,18 @@ router.get('/', checkAdmin, async (req, res, next) => {
 
 router.get('/new', async (req, res) => {
 	const config = ConfigHelper.importJSON(path.join(global.__approot, 'config'), 'server');
-	const [types, uploadToken, membership] = await Promise.all([req.db.OrganisationType.getActive(), getImageToken(config), req.db.MembershipType.getActive({
-		IsOrganisation: true
-	})]);
+	const [types, uploadToken, membership, consentTypes] = await Promise.all([
+		req.db.OrganisationType.getActive(),
+		getImageToken(config),
+		req.db.MembershipType.getActive({
+			IsOrganisation: true
+		}),
+		req.db.PhotoConsentType.findAll({
+			order: [
+				['id']
+			]
+		})
+	]);
 
 	const hbParams = {
 		title: 'Add New Organisation',
@@ -97,7 +106,9 @@ router.get('/new', async (req, res) => {
 		uploadToken,
 		name: req.query.name ?? '',
 		type: req.query.membershipType ?? '',
-		membership
+		membership,
+		consentTypes,
+		showMembership: req.query.eventId == null
 	};
 
 	if (!req.session.user) {
@@ -135,7 +146,9 @@ router.post('/new', validator.query(Joi.object({
 	'organisation-lineTwo': Joi.string().optional().allow('', null),
 	'organisation-city': Joi.string().optional().allow('', null),
 	'organisation-postcode': Joi.string().optional().allow('', null),
-	membership: Joi.number()
+	membership: Joi.number(),
+	consent: Joi.number(),
+	consentDetails: Joi.string()
 })), async (req, res) => {
 	const slug = StringHelper.formatSlug(req.body.name);
 	let org = await req.db.Organisation.findBySlug(slug);
@@ -156,7 +169,8 @@ router.post('/new', validator.query(Joi.object({
 			SecondaryColour: req.body.secondary,
 			LogoId: req.body.logo,
 			HeaderId: req.body.header,
-			IsPending: !(req.session.user && req.session.user.IsAdmin)
+			IsPending: !(req.session.user && req.session.user.IsAdmin),
+			PhotoConsentTypeId: req.body.consent
 		}, {
 			transaction
 		});
@@ -166,6 +180,15 @@ router.post('/new', validator.query(Joi.object({
 				FirstName: req.body['primary-fname'],
 				Surname: req.body['primary-sname'],
 				Email: req.body['primary-email']
+			}, {
+				transaction
+			}),
+			req.db.PhotoConsentHistory.create({
+				Description: 'Membership created through website\n' + req.body.consentDetails,
+				OldConsentTypeId: null,
+				NewConsentTypeId: req.body.consent,
+				OrganisationId: org.id,
+				UserId: null
 			}, {
 				transaction
 			})
@@ -275,7 +298,7 @@ router.get('/:orgID', validator.params(idParamSchema), matchingID('orgID', ['ban
 	saved: Joi.boolean(),
 	error: [Joi.boolean(), Joi.string()],
 })), async (req, res, next) => {
-	const [org, types] = await Promise.all([
+	const [org, types, consentTypes, consentNote] = await Promise.all([
 		req.db.Organisation.findByPk(req.params.orgID, {
 			include: [
 				req.db.Address,
@@ -293,7 +316,18 @@ router.get('/:orgID', validator.params(idParamSchema), matchingID('orgID', ['ban
 				}
 			]
 		}),
-		req.db.OrganisationType.getActive()
+		req.db.OrganisationType.getActive(),
+		req.db.PhotoConsentType.findAll({
+			order: [['id']]
+		}),
+		req.db.PhotoConsentHistory.findOne({
+			where: {
+				OrganisationId: req.params.orgID
+			},
+			order: [
+				['createdAt', 'DESC']
+			]
+		})
 	]);
 
 	if (!org) {
@@ -316,7 +350,9 @@ router.get('/:orgID', validator.params(idParamSchema), matchingID('orgID', ['ban
 		saved: req.query.saved ?? false,
 		error: req.query.error ?? false,
 		enableUpload: config.uploadPath != null,
-		uploadToken: token
+		uploadToken: token,
+		consentTypes,
+		consentNote
 	});
 });
 
@@ -335,7 +371,9 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 		.regex(/#([\da-fA-F]{3}){1,2}/)
 		.required(),
 	logo: Joi.string().guid().allow(''),
-	header: Joi.string().guid().allow('')
+	header: Joi.string().guid().allow(''),
+	consent: Joi.number(),
+	consentDetails: Joi.string()
 })), matchingID('orgID', ['band', 'id']), async (req, res, next) => {
 	const org = await req.db.Organisation.findByPk(req.params.orgID);
 
@@ -387,6 +425,18 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 	org.PrimaryColour = req.body.primary;
 	org.SecondaryColour = req.body.secondary;
 
+	if (org.PhotoConsentTypeId != req.body.consent){
+		await req.db.PhotoConsentHistory.create({
+			Description: req.body.consentDetails,
+			OldConsentTypeId: org.PhotoConsentTypeId,
+			NewConsentTypeId: req.body.consent,
+			OrganisationId: org.id,
+			UserId: req.session.user.id
+		});
+
+		org.PhotoConsentTypeId = req.body.consent;
+	}
+
 	let token = null;
 	const origin = req.headers.host;
 	const config = ConfigHelper.importJSON(path.join(global.__approot, 'config'), 'server');
@@ -430,6 +480,35 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 	}));
 
 	return res.redirect('?saved=true');
+});
+
+router.get('/:orgID/consent', validator.params(idParamSchema), matchingID('orgID', ['band', 'id']), async (req, res, next) => {
+	const [organisation, history] = await Promise.all([
+		req.db.Organisation.findByPk(req.params.orgID),
+		req.db.PhotoConsentHistory.findAll({
+			where: {
+				OrganisationId: req.params.orgID
+			},
+			include: [
+				req.db.User,
+				'OldConsentType',
+				'NewConsentType'
+			],
+			order: [
+				['createdAt', 'DESC']
+			]
+		})
+	]);
+
+	if (!organisation){
+		return next();
+	}
+
+	return res.render('organisation/consent-history.hbs', {
+		title: `Consent History for ${organisation.Name}`,
+		organisation,
+		history
+	});
 });
 
 router.post('/:orgID/address', validator.params(idParamSchema), matchingID('orgID', ['band', 'id']), validator.body(Joi.object({

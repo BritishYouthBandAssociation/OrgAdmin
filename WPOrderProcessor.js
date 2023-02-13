@@ -7,6 +7,8 @@ const {
 	constants
 } = require(global.__lib);
 
+const {Op} = require('sequelize');
+
 class WPOrderProcessor {
 	#products = [];
 	#season = null;
@@ -101,12 +103,15 @@ class WPOrderProcessor {
 			where: {
 				OrganisationId: org.id
 			},
-			include: {
-				model: this.#db.Membership,
-				where: {
-					SeasonId: this.#season.id
-				}
-			}
+			include: [
+				{
+					model: this.#db.Membership,
+					where: {
+						SeasonId: this.#season.id
+					},
+				},
+				this.#db.Organisation
+			]
 		});
 
 		if (membershipMatch) {
@@ -116,6 +121,8 @@ class WPOrderProcessor {
 		const orgMembership = await this.#db.OrganisationMembership.create({
 			OrganisationId: org.id
 		});
+
+		orgMembership.Organisation = org;
 
 		return orgMembership;
 	}
@@ -144,7 +151,7 @@ class WPOrderProcessor {
 		return individualMembership;
 	}
 
-	async processOrderLine(item, contact, org, startDate) {
+	async processOrderLine(item, contact, org, startDate, photoConsent) {
 		const membershipType = this.#products.find(p => p.ExternalId == item.product_id);
 		if (!membershipType) {
 			return null;
@@ -153,6 +160,39 @@ class WPOrderProcessor {
 		let orgMembership = null, individualMembership = null;
 		if (membershipType.IsOrganisation) {
 			orgMembership = await this.processOrganisationMembership(org, contact);
+
+			const consentTypeId = photoConsent.trim() == 'Yes' ? 3 : 1;
+
+			const recentUpdate = await this.#db.PhotoConsentHistory.findOne({
+				where: {
+					createdAt: {
+						[Op.gt]: startDate
+					},
+					OrganisationId: orgMembership.Organisation.id
+				}
+			});
+
+			if (!recentUpdate && orgMembership.Organisation.PhotoConsentTypeId != consentTypeId){
+				//if order is more recent than last consent update
+				//update consent to match order
+
+				await Promise.all([
+					this.#db.PhotoConsentHistory.create({
+						Description: 'Consent type updated from web order',
+						OldConsentTypeId: orgMembership.Organisation.PhotoConsentTypeId,
+						NewConsentTypeId: consentTypeId,
+						OrganisationId: orgMembership.Organisation.id,
+						UserId: contact.id
+					}),
+					this.#db.Organisation.update({
+						PhotoConsentTypeId: consentTypeId
+					}, {
+						where: {
+							id: orgMembership.Organisation.id
+						}
+					})
+				]);
+			}
 
 			if (!orgMembership._options.isNewRecord) {
 				return orgMembership.Membership;
@@ -180,8 +220,8 @@ class WPOrderProcessor {
 		return membership;
 	}
 
-	parseOrgName(order) {
-		const key = order.meta_data.find(m => m.key == '_billing_wooccm13');
+	getMetaData(order, keyID) {
+		const key = order.meta_data.find(m => m.key == keyID);
 		if (!key) {
 			return '';
 		}
@@ -199,7 +239,8 @@ class WPOrderProcessor {
 
 	async process(order) {
 		const contact = await this.getContact(order);
-		const org = this.parseOrgName(order);
+		const org = this.getMetaData(order, '_billing_wooccm13');
+		const photoConsent = this.getMetaData(order, '_billing_wooccm21');
 		const memberships = [];
 
 		for (let i = 0; i < order.line_items.length; i++) {
@@ -207,7 +248,7 @@ class WPOrderProcessor {
 				continue;
 			}
 
-			let membership = await this.processOrderLine(order.line_items[i], contact, org, order.date_paid);
+			let membership = await this.processOrderLine(order.line_items[i], contact, org, order.date_paid, photoConsent);
 			if (membership == null) {
 				continue;
 			}
