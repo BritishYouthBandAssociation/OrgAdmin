@@ -35,7 +35,7 @@
 		"express-form-data": "^2.0.19",
 		"express-handlebars": "^6.0.7",
 		"express-session": "^1.17.3",
-		"joi": "^17.7.0",
+		"joi": "^17.7.1",
 		"morgan": "^1.10.0",
 		"sequelize": "^6.28.0"
 	},
