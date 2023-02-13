@@ -1,6 +1,13 @@
 'use strict';
 
 (function() {
+	function styleElFromLabel(el, label){
+		el.style.backgroundColor = label.BackgroundColour;
+		el.style.color = label.ForegroundColour;
+		el.innerHTML = label.Name;
+		el.daataset.type = label.id;
+	}
+
 	function initLabelButtons(labels) {
 		const elements = document.querySelectorAll('.label-container .add');
 		elements.forEach(el => {
@@ -26,22 +33,18 @@
 
 						const cont = document.createElement('div');
 						cont.className = 'search-result';
-						cont.style.backgroundColor = l.BackgroundColour;
-						cont.style.color = l.ForegroundColour;
-						cont.dataset.type = l.id;
-						cont.innerHTML = l.Name;
+						styleElFromLabel(cont, l);
+
 						cont.addEventListener('click', () => {
 							const placeholder = document.createElement('badge');
 							placeholder.className = 'badge placeholder me-3';
-							placeholder.dataset.type = l.id;
-							placeholder.innerHTML = l.Name;
-							placeholder.style.backgroundColor = l.BackgroundColour;
-							placeholder.style.color = l.ForegroundColour;
+							styleElFromLabel(placeholder, l);
 							el.parentElement.insertBefore(placeholder, el);
 							el.parentElement.removeChild(results);
 							results = null;
 							search = null;
 						});
+
 						results.appendChild(cont);
 						added++;
 					});
