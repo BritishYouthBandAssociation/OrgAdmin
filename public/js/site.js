@@ -4,8 +4,26 @@
 	function styleElFromLabel(el, label) {
 		el.style.backgroundColor = label.BackgroundColour;
 		el.style.color = label.ForegroundColour;
+		el.style.setProperty('--bs-border-color', label.BackgroundColour);
 		el.innerHTML = label.Name;
 		el.dataset.type = label.id;
+	}
+
+	function deleteLabel(label) {
+		label.classList.add('placeholder');
+
+		fetch(`/_api/membership/${label.parentElement.dataset.membership}/labels/${label.dataset.type}`, {
+			method: 'DELETE'
+		}).then((res) => {
+			if (!res.ok) {
+				throw new Error(res.status);
+			}
+
+			label.remove();
+		}).catch(() => {
+			label.classList.remove('placeholder');
+			alert('An error occurred - please try again');
+		});
 	}
 
 	function initLabelButtons(labels) {
@@ -23,8 +41,8 @@
 			}
 
 			function addLabel(label) {
-				const placeholder = document.createElement('badge');
-				placeholder.className = 'badge placeholder me-3';
+				const placeholder = document.createElement('span');
+				placeholder.className = 'badge placeholder me-3 my-1 border';
 				styleElFromLabel(placeholder, label);
 				el.parentElement.insertBefore(placeholder, el);
 				clear();
@@ -38,14 +56,15 @@
 						'Content-Type': 'application/json'
 					}
 				}).then(res => {
-					if (!res.ok){
+					if (!res.ok) {
 						throw new Error(res.status);
 					}
 
 					return res.json();
 				}).then(json => {
-					if (json.success){
+					if (json.success) {
 						placeholder.classList.remove('placeholder');
+						placeholder.addEventListener('click', () => deleteLabel(placeholder));
 					}
 				}).catch(() => {
 					placeholder.remove();
@@ -53,25 +72,9 @@
 				});
 			}
 
-			const labels = el.parentElement.querySelectorAll('span.badge');
-			labels.forEach(label => {
-				label.addEventListener('click', () => {
-					label.classList.add('placeholder');
-
-					fetch(`/_api/membership/${label.parentElement.dataset.membership}/labels/${label.dataset.type}`, {
-						method: 'DELETE'
-					}).then((res) => {
-						if (!res.ok){
-							throw new Error(res.status);
-						}
-
-						label.remove();
-					})
-						.catch(() => {
-							label.classList.remove('placeholder');
-							alert('An error occurred - please try again');
-						});
-				});
+			const labelElements = el.parentElement.querySelectorAll('span.badge');
+			labelElements.forEach(label => {
+				label.addEventListener('click', () => deleteLabel(label));
 			});
 
 			el.addEventListener('click', (e) => {

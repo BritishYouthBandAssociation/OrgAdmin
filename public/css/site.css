@@ -120,7 +120,7 @@ select#consent[data-chosen="3"], select#consent option[value="3"]{
 	}
 
 	/** mobile devices struggle with the concept of hover, so only hide on desktop **/
-	.label-container .add {
+	.label-container .add:not(:only-child) {
 		display: none;
 	}
 
