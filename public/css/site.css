@@ -83,10 +83,6 @@ body {
 	opacity: 60%;
 }
 
-.accordion-button[disabled] {
-	opacity: 60%;
-}
-
 select.style-by-value, select.style-by-value option[value=""]{
 	background-color: var(--bs-white);
 	color: var(--bs-dark);
@@ -107,6 +103,11 @@ select#consent[data-chosen="3"], select#consent option[value="3"]{
 	color: var(--bs-white);
 }
 
+.label-container.editable span.badge:before {
+	content: '✖';
+	margin-right: .2rem;
+}
+
 /** lg and up **/
 @media (min-width: 992px) {
 	main {
@@ -119,13 +120,18 @@ select#consent[data-chosen="3"], select#consent option[value="3"]{
 	}
 
 	/** mobile devices struggle with the concept of hover, so only hide on desktop **/
-	.label-container .add{
+	.label-container .add {
 		display: none;
 	}
 
-	.label-container:hover > .add{
+	.label-container:hover>.add {
 		display: inline-block;
 	}
+
+	.label-container.editable:hover span.badge {
+		cursor: pointer;
+	}
+
 }
 
 @keyframes fade-up {
