@@ -35,8 +35,11 @@
 			const create = null;
 
 			function clear() {
-				el.parentElement.removeChild(results);
-				results = null;
+				if (results != null){
+					el.parentElement.removeChild(results);
+					results = null;
+				}
+
 				search = null;
 			}
 
@@ -71,6 +74,14 @@
 					alert('An error occurred - please try again');
 				});
 			}
+
+			el.parentElement.parentElement.addEventListener('focusout', (e) => {
+				if (e.relatedTarget && el.parentElement.parentElement.contains(e.relatedTarget)){
+					return;
+				}
+
+				clear();
+			});
 
 			const labelElements = el.parentElement.querySelectorAll('span.badge');
 			labelElements.forEach(label => {
@@ -121,12 +132,14 @@
 
 					search.addEventListener('keyup', () => {
 						let shown = 0;
+						const query = search.value.toLowerCase();
+
 						results.childNodes.forEach(e => {
 							if (e == noneFound || e == search) {
 								return;
 							}
 
-							if (e.innerHTML.indexOf(search.value) > -1) {
+							if (e.innerHTML.toLowerCase().indexOf(query) > -1) {
 								e.classList.remove('d-none');
 								shown++;
 							} else {
