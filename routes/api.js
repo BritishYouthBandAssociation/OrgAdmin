@@ -2,7 +2,6 @@
 
 const express = require('express');
 const Joi = require('joi');
-const { Op } = require('sequelize');
 
 const validator = require('@byba/express-validator');
 
@@ -158,6 +157,27 @@ router.get('/labels', async (req, res) => {
 	const labels = await req.db.Label.findAll();
 
 	res.json(labels);
+});
+
+router.post('/labels/new', validator.body(Joi.object({
+	name: Joi.string().required()
+})), async (req, res) => {
+	const match = await req.db.Label.findOne({
+		where: req.db.sequelize.where(req.db.sequelize.fn('lower', req.db.sequelize.col('Name')), req.body.name.toLowerCase())
+	});
+
+	if (match){
+		return res.json({
+			success: false,
+			error: 'Label already exists'
+		});
+	}
+
+	const label = await req.db.Label.createFromName(req.body.name);
+	res.json({
+		success: true,
+		label
+	});
 });
 
 module.exports = {
