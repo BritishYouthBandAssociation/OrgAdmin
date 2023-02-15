@@ -5,7 +5,7 @@
 		el.style.backgroundColor = label.BackgroundColour;
 		el.style.color = label.ForegroundColour;
 		el.innerHTML = label.Name;
-		el.daataset.type = label.id;
+		el.dataset.type = label.id;
 	}
 
 	function initLabelButtons(labels) {
@@ -15,6 +15,12 @@
 			let search = null;
 			let noneFound = null;
 			const create = null;
+
+			function clear(){
+				el.parentElement.removeChild(results);
+				results = null;
+				search = null;
+			}
 
 			el.addEventListener('click', (e) => {
 				e.preventDefault();
@@ -40,9 +46,7 @@
 							placeholder.className = 'badge placeholder me-3';
 							styleElFromLabel(placeholder, l);
 							el.parentElement.insertBefore(placeholder, el);
-							el.parentElement.removeChild(results);
-							results = null;
-							search = null;
+							clear();
 						});
 
 						results.appendChild(cont);
@@ -93,6 +97,6 @@
 		});
 	}
 
-	initLabelButtons([{id: 1, Name: 'Test', BackgroundColour: '#000', ForegroundColour: '#FFF'}]);
+	fetch('/_api/labels').then(res => res.json()).then(json => initLabelButtons(json));
 	initDropdownStyleHelper();
 })();
