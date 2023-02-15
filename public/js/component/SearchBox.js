@@ -12,7 +12,7 @@ Vue.component('search-box', {
 		};
 	},
 	template: `
-	<div>
+	<div class="position-relative">
 		<div class="form-group">
 			<label :for="getName('search')">{{title}}</label>
 			<input type="text" class="form-control" :name="getName('search')" :id="getName('search')" :placeholder="placeholder" v-on:keydown.enter.prevent @keyup="doSearch" v-model="$data._text" autocomplete="off" />

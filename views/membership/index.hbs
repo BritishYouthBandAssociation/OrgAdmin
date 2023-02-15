@@ -30,15 +30,11 @@
 	{{#each membership}}
 	<div class="col-12 col-md-6 col-lg-4 mb-3">
 		<div class="card card-action h-100 mb-3" data-type="{{MembershipType.id}}">
-			<div class="card-body">
+			<div class="card-body position-relative">
 				<p class="h4"><a href="{{id}}/" class="stretched-link text-reset text-decoration-none">{{Name}}</a></p>
 			</div>
 
-			<div class="card-footer label-container">
-				{{#each Labels}}
-				<span class="badge" style="background-color: {{BackgroundColour}}; color: {{ForegroundColour}}" data-type="{{id}}">{{Name}}</span>
-				{{/each}}
-			</div>
+			{{> labels labels=Labels membership=id editable=../session.user.IsAdmin classes="card-footer"}}
 		</div>
 	</div>
 	{{/each}}
