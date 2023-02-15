@@ -22,6 +22,58 @@
 				search = null;
 			}
 
+			function addLabel(label) {
+				const placeholder = document.createElement('badge');
+				placeholder.className = 'badge placeholder me-3';
+				styleElFromLabel(placeholder, label);
+				el.parentElement.insertBefore(placeholder, el);
+				clear();
+
+				fetch(`/_api/membership/${el.parentElement.dataset.membership}/labels/add`, {
+					method: 'POST',
+					body: JSON.stringify({
+						labelID: label.id
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				}).then(res => {
+					if (!res.ok){
+						throw new Error(res.status);
+					}
+
+					return res.json();
+				}).then(json => {
+					if (json.success){
+						placeholder.classList.remove('placeholder');
+					}
+				}).catch(() => {
+					placeholder.remove();
+					alert('An error occurred - please try again');
+				});
+			}
+
+			const labels = el.parentElement.querySelectorAll('span.badge');
+			labels.forEach(label => {
+				label.addEventListener('click', () => {
+					label.classList.add('placeholder');
+
+					fetch(`/_api/membership/${label.parentElement.dataset.membership}/labels/${label.dataset.type}`, {
+						method: 'DELETE'
+					}).then((res) => {
+						if (!res.ok){
+							throw new Error(res.status);
+						}
+
+						label.remove();
+					})
+						.catch(() => {
+							label.classList.remove('placeholder');
+							alert('An error occurred - please try again');
+						});
+				});
+			});
+
 			el.addEventListener('click', (e) => {
 				e.preventDefault();
 
