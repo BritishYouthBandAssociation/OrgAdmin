@@ -1,11 +1,6 @@
 <h2>Membership {{membership.Number}}</h2>
 
-<div class="label-container mb-2">
-	{{#each membership.Labels}}
-	<span class="badge" style="background-color: {{BackgroundColour}}; color: {{ForegroundColour}}"
-		data-type="{{id}}">{{Name}}</span>
-	{{/each}}
-</div>
+{{> labels labels=membership.Labels classes="mb-2" editable=session.user.IsAdmin membership=membership.id}}
 
 {{#if saved}}
 <div class="alert alert-success text-center">Membership saved successfully</div>
@@ -56,8 +51,7 @@
 					<select name="division" id="division" class="form-control" required>
 						<option value="">-- Please Select --</option>
 						{{#each divisions}}
-						<option {{#eq id ../membership.OrganisationMembership.Division.id}}selected{{/eq}}
-							value="{{id}}">
+						<option {{#eq id ../membership.OrganisationMembership.Division.id}}selected{{/eq}} value="{{id}}">
 							{{Name}}
 						</option>
 						{{/each}}

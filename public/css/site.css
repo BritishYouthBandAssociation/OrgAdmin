@@ -103,6 +103,10 @@ select#consent[data-chosen="3"], select#consent option[value="3"]{
 	color: var(--bs-white);
 }
 
+.label-container{
+	position: relative;
+}
+
 .label-container.editable span.badge:before {
 	content: '✖';
 	margin-right: .2rem;
