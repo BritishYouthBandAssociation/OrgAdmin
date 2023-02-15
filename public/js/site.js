@@ -1,6 +1,13 @@
 'use strict';
 
 (function() {
+	function styleElFromLabel(el, label){
+		el.style.backgroundColor = label.BackgroundColour;
+		el.style.color = label.ForegroundColour;
+		el.innerHTML = label.Name;
+		el.dataset.type = label.id;
+	}
+
 	function initLabelButtons(labels) {
 		const elements = document.querySelectorAll('.label-container .add');
 		elements.forEach(el => {
@@ -8,6 +15,12 @@
 			let search = null;
 			let noneFound = null;
 			const create = null;
+
+			function clear(){
+				el.parentElement.removeChild(results);
+				results = null;
+				search = null;
+			}
 
 			el.addEventListener('click', (e) => {
 				e.preventDefault();
@@ -38,9 +51,7 @@
 							placeholder.style.backgroundColor = l.BackgroundColour;
 							placeholder.style.color = l.ForegroundColour;
 							el.parentElement.insertBefore(placeholder, el);
-							el.parentElement.removeChild(results);
-							results = null;
-							search = null;
+							clear();
 						});
 						results.appendChild(cont);
 						added++;
@@ -90,5 +101,5 @@
 		});
 	}
 
-	initLabelButtons([{ id: 1, Name: 'Test', BackgroundColour: '#000', ForegroundColour: '#FFF' }]);
+	fetch('/_api/labels').then(res => res.json()).then(json => initLabelButtons(json));
 })();
