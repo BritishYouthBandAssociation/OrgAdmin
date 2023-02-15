@@ -1,7 +1,7 @@
 'use strict';
 
 (function() {
-	function styleElFromLabel(el, label){
+	function styleElFromLabel(el, label) {
 		el.style.backgroundColor = label.BackgroundColour;
 		el.style.color = label.ForegroundColour;
 		el.innerHTML = label.Name;
@@ -16,10 +16,35 @@
 			let noneFound = null;
 			const create = null;
 
-			function clear(){
+			function clear() {
 				el.parentElement.removeChild(results);
 				results = null;
 				search = null;
+			}
+
+			function addLabel(label) {
+				const placeholder = document.createElement('badge');
+				placeholder.className = 'badge placeholder me-3';
+				styleElFromLabel(placeholder, label);
+				el.parentElement.insertBefore(placeholder, el);
+				clear();
+
+				fetch(`/_api/membership/${el.dataset.membership}/labels/add`, {
+					method: 'POST',
+					body: JSON.stringify({
+						labelID: label.id
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				}).then(res => res.json()).then(json => {
+					if (json.success){
+						placeholder.classList.remove('placeholder');
+					}
+				}).catch(() => {
+					placeholder.remove();
+					alert('An error occurred - please try again');
+				});
 			}
 
 			el.addEventListener('click', (e) => {
@@ -42,11 +67,7 @@
 						styleElFromLabel(cont, l);
 
 						cont.addEventListener('click', () => {
-							const placeholder = document.createElement('badge');
-							placeholder.className = 'badge placeholder me-3';
-							styleElFromLabel(placeholder, l);
-							el.parentElement.insertBefore(placeholder, el);
-							clear();
+							addLabel(l);
 						});
 
 						results.appendChild(cont);
@@ -58,7 +79,7 @@
 					noneFound.innerHTML = 'No labels found that have not already been added';
 					results.appendChild(noneFound);
 
-					if (added === 0){
+					if (added === 0) {
 						noneFound.classList.remove('d-none');
 					}
 				}
@@ -71,11 +92,11 @@
 					search.addEventListener('keyup', () => {
 						let shown = 0;
 						results.childNodes.forEach(e => {
-							if (e == noneFound || e == search){
+							if (e == noneFound || e == search) {
 								return;
 							}
 
-							if (e.innerHTML.indexOf(search.value) > -1){
+							if (e.innerHTML.indexOf(search.value) > -1) {
 								e.classList.remove('d-none');
 								shown++;
 							} else {
@@ -83,7 +104,7 @@
 							}
 						});
 
-						if (shown > 0){
+						if (shown > 0) {
 							noneFound.classList.add('d-none');
 						} else {
 							noneFound.classList.remove('d-none');

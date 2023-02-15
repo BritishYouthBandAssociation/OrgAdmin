@@ -62,6 +62,27 @@ router.get('/membership/:season', validator.query(Joi.object({
 	res.json(members);
 });
 
+router.post('/membership/:id/labels/add', validator.params(Joi.object({
+	id: Joi.number().required()
+})), validator.body(Joi.object({
+	labelID: Joi.number().required()
+})), async (req, res, next) => {
+	const [membership, label] = await Promise.all([
+		req.db.Membership.findByPk(req.params.id),
+		req.db.Label.findByPk(req.body.labelID)
+	]);
+
+	if (!membership || !label){
+		return next();
+	}
+
+	await membership.addLabel(label);
+
+	res.json({
+		success: true
+	});
+});
+
 router.get('/caption/:id/judges/search', validator.query(Joi.object({
 	q: Joi.string()
 		.required()
