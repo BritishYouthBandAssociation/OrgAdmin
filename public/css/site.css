@@ -100,7 +100,7 @@ body {
 	}
 
 	/** mobile devices struggle with the concept of hover, so only hide on desktop **/
-	.label-container .add {
+	.label-container .add:not(:only-child) {
 		display: none;
 	}
 
