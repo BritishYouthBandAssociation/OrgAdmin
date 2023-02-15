@@ -83,6 +83,10 @@ body {
 	opacity: 60%;
 }
 
+.label-container{
+	position: relative;
+}
+
 .label-container.editable span.badge:before {
 	content: '✖';
 	margin-right: .2rem;
