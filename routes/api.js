@@ -83,6 +83,28 @@ router.post('/membership/:id/labels/add', validator.params(Joi.object({
 	});
 });
 
+router.delete('/membership/:id/labels/:label', validator.params(Joi.object({
+	id: Joi.number().required(),
+	label: Joi.number().required()
+})), async (req, res, next) => {
+	const [membership, label] = await Promise.all([
+		req.db.Membership.findByPk(req.params.id),
+		req.db.Label.findByPk(req.params.label)
+	]);
+
+	if (!membership || !label){
+		console.log(membership);
+		console.log(label);
+		return next();
+	}
+
+	await membership.removeLabel(label);
+
+	res.json({
+		success: true
+	});
+});
+
 router.get('/caption/:id/judges/search', validator.query(Joi.object({
 	q: Joi.string()
 		.required()
