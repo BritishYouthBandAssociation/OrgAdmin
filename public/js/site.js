@@ -9,18 +9,6 @@
 		el.dataset.type = label.id;
 	}
 
-	function createCreate() {
-		const create = document.createElement('div');
-		create.className = 'search-result d-none';
-
-		create.addEventListener('click', () => {
-			console.log(create);
-		});
-
-		create.tabIndex = 0;
-		return create;
-	}
-
 	function deleteLabel(label) {
 		label.classList.add('placeholder');
 
@@ -56,17 +44,19 @@
 				results = null;
 			}
 
-			function addLabel(label) {
+			function createPlaceholder(label){
 				const placeholder = document.createElement('span');
 				placeholder.className = 'badge placeholder me-3 my-1 border';
 				styleElFromLabel(placeholder, label);
 				el.parentElement.insertBefore(placeholder, el);
-				clear();
+				return placeholder;
+			}
 
+			function addServerLabel(placeholder, id){
 				fetch(`/_api/membership/${el.parentElement.dataset.membership}/labels/add`, {
 					method: 'POST',
 					body: JSON.stringify({
-						labelID: label.id
+						labelID: id
 					}),
 					headers: {
 						'Content-Type': 'application/json'
@@ -86,6 +76,61 @@
 					placeholder.remove();
 					alert('An error occurred - please try again');
 				});
+			}
+
+			function addLabel(label) {
+				const placeholder = createPlaceholder(label);
+				clear();
+				addServerLabel(placeholder, label.id);
+			}
+
+			function createBrandNewLabel(placeholder, name){
+				fetch('/_api/labels/new', {
+					method: 'POST',
+					body: JSON.stringify({
+						name
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				}).then(res => {
+					if (!res.ok){
+						throw new Error(res.status);
+					}
+
+					return res.json();
+				})
+					.then(json => {
+						if (!json.success){
+							throw new Error(json.error);
+						}
+
+						styleElFromLabel(placeholder, json.label);
+						addServerLabel(placeholder, json.label.id);
+					})
+					.catch(() => {
+						placeholder.remove();
+						alert('An error occurred - please try again');
+					});
+			}
+
+			function createCreate() {
+				const create = document.createElement('div');
+				create.className = 'search-result d-none';
+
+				create.addEventListener('click', () => {
+					const placeholder = createPlaceholder({
+						BackgroundColour: '#000',
+						ForegroundColour: '#FFF',
+						Name: create.dataset.name,
+						id: -1
+					});
+					createBrandNewLabel(placeholder, create.dataset.name);
+					clear();
+				});
+
+				create.tabIndex = 0;
+				return create;
 			}
 
 			el.parentElement.parentElement.addEventListener('focusout', (e) => {
