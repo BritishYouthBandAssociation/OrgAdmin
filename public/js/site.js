@@ -9,6 +9,18 @@
 		el.dataset.type = label.id;
 	}
 
+	function createCreate() {
+		const create = document.createElement('div');
+		create.className = 'search-result d-none';
+
+		create.addEventListener('click', () => {
+			console.log(create);
+		});
+
+		create.tabIndex = 0;
+		return create;
+	}
+
 	function deleteLabel(label) {
 		label.classList.add('placeholder');
 
@@ -32,15 +44,16 @@
 			let results = null;
 			let search = null;
 			let noneFound = null;
-			const create = null;
+			let create = null;
 
 			function clear() {
 				if (results != null){
-					el.parentElement.removeChild(results);
-					results = null;
+					results.remove();
 				}
 
 				search = null;
+				create = null;
+				results = null;
 			}
 
 			function addLabel(label) {
@@ -76,11 +89,13 @@
 			}
 
 			el.parentElement.parentElement.addEventListener('focusout', (e) => {
-				if (e.relatedTarget && el.parentElement.parentElement.contains(e.relatedTarget)){
-					return;
-				}
-
-				clear();
+				//Grr
+				//https://stackoverflow.com/questions/21926083/failed-to-execute-removechild-on-node
+				setTimeout(() => {
+					if (!e.relatedTarget || !el.parentElement.parentElement.contains(e.relatedTarget)) {
+						clear();
+					}
+				}, 1);
 			});
 
 			const labelElements = el.parentElement.querySelectorAll('span.badge');
@@ -105,6 +120,7 @@
 
 						const cont = document.createElement('div');
 						cont.className = 'search-result';
+						cont.tabIndex = 0;
 						styleElFromLabel(cont, l);
 
 						cont.addEventListener('click', () => {
@@ -135,7 +151,7 @@
 						const query = search.value.toLowerCase();
 
 						results.childNodes.forEach(e => {
-							if (e == noneFound || e == search) {
+							if (e == noneFound || e == search || e == create) {
 								return;
 							}
 
@@ -152,10 +168,23 @@
 						} else {
 							noneFound.classList.remove('d-none');
 						}
+
+						if (query.length == 0) {
+							create.classList.add('d-none');
+						} else {
+							create.innerHTML = `Create label "${search.value}"`;
+							create.dataset.name = search.value;
+							create.classList.remove('d-none');
+						}
 					});
 
 					results.insertBefore(search, results.firstChild);
 					search.focus();
+				}
+
+				if (create == null) {
+					create = createCreate();
+					results.appendChild(create);
 				}
 			});
 		});
