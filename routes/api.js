@@ -111,6 +111,12 @@ router.get('/event/:id', validator.params(Joi.object({
 	});
 });
 
+router.get('/labels', async (req, res) => {
+	const labels = await req.db.Label.findAll();
+
+	res.json(labels);
+});
+
 module.exports = {
 	root: '/_api/',
 	router: router
