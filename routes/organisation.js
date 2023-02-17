@@ -147,6 +147,20 @@ router.post('/new', validator.query(Joi.object({
 	let primaryCreated = false;
 
 	await req.db.sequelize.transaction(async (transaction) => {
+		let primary = await req.db.User.insertOrUpdate({
+			FirstName: req.body['primary-fname'],
+			Surname: req.body['primary-sname'],
+			Email: req.body['primary-email']
+		}, req.getDBOptions({
+			transaction
+		}));
+
+		[primary, primaryCreated] = primary;
+
+		if (!req.session.user){
+			req.session.user = primary;
+		}
+
 		org = await req.db.Organisation.create({
 			Name: req.body.name,
 			Slug: slug,
@@ -157,28 +171,20 @@ router.post('/new', validator.query(Joi.object({
 			LogoId: req.body.logo,
 			HeaderId: req.body.header,
 			IsPending: !(req.session.user && req.session.user.IsAdmin)
-		}, {
+		}, req.getDBOptions({
 			transaction
-		});
+		}));
 
-		const promises = [
-			req.db.User.insertOrUpdate({
-				FirstName: req.body['primary-fname'],
-				Surname: req.body['primary-sname'],
-				Email: req.body['primary-email']
-			}, {
-				transaction
-			})
-		];
+		const promises = [];
 
 		if (req.body['secondary-fname'].trim() != '') {
 			promises.push(req.db.User.insertOrUpdate({
 				FirstName: req.body['secondary-fname'],
 				Surname: req.body['secondary-sname'],
 				Email: req.body['secondary-email']
-			}, {
+			}, req.getDBOptions({
 				transaction
-			}));
+			})));
 		}
 
 		if (req.body['organisation-lineOne'].trim() != '') {
@@ -187,18 +193,16 @@ router.post('/new', validator.query(Joi.object({
 				Line2: req.body['organisation-lineTwo'],
 				City: req.body['organisation-city'],
 				Postcode: req.body['organisation-postcode']
-			}, org, {
+			}, org, req.getDBOptions({
 				transaction
-			}));
+			})));
 		}
 
 		if (req.body.membership) {
-			promises.push(org.createMembership(req.body.membership, null, { transaction }));
+			promises.push(org.createMembership(req.body.membership, null, req.getDBOptions({ transaction })));
 		}
 
-		let [primary, secondary] = await Promise.all(promises);
-
-		[primary, primaryCreated] = primary;
+		let [secondary] = await Promise.all(promises);
 
 		if (secondary) {
 			secondary = secondary[0];
@@ -212,7 +216,7 @@ router.post('/new', validator.query(Joi.object({
 			return req.db.OrganisationUser.create({
 				OrganisationId: org.id,
 				UserId: u.id
-			}, { transaction });
+			}, req.getDBOptions({ transaction }));
 		}));
 
 		if (req.body['primary-address-lineOne'].trim() != '') {
@@ -221,9 +225,9 @@ router.post('/new', validator.query(Joi.object({
 				Line2: req.body['primary-address-lineTwo'],
 				City: req.body['primary-address-city'],
 				Postcode: req.body['primary-address-postcode']
-			}, primary, {
+			}, primary, req.getDBOptions({
 				transaction
-			});
+			}));
 		}
 	});
 
@@ -417,7 +421,7 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 		}, origin, token);
 	}
 
-	await org.save();
+	await org.save(req.getDBOptions());
 
 
 	await Promise.all(changeRequests.map((cr) => {
@@ -426,7 +430,7 @@ router.post('/:orgID', validator.params(idParamSchema), validator.body(Joi.objec
 			RequesterId: req.session.user.id,
 			IsApproved: req.session.user.IsAdmin ? true : null,
 			ApproverId: req.session.user.IsAdmin ? req.session.user.id : null
-		});
+		}, req.getDBOptions());
 	}));
 
 	return res.redirect('?saved=true');
@@ -453,7 +457,7 @@ router.post('/:orgID/address', validator.params(idParamSchema), matchingID('orgI
 		Line2: req.body.lineTwo,
 		City: req.body.city,
 		Postcode: req.body.postcode
-	});
+	}, req.getDBOptions());
 	await org.setAddress(addr);
 
 	res.redirect('./?saved=true');
@@ -503,7 +507,7 @@ router.post('/:orgID/changes/:changeID', validator.params(Joi.object({
 		org[change.Field] = change.NewValue;
 	}
 
-	await Promise.all([change.save(), org.save()]);
+	await Promise.all([change.save(req.getDBOptions()), org.save(req.getDBOptions())]);
 
 	res.redirect('../changes?saved=true');
 });
@@ -599,7 +603,7 @@ router.post('/:orgID/contacts/add/:email', validator.params(idParamSchema.keys({
 	const contact = await req.db.OrganisationUser.build();
 	await contact.setOrganisation(org.id);
 	await contact.setUser(user.id);
-	await contact.save();
+	await contact.save(req.getDBOptions());
 
 	res.redirect('../../contacts?added=true');
 });

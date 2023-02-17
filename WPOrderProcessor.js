@@ -13,11 +13,11 @@ class WPOrderProcessor {
 	#db = null;
 	#dbOptions = {};
 
-	constructor(products, season, db, userID) {
+	constructor(products, season, db, dbOptions) {
 		this.#products = products;
 		this.#season = season;
 		this.#db = db;
-		this.#dbOptions = {userID};
+		this.#dbOptions = dbOptions;
 	}
 
 	async getContact(order) {

@@ -4,7 +4,6 @@
 const express = require('express');
 const Joi = require('joi');
 const { Op } = require('sequelize');
-const { helpers } = require(global.__lib);
 
 const validator = require('@byba/express-validator');
 const WPOrderProcessor = require('../WPOrderProcessor');
@@ -145,7 +144,7 @@ router.post('/new/organisation', validator.body(Joi.object({
 		//update division on future events
 		await Promise.all(events.map(e => {
 			e.DivisionId = req.body.division;
-			return e.save();
+			return e.save(req.getDBOptions());
 		}));
 	}
 
@@ -154,9 +153,9 @@ router.post('/new/organisation', validator.body(Joi.object({
 		SeasonId: req.body.season,
 		MembershipTypeId: req.body.type,
 		OrganisationMembership: orgMembership
-	}, {
+	}, req.getDBOptions({
 		include: [req.db.OrganisationMembership]
-	});
+	}));
 
 	//display it
 	return res.redirect(`../${newMembership.id}`);
@@ -206,9 +205,9 @@ router.post('/new/individual', validator.body(Joi.object({
 		IndividualMembership: {
 			UserId: exists.id
 		}
-	}, {
+	}, req.getDBOptions({
 		include: [req.db.IndividualMembership]
-	});
+	}));
 
 	//display it
 	return res.redirect(`/membership/${newMembership.id}/`);
@@ -252,7 +251,7 @@ router.post('/import-prep', checkAdmin, validator.body(Joi.object({
 	if (found) {
 		await config.save();
 	} else {
-		await req.db.WooCommerceImportConfig.create(config);
+		await req.db.WooCommerceImportConfig.create(config, req.getDBOptions());
 	}
 
 	res.redirect('import');
@@ -307,7 +306,7 @@ router.get('/import', checkAdmin, async (req, res) => {
 		}
 	}).then(res => res.json());
 
-	const processor = new WPOrderProcessor(products, season, req.db);
+	const processor = new WPOrderProcessor(products, season, req.db, req.getDBOptions());
 	let memberships = [];
 
 	for (let o = 0; o < data.length; o++){
@@ -413,7 +412,7 @@ router.post('/:id/division', validator.params(Joi.object({
 	//update division on future events
 	await Promise.all(events.map(e => {
 		e.DivisionId = req.body.division;
-		return e.save();
+		return e.save(req.getDBOptions());
 	}));
 
 	return res.redirect('./?saved=true');
