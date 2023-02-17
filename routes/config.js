@@ -65,15 +65,15 @@ router.post('/membership-type', checkAdmin, validator.body(Joi.object({
 
 		if (labelID < 0) {
 			//insert
-			const lbl = await req.db.Label.create(details);
+			const lbl = await req.db.Label.create(details, req.getDBOptions());
 			labelID = lbl.id;
 		} else {
 			//update
-			await req.db.Label.update(details, {
+			await req.db.Label.update(details, req.getDBOptions({
 				where: {
 					id: labelID
 				}
-			});
+			}));
 		}
 
 		details = {
@@ -86,14 +86,14 @@ router.post('/membership-type', checkAdmin, validator.body(Joi.object({
 		};
 
 		if (req.body.id[i] < 0) {
-			await req.db.MembershipType.create(details);
+			await req.db.MembershipType.create(details, req.getDBOptions());
 		} else {
 			//update
-			await req.db.MembershipType.update(details, {
+			await req.db.MembershipType.update(details, req.getDBOptions({
 				where: {
 					id: req.body.id[i]
 				}
-			});
+			}));
 		}
 	}
 
@@ -150,13 +150,13 @@ router.post('/event-type', checkAdmin,
 
 				let type = null;
 				if (req.body.id[i] < 0) {
-					type = await req.db.EventType.create(details);
+					type = await req.db.EventType.create(details, req.getDBOptions());
 				} else {
-					await req.db.EventType.update(details, {
+					await req.db.EventType.update(details, req.getDBOptions({
 						where: {
 							id: req.body.id[i]
 						}
-					});
+					}));
 					type = await req.db.EventType.findByPk(req.body.id[i]);
 				}
 
@@ -182,7 +182,7 @@ router.post('/event-type', checkAdmin,
 								AllMembers: allPos > -1
 							};
 
-							const discount = await type.createEventTypeDiscount(discountDetails);
+							const discount = await type.createEventTypeDiscount(discountDetails, req.getDBOptions());
 
 							if (discount.MembersOnly) {
 								await discount.addMembershipTypes(req.body.membershipType[i][d]);
@@ -223,14 +223,14 @@ router.post('/payment-type', checkAdmin, validator.body(Joi.object({
 		};
 
 		if (req.body.id[i] < 0) {
-			return req.db.PaymentType.create(details);
+			return req.db.PaymentType.create(details, req.getDBOptions());
 		}
 
-		return req.db.PaymentType.update(details, {
+		return req.db.PaymentType.update(details, req.getDBOptions({
 			where: {
 				id: req.body.id[i]
 			}
-		});
+		}));
 	}));
 
 	return res.redirect('?saved=true');
@@ -271,14 +271,14 @@ router.post('/division', checkAdmin, validator.body(Joi.object({
 		};
 
 		if (req.body.id[i] < 0) {
-			return req.db.Division.create(details);
+			return req.db.Division.create(details, req.getDBOptions());
 		}
 
-		return req.db.Division.update(details, {
+		return req.db.Division.update(details, req.getDBOptions({
 			where: {
 				id: req.body.id[i]
 			}
-		});
+		}));
 	}));
 
 	return res.redirect('?saved=true');
@@ -320,7 +320,7 @@ router.get('/caption', checkAdmin, validator.query(Joi.object({
 	});
 });
 
-async function saveCaption(db, caption, parent) {
+async function saveCaption(db, caption, parent, dbOptions) {
 	const details = {
 		Name: caption.Name,
 		MaxScore: caption.MaxScore,
@@ -330,20 +330,21 @@ async function saveCaption(db, caption, parent) {
 	};
 
 	if (caption.id < 0) {
-		const _new = await db.create(details);
+		const _new = await db.create(details, dbOptions);
 
 		caption.id = _new.id;
 	} else {
-		await db.update(details, {
-			where: {
-				id: caption.id
-			}
-		});
+		const options = JSON.parse(JSON.stringify(dbOptions));
+		options.where = {
+			id: caption.id
+		};
+
+		await db.update(details, options);
 	}
 
 	if (caption.Subcaptions.length > 0) {
 		await Promise.all(caption.Subcaptions.map(c => {
-			return saveCaption(db, c, caption.id);
+			return saveCaption(db, c, caption.id, dbOptions);
 		}));
 	}
 }
@@ -372,7 +373,7 @@ router.post('/caption', checkAdmin, (req, res, next) => {
 	const data = req.body.caption;
 
 	await Promise.all(data.map(c => {
-		return saveCaption(req.db.Caption, c, null);
+		return saveCaption(req.db.Caption, c, null, req.getDBOptions());
 	}));
 
 	return res.redirect('?success=true');
@@ -462,15 +463,15 @@ router.post('/season', checkAdmin, validator.body(Joi.object({
 				}
 
 				if (id < 0) {
-					await req.db.Season.create(season, {
+					await req.db.Season.create(season, req.getDBOptions({
 						transaction: t
-					});
+					}));
 				} else {
-					await req.db.Season.update(season, {
+					await req.db.Season.update(season, req.getDBOptions({
 						where: {
 							id: id
 						}
-					}, { transaction: t });
+					}), { transaction: t });
 				}
 			}
 		});
@@ -534,7 +535,7 @@ router.post('/season/:id', checkAdmin, validator.body(Joi.object({
 		return res.redirect('./?error=true');
 	}
 
-	await season.update(data);
+	await season.update(data, req.getDBOptions());
 
 	const redir = req.body.next ?? './?saved=true';
 	res.redirect(redir);

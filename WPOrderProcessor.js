@@ -11,11 +11,13 @@ class WPOrderProcessor {
 	#products = [];
 	#season = null;
 	#db = null;
+	#dbOptions = {};
 
-	constructor(products, season, db) {
+	constructor(products, season, db, userID) {
 		this.#products = products;
 		this.#season = season;
 		this.#db = db;
+		this.#dbOptions = {userID};
 	}
 
 	async getContact(order) {
@@ -38,9 +40,9 @@ class WPOrderProcessor {
 			Object.keys(contact).filter(f => !['IsActive', 'IsAdmin', 'Password'].includes(f)).forEach(c => {
 				contactMatch[c] = contact[c];
 			});
-			await contactMatch.save();
+			await contactMatch.save(this.#dbOptions);
 		} else {
-			contactMatch = await this.#db.User.create(contact);
+			contactMatch = await this.#db.User.create(contact, this.#dbOptions);
 		}
 
 		return contactMatch;
@@ -65,9 +67,9 @@ class WPOrderProcessor {
 			Object.keys(org).forEach(o => {
 				matchedOrg[o] = org[o];
 			});
-			await matchedOrg.save();
+			await matchedOrg.save(this.#dbOptions);
 		} else {
-			matchedOrg = await this.#db.Organisation.create(org);
+			matchedOrg = await this.#db.Organisation.create(org, this.#dbOptions);
 		}
 
 		return matchedOrg;
@@ -89,7 +91,7 @@ class WPOrderProcessor {
 				IsActive: true,
 				OrganisationId: organisation.id,
 				UserId: contact.id
-			});
+			}, this.#dbOptions);
 		}
 	}
 
@@ -115,7 +117,7 @@ class WPOrderProcessor {
 
 		const orgMembership = await this.#db.OrganisationMembership.create({
 			OrganisationId: org.id
-		});
+		}, this.#dbOptions);
 
 		return orgMembership;
 	}
@@ -139,7 +141,7 @@ class WPOrderProcessor {
 
 		const individualMembership = await this.#db.IndividualMembership.create({
 			UserId: contact.id
-		});
+		}, this.#dbOptions);
 
 		return individualMembership;
 	}
@@ -169,7 +171,7 @@ class WPOrderProcessor {
 			DateStarted: startDate,
 			SeasonId: this.#season.id,
 			MembershipTypeId: membershipType.id
-		});
+		}, this.#dbOptions);
 
 		if (orgMembership){
 			await membership.setOrganisationMembership(orgMembership);

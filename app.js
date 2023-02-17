@@ -76,6 +76,13 @@ async function main() {
 			return next();
 		}
 
+		req.getDBOptions = function(otherOptions){
+			otherOptions ??= {};
+			otherOptions.userID = req.session?.user?.id;
+
+			return otherOptions;
+		};
+
 		if (!req.session.user) {
 			if (!serverOptions.noAuthRequired.includes(req.path)) {
 				return res.redirect(`/?next=${req.path}`);
@@ -147,4 +154,4 @@ async function main() {
 	});
 }
 
-main();
+main().catch(console.log);

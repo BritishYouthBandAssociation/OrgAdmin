@@ -25,10 +25,10 @@ Vue.component('caption-selector', {
 			<div class="form-group mb-3">
 				<label :for="'optional-' + caption.id">Is Optional?</label>
 				<div class="btn-group" role="group" aria-label="Is Optional?">
-					<input type="radio" value="true" class="btn-check" :name="'optional-' + caption.id" :id="'optional-y-' + caption.id" autocomplete="off" v-model="caption.IsOptional" @change="setOptional(true)">
+					<input type="radio" value="true" class="btn-check" :id="'optional-y-' + caption.id" autocomplete="off" v-model="caption.IsOptional" @change="setOptional(true)">
 					<label class="btn btn-outline-success" :for="'optional-y-' + caption.id">Yes</label>
 
-					<input type="radio" value="false" class="btn-check" :name="'optional-' + caption.id" :id="'optional-n-' + caption.id" autocomplete="off" v-model="caption.IsOptional" @change="setOptional(false)">
+					<input type="radio" value="false" class="btn-check" :id="'optional-n-' + caption.id" autocomplete="off" v-model="caption.IsOptional" @change="setOptional(false)">
 					<label class="btn btn-outline-danger" :for="'optional-n-' + caption.id">No</label>
 				</div>
 			</div>
