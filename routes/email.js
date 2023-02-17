@@ -57,17 +57,17 @@ router.post('/test', checkAdmin, validator.body(Joi.object({
 		Sender: req.body.sender,
 		Subject: req.body.subject,
 		Body: replaceMessageTokens(req.body.message, req.session.user, req.session.band)
-	}, {
+	}, req.getDBOptions({
 		transaction: t
-	});
+	}));
 
 	await req.db.Recipient.create({
 		Name: req.session.user.FullName,
 		EmailAddress: req.session.user.Email,
 		MessageId: msg.id
-	}, {
+	}, req.getDBOptions({
 		transaction: t
-	});
+	}));
 
 	await t.commit();
 
@@ -128,17 +128,17 @@ router.post('/send', checkAdmin, validator.body(Joi.object({
 					Sender: req.body.sender,
 					Subject: req.body.subject,
 					Body: replaceMessageTokens(req.body.message, c.User, member.OrganisationMembership?.Organisation)
-				}, {
+				}, req.db.getDBOptions({
 					transaction: t
-				});
+				}));
 
 				await req.db.Recipient.create({
 					Name: c.User.FullName,
 					EmailAddress: c.User.Email,
 					MessageId: msg.id
-				}, {
+				}, req.db.getDBOptions({
 					transaction: t
-				});
+				}));
 			}));
 		}));
 

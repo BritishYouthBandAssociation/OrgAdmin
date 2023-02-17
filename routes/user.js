@@ -115,7 +115,7 @@ router.post('/new', checkAdmin, validator.body(Joi.object({
 		Surname: req.body.surname,
 		IsActive: req.body.isActive,
 		IsAdmin: req.body.isAdmin
-	});
+	}, req.getDBOptions());
 
 	// redirect to other creation pages that depend on users
 	if (req.query.orgID){
@@ -126,7 +126,7 @@ router.post('/new', checkAdmin, validator.body(Joi.object({
 		return res.redirect(`/membership/new/?email=${req.body.email}&type=${req.query.membership}`);
 	}
 
-	return res.redirect(user.id);
+	return res.redirect(user.id + '/');
 });
 
 router.post('/:id/password', validator.params(idParamSchema), matchingID('id', ['user', 'id']), validator.body(Joi.object({
@@ -143,7 +143,7 @@ router.post('/:id/password', validator.params(idParamSchema), matchingID('id', [
 	await user.update({
 		Password: req.body.password,
 		ForcePasswordReset: req.session.user.id !== user.id
-	});
+	}, req.getDBOptions());
 
 	return res.redirect('./?saved=true');
 });
@@ -200,7 +200,7 @@ router.post('/:id', validator.params(idParamSchema), matchingID('id', ['user', '
 		details.IsActive = req.body.isActive;
 	}
 
-	await user.update(details);
+	await user.update(details, req.getDBOptions());
 
 	return res.redirect('?saved=true');
 });

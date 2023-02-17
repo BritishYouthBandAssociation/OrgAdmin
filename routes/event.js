@@ -34,7 +34,9 @@ function getDiscountMultiplier(num, thresholds) {
 	return multiplier;
 }
 
-async function recalculateEntryFees(db, season, typeID, org) {
+async function recalculateEntryFees(req, season, typeID, org) {
+	const db = req.db;
+
 	const [type, events, discount] = await Promise.all([
 		db.EventType.findByPk(typeID),
 		db.Event.findAll({
@@ -77,7 +79,7 @@ async function recalculateEntryFees(db, season, typeID, org) {
 
 		if (currFee != targetFee) {
 			reg.RegistrationFee.Total = targetFee;
-			reg.RegistrationFee.save();
+			reg.RegistrationFee.save(req.getDBOptions());
 
 			//TODO: handle already paid!
 		}
@@ -154,7 +156,7 @@ async function generateSchedule(req, next, eventID, config, divisionOrder) {
 		}
 	})]);
 
-	const gen = await event.createScheduleGeneration(config);
+	const gen = await event.createScheduleGeneration(req.getDBOptions(config));
 
 	let bands = 0, minutes = 0;
 	const time = new Date(event.Start), parts = config.StartTime.split(':');
@@ -190,7 +192,7 @@ async function generateSchedule(req, next, eventID, config, divisionOrder) {
 		await gen.createScheduleDivision({
 			DivisionId: divisionOrder[i] == -1 ? null : divisionOrder[i],
 			Order: i
-		});
+		}, req.getDBOptions());
 
 		for (let j = 0; j < div.length; j++) {
 			const d = div[j];
@@ -200,7 +202,7 @@ async function generateSchedule(req, next, eventID, config, divisionOrder) {
 				Start: time,
 				Description: d.Organisation.Name,
 				Duration: perfTime
-			});
+			}, req.getDBOptions());
 
 			time.setMinutes(time.getMinutes() + perfTime);
 			bands++;
@@ -211,7 +213,7 @@ async function generateSchedule(req, next, eventID, config, divisionOrder) {
 					Start: time,
 					Description: 'Break',
 					Duration: config.BreakLength
-				});
+				}, req.getDBOptions());
 
 				time.setMinutes(time.getMinutes() + config.BreakLength);
 				bands = 0;
@@ -310,7 +312,7 @@ router.post('/new', validator.body(Joi.object({
 		Slug: slug,
 		SeasonId: req.body.season,
 		AllowLateEntry: true
-	});
+	}, req.getDBOptions());
 
 	await event.setEventType(eventType);
 
@@ -418,7 +420,7 @@ router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
 		Description: req.body.description,
 		MembersOnly: req.body.membersOnly,
 		ScoresReleased: req.body.scoresReleased
-	});
+	}, req.getDBOptions());
 
 	if (addressProvided) {
 		const values = {
@@ -429,9 +431,9 @@ router.post('/:id', validator.params(idParamSchema), validator.body(Joi.object({
 		};
 
 		if (event.Address) {
-			await event.Address.update(values);
+			await event.Address.update(values, req.getDBOptions());
 		} else {
-			const address = await req.db.Address.create(values);
+			const address = await req.db.Address.create(values, req.getDBOptions());
 			await event.setAddress(address);
 		}
 	}
@@ -456,7 +458,7 @@ router.post('/:id/registration', validator.params(idParamSchema), validator.body
 		EntryCutoffDate: req.body.registrationCutoff,
 		FreeWithdrawalCutoffDate: req.body.freeWithdrawalCutoff,
 		AllowLateEntry: req.body.lateEntry
-	});
+	}, req.getDBOptions());
 
 	return res.redirect('./?saved=true');
 });
@@ -537,11 +539,11 @@ router.post('/:id/judges', validator.params(idParamSchema), validator.body(Joi.o
 
 		return req.db.EventCaption.update({
 			JudgeId: j
-		}, {
+		}, req.getDBOptions({
 			where: {
 				id: req.body.caption[index]
 			}
-		});
+		}));
 	}));
 
 	res.redirect('?success=true');
@@ -588,7 +590,7 @@ router.post('/:id/judges/reset', validator.params(idParamSchema), async (req, re
 		return req.db.EventCaption.create({
 			EventId: req.params.id,
 			CaptionId: c.id
-		});
+		}, req.getDBOptions());
 	}));
 
 	res.redirect('./?success=true');
@@ -715,7 +717,7 @@ router.post('/:id/organisations/withdraw/:orgID', async (req, res, next) => {
 	}
 
 	reg.IsWithdrawn = withdraw;
-	await reg.save();
+	await reg.save(req.getDBOptions());
 
 	const gen = await event.getScheduleGeneration();
 
@@ -727,7 +729,7 @@ router.post('/:id/organisations/withdraw/:orgID', async (req, res, next) => {
 		await generateSchedule(req, next, event.id, gen.dataValues, divs.map(d => d.DivisionId ?? -1));
 	}
 
-	await recalculateEntryFees(req.db, event.SeasonId, event.EventTypeId, org.id);
+	await recalculateEntryFees(req, event.SeasonId, event.EventTypeId, org.id);
 
 	return res.redirect('../');
 });
@@ -781,7 +783,7 @@ router.post('/:id/organisations/add', matchingID('id', ['band', 'id']), validato
 	const [reg, gen] = await Promise.all([req.db.EventRegistration.create({
 		...details,
 		RegisteredById: req.session.user.id
-	}),
+	}, req.getDBOptions()),
 	event.getScheduleGeneration()]);
 
 	if (gen && gen.Type && gen.Type !== 'manual') {
@@ -850,7 +852,7 @@ router.post('/:id/schedule/manual', async (req, res, next) => {
 				Start: req.body.start[index],
 				Description: req.body.name[index],
 				Duration: req.body.dur[index]
-			})
+			}, req.getDBOptions())
 		));
 	}
 
@@ -1003,7 +1005,7 @@ router.post('/:id/scores/:current', async (req, res, next) => {
 				AdjustedScore: adjustedScore,
 				AdjustedMax: adjustedTotal,
 				AdjustmentMultiplier: caption.Multiplier
-			});
+			}, req.getDBOptions());
 		})();
 	}));
 
