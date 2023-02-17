@@ -78,7 +78,7 @@ async function main() {
 
 		req.getDBOptions = function(otherOptions){
 			otherOptions ??= {};
-			otherOptions.userID = req.session?.user?.id;
+			otherOptions.userID = req.session?.user?.id ?? req.tempuser?.id;
 
 			return otherOptions;
 		};

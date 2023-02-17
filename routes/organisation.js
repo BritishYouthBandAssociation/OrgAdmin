@@ -158,7 +158,12 @@ router.post('/new', validator.query(Joi.object({
 		[primary, primaryCreated] = primary;
 
 		if (!req.session.user){
-			req.session.user = primary;
+			req.tempuser = primary;
+
+			primary.UpdatedByUserId = primary.id;
+			if (primaryCreated){
+				primary.CreatedByUserId = primary.id;
+			}
 		}
 
 		org = await req.db.Organisation.create({
@@ -175,7 +180,7 @@ router.post('/new', validator.query(Joi.object({
 			transaction
 		}));
 
-		const promises = [];
+		const promises = [primary.save(req.getDBOptions({transaction}))];
 
 		if (req.body['secondary-fname'].trim() != '') {
 			promises.push(req.db.User.insertOrUpdate({
@@ -270,7 +275,7 @@ router.get('/registration/', validator.query(Joi.object({
 		background: '/assets/field-markings.jpg',
 		darkenBG: true,
 		org,
-		fee: org.OrganisationMemberships[0].Membership.Fee.Total,
+		fee: org.OrganisationMemberships[0]?.Membership?.Fee?.Total,
 		duplicate: req.query.duplicate
 	});
 });

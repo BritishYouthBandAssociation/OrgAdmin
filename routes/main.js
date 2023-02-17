@@ -125,7 +125,7 @@ router.get('/home', async (req, res) => {
 		limit: 5
 	})]);
 
-	if (req.session.band) {
+	if (req.session.band && season) {
 		const membership = await req.db.OrganisationMembership.findOne({
 			where: {
 				OrganisationId: req.session.band.id
@@ -133,7 +133,7 @@ router.get('/home', async (req, res) => {
 			include: [{
 				model: req.db.Membership,
 				where: {
-					SeasonId: season?.id
+					SeasonId: season.id
 				}
 			}]
 		});
