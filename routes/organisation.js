@@ -73,7 +73,11 @@ async function removeImage(config, id, origin, token = null) {
 
 router.get('/', checkAdmin, async (req, res, next) => {
 	const orgs = await req.db.Organisation.findAll({
-		include: [req.db.OrganisationType],
+		include: [
+			req.db.OrganisationType,
+			'CreatedBy',
+			'UpdatedBy'
+		],
 		order: [
 			['Name']
 		]
@@ -299,7 +303,9 @@ router.get('/:orgID', validator.params(idParamSchema), matchingID('orgID', ['ban
 						IsApproved: null
 					},
 					required: false
-				}
+				},
+				'CreatedBy',
+				'UpdatedBy'
 			]
 		}),
 		req.db.OrganisationType.getActive()
@@ -325,7 +331,8 @@ router.get('/:orgID', validator.params(idParamSchema), matchingID('orgID', ['ban
 		saved: req.query.saved ?? false,
 		error: req.query.error ?? false,
 		enableUpload: config.uploadPath != null,
-		uploadToken: token
+		uploadToken: token,
+		colSize: req.session.user.IsAdmin ? 4 : 6
 	});
 });
 

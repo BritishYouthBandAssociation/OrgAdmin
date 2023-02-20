@@ -10,7 +10,7 @@
 
 <div>
 	<div class="row">
-		<div class="col-12 col-lg-6 mb-3">
+		<div class="col-12 col-lg-{{colSize}} mb-3">
 			<div class="card card-body">
 				<h3 class="text-center">Address</h3>
 				{{#if organisation.Address}}
@@ -30,7 +30,7 @@
 			</div>
 		</div>
 
-		<div class="col-12 col-lg-6">
+		<div class="col-12 col-lg-{{colSize}} mb-3">
 			<div class="card card-body text-center">
 				<h3>Contacts</h3>
 				{{#if organisation.OrganisationUsers}}
@@ -50,6 +50,12 @@
 				<a href="contacts" class="btn btn-default">Manage Contacts</a>
 			</div>
 		</div>
+
+		{{#if session.user.IsAdmin}}
+		<div class="col-12 col-lg-{{colSize}} mb-3">
+			{{> audit-big createdBy=organisation.CreatedBy createdAt=organisation.createdAt updatedBy=organisation.UpdatedBy updatedAt=organisation.updatedAt }}
+		</div>
+		{{/if}}
 	</div>
 
 	<hr class="my-4" />

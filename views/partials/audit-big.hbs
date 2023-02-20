@@ -1,5 +1,5 @@
-	<div class="alert alert-info">
-		<h3 class="text-center">Audit Records</h3>
+	<div class="alert alert-info text-center">
+		<h3>Audit Records</h3>
 		<p>Created By {{#if createdBy}}<a href="/user/{{createdBy.id}}">{{createdBy.FullName}}</a>{{else}}<span class="fst-italic">(Unknown user)</span>{{/if}} at {{datetime createdAt}}</p>
 		<p>Updated By {{#if updatedBy}}<a href="/user/{{updatedBy.id}}">{{updatedBy.FullName}}</a>{{else}}<span class="fst-italic">(Unknown user)</span>{{/if}} at {{datetime updatedAt}}</p>
 	</div>
