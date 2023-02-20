@@ -174,9 +174,9 @@ class WPOrderProcessor {
 		}, this.#dbOptions);
 
 		if (orgMembership){
-			await membership.setOrganisationMembership(orgMembership);
+			await membership.setOrganisationMembership(orgMembership, this.#dbOptions);
 		} else {
-			await membership.setIndividualMembership(individualMembership);
+			await membership.setIndividualMembership(individualMembership, this.#dbOptions);
 		}
 
 		return membership;
@@ -196,7 +196,7 @@ class WPOrderProcessor {
 		fee.IsPaid = true;
 		fee.PaymentDate = startDate;
 		fee.PaymentTypeId = 4; //online
-		fee.save();
+		fee.save(this.#dbOptions);
 	}
 
 	async process(order) {

@@ -393,7 +393,7 @@ router.post('/:id/division', validator.params(Joi.object({
 		return next();
 	}
 
-	await membership.OrganisationMembership.setDivision(division);
+	await membership.OrganisationMembership.setDivision(division, req.getDBOptions());
 
 	const events = await req.db.EventRegistration.findAll({
 		include: [{

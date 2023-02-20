@@ -156,7 +156,7 @@ async function generateSchedule(req, next, eventID, config, divisionOrder) {
 		}
 	})]);
 
-	const gen = await event.createScheduleGeneration(req.getDBOptions(config));
+	const gen = await event.createScheduleGeneration({}, req.getDBOptions(config));
 
 	let bands = 0, minutes = 0;
 	const time = new Date(event.Start), parts = config.StartTime.split(':');
@@ -314,7 +314,7 @@ router.post('/new', validator.body(Joi.object({
 		AllowLateEntry: true
 	}, req.getDBOptions());
 
-	await event.setEventType(eventType);
+	await event.setEventType(eventType, req.getDBOptions());
 
 	return res.redirect(`${event.id}/`);
 });
@@ -693,7 +693,7 @@ router.post('/:id/organisations/withdraw/:orgID', async (req, res, next) => {
 		if (today > freeWithdrawal && !reg.WithdrawalFeeId) {
 			const fee = await req.db.Fee.create({
 				Total: reg.Event.EventType.EntryCost * 1.5
-			});
+			}, req.getDBOptions());
 
 			reg.WithdrawalFeeId = fee.id;
 		}
@@ -1010,7 +1010,7 @@ router.post('/:id/scores/:current', async (req, res, next) => {
 	}));
 
 	registration.TotalScore = grandTotal / 10.0;
-	await registration.save();
+	await registration.save(req.getDBOptions());
 
 	return res.redirect('?saved=true');
 });

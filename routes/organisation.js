@@ -207,7 +207,7 @@ router.post('/new', validator.query(Joi.object({
 			promises.push(org.createMembership(req.body.membership, null, req.getDBOptions({ transaction })));
 		}
 
-		let [secondary] = await Promise.all(promises);
+		let [, secondary] = await Promise.all(promises);
 
 		if (secondary) {
 			secondary = secondary[0];
@@ -463,7 +463,7 @@ router.post('/:orgID/address', validator.params(idParamSchema), matchingID('orgI
 		City: req.body.city,
 		Postcode: req.body.postcode
 	}, req.getDBOptions());
-	await org.setAddress(addr);
+	await org.setAddress(addr, req.getDBOptions());
 
 	res.redirect('./?saved=true');
 });
@@ -606,8 +606,8 @@ router.post('/:orgID/contacts/add/:email', validator.params(idParamSchema.keys({
 	}
 
 	const contact = await req.db.OrganisationUser.build();
-	await contact.setOrganisation(org.id);
-	await contact.setUser(user.id);
+	await contact.setOrganisation(org.id, req.getDBOptions());
+	await contact.setUser(user.id, req.getDBOptions());
 	await contact.save(req.getDBOptions());
 
 	res.redirect('../../contacts?added=true');

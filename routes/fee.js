@@ -36,7 +36,7 @@ router.post('/:id', checkAdmin, validator.query(Joi.object({
 		IsPaid: true
 	}, req.getDBOptions());
 
-	await fee.setPaymentType(req.body.paymentType);
+	await fee.setPaymentType(req.body.paymentType, req.getDBOptions());
 
 	return res.redirect(redir);
 });
