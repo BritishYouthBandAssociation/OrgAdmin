@@ -20,6 +20,10 @@ const {checkAdmin, matchingID} = require('../middleware');
 
 router.get('/', checkAdmin, async (req, res, next) => {
 	const users = await req.db.User.findAll({
+		include: [
+			'CreatedBy',
+			'UpdatedBy'
+		],
 		order: [
 			['FirstName'],
 			['Surname']
@@ -150,7 +154,11 @@ router.post('/:id/password', validator.params(idParamSchema), matchingID('id', [
 
 router.get('/:id', validator.params(idParamSchema), matchingID('id', ['user', 'id']), async (req, res, next) => {
 	const user = await req.db.User.findByPk(req.params.id, {
-		include: [req.db.Caption]
+		include: [
+			req.db.Caption,
+			'CreatedBy',
+			'UpdatedBy'
+		]
 	});
 
 	if (!user){
