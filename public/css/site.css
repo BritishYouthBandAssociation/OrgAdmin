@@ -26,17 +26,6 @@
 	color: var(--byba-blue);
 }
 
-@media (min-width: 992px) {
-	main {
-		display: flex;
-		min-height: 100vh;
-	}
-
-	.sidebar {
-		width: 280px;
-	}
-}
-
 h1,
 h2,
 h3,
@@ -53,9 +42,13 @@ body {
 }
 
 .search-results-container {
+	position: absolute;
 	border: 1px solid rgba(0, 0, 0, 0.125);
-	position: relative;
-	top: -0.25rem;
+	background-color: rgba(0, 0, 0, 0.7);
+	left: 0;
+	right: 0;
+	z-index: 100;
+	box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, .15);
 }
 
 .search-result {
@@ -86,6 +79,45 @@ body {
 	animation: fade-up ease-in-out 3s;
 }
 
+.accordion-button[disabled] {
+	opacity: 60%;
+}
+
+.label-container{
+	position: relative;
+}
+
+.label-container.editable span.badge:before {
+	content: '✖';
+	margin-right: .2rem;
+}
+
+/** lg and up **/
+@media (min-width: 992px) {
+	main {
+		display: flex;
+		min-height: 100vh;
+	}
+
+	.sidebar {
+		width: 280px;
+	}
+
+	/** mobile devices struggle with the concept of hover, so only hide on desktop **/
+	.label-container .add:not(:only-child) {
+		display: none;
+	}
+
+	.label-container:hover>.add {
+		display: inline-block;
+	}
+
+	.label-container.editable:hover span.badge {
+		cursor: pointer;
+	}
+
+}
+
 @keyframes fade-up {
 	0% {
 		opacity: 0;
@@ -96,8 +128,4 @@ body {
 		opacity: 1;
 		transform: translateY(0);
 	}
-}
-
-.accordion-button[disabled] {
-	opacity: 60%;
 }
