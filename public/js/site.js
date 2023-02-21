@@ -1,14 +1,14 @@
 'use strict';
 
-(function(){
-	function initDropdownStyleHelper(){
+(function() {
+	function initDropdownStyleHelper() {
 		const els = document.querySelectorAll('select.style-by-value');
 		els.forEach(e => {
 			e.addEventListener('change', () => {
 				e.dataset.chosen = e.value;
 			});
 
-			if (e.value){
+			if (e.value) {
 				e.dataset.chosen = e.value;
 			}
 		});
@@ -48,7 +48,7 @@
 			let create = null;
 
 			function clear() {
-				if (results != null){
+				if (results != null) {
 					results.remove();
 				}
 
@@ -57,7 +57,7 @@
 				results = null;
 			}
 
-			function createPlaceholder(label){
+			function createPlaceholder(label) {
 				const placeholder = document.createElement('span');
 				placeholder.className = 'badge placeholder me-3 my-1 border';
 				styleElFromLabel(placeholder, label);
@@ -65,7 +65,7 @@
 				return placeholder;
 			}
 
-			function addServerLabel(placeholder, id){
+			function addServerLabel(placeholder, id) {
 				fetch(`/_api/membership/${el.parentElement.dataset.membership}/labels/add`, {
 					method: 'POST',
 					body: JSON.stringify({
@@ -97,7 +97,7 @@
 				addServerLabel(placeholder, label.id);
 			}
 
-			function createBrandNewLabel(placeholder, name){
+			function createBrandNewLabel(placeholder, name) {
 				fetch('/_api/labels/new', {
 					method: 'POST',
 					body: JSON.stringify({
@@ -107,14 +107,14 @@
 						'Content-Type': 'application/json'
 					}
 				}).then(res => {
-					if (!res.ok){
+					if (!res.ok) {
 						throw new Error(res.status);
 					}
 
 					return res.json();
 				})
 					.then(json => {
-						if (!json.success){
+						if (!json.success) {
 							throw new Error(json.error);
 						}
 
@@ -249,5 +249,5 @@
 	}
 
 	fetch('/_api/labels').then(res => res.json()).then(json => initLabelButtons(json));
-  initDropdownStyleHelper();
+	initDropdownStyleHelper();
 })();

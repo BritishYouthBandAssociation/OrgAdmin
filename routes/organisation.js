@@ -184,7 +184,7 @@ router.post('/new', validator.query(Joi.object({
 				transaction
 			}),
 			req.db.PhotoConsentHistory.create({
-				Description: 'Membership created through website\n' + req.body.consentDetails,
+				Description: 'Membership created through website\n' + (req.body.consentDetails ?? ''),
 				OldConsentTypeId: null,
 				NewConsentTypeId: req.body.consent,
 				OrganisationId: org.id,
