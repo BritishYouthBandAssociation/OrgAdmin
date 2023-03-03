@@ -72,7 +72,7 @@ async function main() {
 	//prevent unauthorised access
 	app.use(async (req, res, next) => {
 		//allow css/css.map/js files
-		if (/\.(css|js|css\.map)$/.test(req.path)) {
+		if (/\.(css|js|css\.map|ico)$/.test(req.path)) {
 			return next();
 		}
 
