@@ -98,6 +98,31 @@ router.post('/:id', checkAdmin, validator.params(idParamSchema), async (req, res
 	return res.redirect(`/order/${req.params.id}/`);
 });
 
+router.post('/:id/confirmPayment', checkAdmin, validator.params(idParamSchema), async (req, res, next) => {
+	const order = await req.db.Order.findByPk(req.params.id);
+
+	if (!order) {
+		return next();
+	}
+
+	if (order.Status !== 'awaitingConfirmation') {
+		return res.render('error', {
+			title: 'Error',
+			code: '400',
+			msg: `Can not confirm order in ${order.Status} status`
+		});
+	}
+
+	// from this point all payment methods use square in soma capacity, and are no longer pending
+	await order.update({
+		Status: 'complete',
+		ConfirmedById: req.session.user.id,
+		CompletedAt: new Date()
+	});
+
+	return res.redirect(`/order/${req.params.id}/`);
+});
+
 module.exports = {
 	root: '/order/',
 	router: router

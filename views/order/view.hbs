@@ -55,6 +55,14 @@
 				<button type="submit" class="btn btn-success">Make Payment</button>
 			</form>
 			{{/eq}}
+			{{#eq order.Status "awaitingConfirmation"}}
+				This order is awaiting confirmation of receipt of payment from a member of the BYBA team.
+				{{#if session.user.IsAdmin}}
+				<form method="post" action="/order/{{order.id}}/confirmPayment" class="mt-3">
+					<button type="submit" class="btn btn-success">Confirm receipt of payment by {{uncamel order.PaymentMethod capitalise=false}}</button>
+				</form>
+				{{/if}}
+			{{/eq}}
 			{{#eq order.Status "complete"}}
 				<p class="text-success">This order (<b>{{{price order.Total}}}</b>) is fully paid, and no further action is required</p>
 				{{#contains order.PaymentMethod "cheque" "bankTransfer" "cash"}}
