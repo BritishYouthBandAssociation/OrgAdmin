@@ -40,6 +40,20 @@ router.get('/', checkAdmin, validator.query(Joi.object({
 	});
 });
 
+router.get('/:id', checkAdmin, validator.params(idParamSchema), async (req, res, next) => {
+	const order = await req.db.Order.findByPk(req.params.id);
+
+	if (!order) {
+		return next();
+	}
+
+	return res.render('order/view.hbs', {
+		title: `Order ${order.id}`,
+		order,
+		paymentMethods: req.db.Order.getAttributes().PaymentMethod.values
+	});
+});
+
 module.exports = {
 	root: '/order/',
 	router: router

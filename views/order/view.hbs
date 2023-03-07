@@ -1,0 +1,53 @@
+<h2>Order {{order.id}}</h2>
+
+<div class="row mb-3">
+	<div class="col">
+		<div class="card card-body">
+			{{#with order}}
+			<h3>Order Details</h3>
+
+			<p>Date: {{datetime Date}}</p>
+			<p>Status: {{uncamel Status}}</p>
+			<p>Total cost: {{{price Total}}}</p>
+<!--
+			<p>Indivdual: User</p>
+			<p>Organisation: Organisation (User)</p>
+-->
+			<p>Items: {{OrderItems.length}}
+
+			<h4>Items</h4>
+			<div class='card card-body d-flex d-column gap-3'>
+			{{#each OrderItems}}
+				<div class="d-flex flex-row justify-content-between align-items-center">
+					<div>
+						<span> {{EntityType}}: {{Entity.custom.Name}} </span>
+						<span> {{{price Price}}} </span>
+					</div>
+					<div>
+						<a href='{{Entity.custom.Link}}' class="btn btn-default">View</a>
+					</div>
+				</div>
+			{{/each}}
+			</div>
+			{{/with}}
+		</div>
+	</div>
+</div>
+
+<div class="row text-center">
+	<div class="col-12 col-lg-6">
+		<div class="card card-body">
+			<h3>Payment</h3>
+
+			{{#eq order.Status "pending"}}
+			This order ({{{price order.Total}}}) has not been paid.
+			{{/eq}}
+			{{#eq order.Status "complete"}}
+				<p class="text-success">This order (<b>{{{price order.Total}}}</b>) is fully paid, and no further action is required</p>
+				{{#contains order.PaymentMethod "cheque" "bankTransfer" "cash"}}
+					This payment was marked as completed by {{order.ConfirmedBy.FullName}} at {{datetime order.CompletedAt}}.
+				{{/contains}}
+			{{/eq}}
+		</div>
+	</div>
+</div>
