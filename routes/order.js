@@ -54,6 +54,50 @@ router.get('/:id', checkAdmin, validator.params(idParamSchema), async (req, res,
 	});
 });
 
+router.post('/:id', checkAdmin, validator.params(idParamSchema), async (req, res, next) => {
+	const paymentMethods = req.db.Order.getAttributes().PaymentMethod.values;
+
+	// this isn't validated in the middleware because we need req.db to get possible values
+	if (!paymentMethods.includes(req.body.paymentMethod)) {
+		return next();
+	}
+
+	const order = await req.db.Order.findByPk(req.params.id);
+
+	if (!order) {
+		return next();
+	}
+
+	// from this point all payment methods use square in soma capacity, and are no longer pending
+	await order.update({
+		PaymentMethod: req.body.paymentMethod,
+		Status: 'processing',
+		ExternalPaymentProvider: 'square'
+	});
+
+	switch (req.body.paymentMethod) {
+		case 'cheque':
+		case 'bankTransfer':
+		case 'cash': {
+			// do square stuff
+
+			// send off to treasurer for confirmation
+			await order.update({
+				Status: 'awaitingConfirmation'
+			});
+
+			break;
+		}
+		case 'online': {
+			// This is a proper payment portal
+
+			break;
+		}
+	}
+
+	return res.redirect(`/order/${req.params.id}/`);
+});
+
 module.exports = {
 	root: '/order/',
 	router: router

@@ -41,6 +41,19 @@
 
 			{{#eq order.Status "pending"}}
 			This order ({{{price order.Total}}}) has not been paid.
+
+			<form method="post" action="/order/{{order.id}}" class="card card-body mt-3">
+				<div class="form-group mb-3">
+					<label for="paymentMethod">Payment Type</label>
+					<select class="form-control" name="paymentMethod" required>
+						<option value="" disabled selected>-- Please Select --</option>
+							{{#each paymentMethods}}
+								<option value="{{this}}">{{uncamel this}}</option>
+							{{/each}}
+					</select>
+				</div>
+				<button type="submit" class="btn btn-success">Make Payment</button>
+			</form>
 			{{/eq}}
 			{{#eq order.Status "complete"}}
 				<p class="text-success">This order (<b>{{{price order.Total}}}</b>) is fully paid, and no further action is required</p>
