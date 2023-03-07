@@ -326,13 +326,16 @@ router.get('/:id', validator.params(Joi.object({
 })), validator.query(Joi.object({
 	saved: Joi.boolean()
 })), async (req, res, next) => {
-	const [membership, paymentTypes, divisions] = await Promise.all([
+	const [membership, divisions] = await Promise.all([
 		req.db.Membership.findByPk(req.params.id, {
 			include: [
 				req.db.Label,
 				req.db.MembershipType,
-				req.db.Fee,
 				req.db.Season,
+				{
+					model: req.db.OrderItem,
+					include: [ req.db.Order ]
+				},
 				{
 					model: req.db.IndividualMembership,
 					include: [req.db.User]
@@ -349,7 +352,6 @@ router.get('/:id', validator.params(Joi.object({
 				}
 			]
 		}),
-		req.db.PaymentType.getActive(),
 		req.db.Division.getActive()
 	]);
 
@@ -371,7 +373,6 @@ router.get('/:id', validator.params(Joi.object({
 		title: `Membership ${membership.Number}`,
 		membership: membership,
 		entity: membership.Entity,
-		paymentTypes: paymentTypes,
 		divisions,
 		saved: req.query.saved ?? false
 	});

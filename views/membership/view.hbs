@@ -19,13 +19,26 @@
 			<p>Membership Number: {{membership.Number}}</p>
 			<p>Membership Type: {{membership.MembershipType.Name}}</p>
 			<p>Season: {{membership.Season.Identifier}}</p>
-			<p>Cost: &pound;{{membership.Fee.Total}} {{#unless membership.Fee.IsPaid}}<span class="text-danger">Fee
-					Outstanding</span>{{else}}<span class="text-success">Fee Paid</span>{{/unless}}</p>
+			<p>Cost: &pound;{{membership.OrderItem.Price}}</p>
 			<p>Start Date: {{date membership.DateStarted}}</p>
 			<p>End Date: {{date membership.Season.End}}</p>
 		</div>
 
-		{{>fee fee=membership.Fee type="membership" paymentTypes=paymentTypes isAdmin=session.user.IsAdmin}}
+		<div class="card card-body mb-3">
+			<h3>Payment Details</h3>
+
+			{{#with membership.OrderItem}}
+			{{#eq Order.Status "complete"}}
+				<p class="text-success"><b>{{{price Price}}}</b> for this {{EntityType}} is fully paid, and no further action is required</p>
+				<p>Click below for more information about the order</p>
+			{{else}}
+				<p class="text-danger"><b>{{{price Price}}}</b> for this {{EntityType}} is {{uncamel Order.Status capitalise=false}}.</p>
+				<p>Click below for more information about the order and to pay for the {{EntityType}}.</p>
+			{{/eq}}
+
+			<a href="/order/{{Order.id}}/" class="btn btn-default stretched-link">View Order</a>
+			{{/with}}
+		</div>
 	</div>
 
 	<div class="col-12 col-lg-6">
