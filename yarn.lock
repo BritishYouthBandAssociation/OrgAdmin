@@ -1167,10 +1167,10 @@ expand-tilde@^2.0.0, expand-tilde@^2.0.2:
   dependencies:
     homedir-polyfill "^1.0.1"
 
-express-form-data@^2.0.19:
-  version "2.0.19"
-  resolved "https://registry.npmjs.org/express-form-data/-/express-form-data-2.0.19.tgz"
-  integrity sha512-QWulRIYvZV/ZOuO0+SNpCs9Gl0st9SssYtm5Icfm17p2MU4HASLpd4K5w8fwnXB/lPPskecVSeqjVWi2SwIb1A==
+express-form-data@^2.0.22:
+  version "2.0.22"
+  resolved "https://registry.yarnpkg.com/express-form-data/-/express-form-data-2.0.22.tgz#e44bba3760ba47addc881913ad6bc3affe7ef9b3"
+  integrity sha512-bZrcZ5UnrXRbUqI+hNkYcGAkRE+feTOjgUGldEEQSkatZs8UqrOxTcIKsavDwC+1gliXopDW73mI6oHx2KOnBA==
   dependencies:
     connect-multiparty "^2.2.0"
     fs-extra "^9.1.0"
