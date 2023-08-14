@@ -753,10 +753,10 @@ connect-multiparty@^2.2.0:
     qs "~6.5.2"
     type-is "~1.6.16"
 
-connect-session-sequelize@^7.1.5:
-  version "7.1.5"
-  resolved "https://registry.npmjs.org/connect-session-sequelize/-/connect-session-sequelize-7.1.5.tgz"
-  integrity sha512-oCHmWlCqhWoq6GGJ9z9PWLk0mrEsIfKlLE4WHUBjRIcSRgUh4OEIDfGY7rfBnlD6clRwwYQfK6+ks0fuTFf6WA==
+connect-session-sequelize@^7.1.7:
+  version "7.1.7"
+  resolved "https://registry.yarnpkg.com/connect-session-sequelize/-/connect-session-sequelize-7.1.7.tgz#7506a82a8e1c7972f3278bb62b7b129e67f1ef93"
+  integrity sha512-Wqq7rg0w+9bOVs6jC0nhZnssXJ3+iKNlDVWn2JfBuBPoY7oYaxzxfBKeUYrX6dHt3OWEWbZV6LJvapwi76iBQQ==
   dependencies:
     debug "^4.1.1"
 
