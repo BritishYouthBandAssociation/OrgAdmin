@@ -237,7 +237,15 @@ class WPOrderProcessor {
 		fee.save();
 	}
 
+	shouldProcessOrder(order){
+		return order.line_items.some(x => this.#products.some(p => p.ExternalId === x.product_id));
+	}
+
 	async process(order) {
+		if (!this.shouldProcessOrder(order)){
+			return [];
+		}
+
 		const contact = await this.getContact(order);
 		const org = this.getMetaData(order, '_billing_wooccm13');
 		const photoConsent = this.getMetaData(order, '_billing_wooccm21');
