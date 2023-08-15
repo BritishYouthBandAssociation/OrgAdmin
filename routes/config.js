@@ -11,7 +11,7 @@ const router = express.Router();
 const {checkAdmin} = require('../middleware');
 
 router.get('/', checkAdmin, (req, res) => {
-	const sections = ['Membership Type', 'Event Type', 'Payment Type', 'Division', 'Caption', 'Season'];
+	const sections = ['Membership Type', 'Event Type', 'Payment Type', 'Division', 'Season'];
 
 	return res.render('config/index.hbs', {
 		title: 'Configuration',
@@ -282,100 +282,6 @@ router.post('/division', checkAdmin, validator.body(Joi.object({
 	}));
 
 	return res.redirect('?saved=true');
-});
-
-async function loadCaption(db, parent) {
-	parent.Subcaptions = await db.findAll({
-		where: {
-			ParentID: parent.id
-		}
-	});
-
-	await Promise.all(parent.Subcaptions.map(s => {
-		return loadCaption(db, s);
-	}));
-
-	return parent;
-}
-
-router.get('/caption', checkAdmin, validator.query(Joi.object({
-	success: Joi.boolean()
-})), async (req, res) => {
-	//load top level
-	const captions = await req.db.Caption.findAll({
-		where: {
-			ParentID: null
-		}
-	});
-
-	//load the rest
-	await Promise.all(captions.map(c => {
-		return loadCaption(req.db.Caption, c);
-	}));
-
-	return res.render('config/caption.hbs', {
-		title: 'Captions',
-		captions: captions,
-		success: req.query.success ?? false
-	});
-});
-
-async function saveCaption(db, caption, parent) {
-	const details = {
-		Name: caption.Name,
-		MaxScore: caption.MaxScore,
-		Multiplier: caption.Multiplier,
-		IsOptional: caption.IsOptional,
-		ParentID: parent
-	};
-
-	if (caption.id < 0) {
-		const _new = await db.create(details);
-
-		caption.id = _new.id;
-	} else {
-		await db.update(details, {
-			where: {
-				id: caption.id
-			}
-		});
-	}
-
-	if (caption.Subcaptions.length > 0) {
-		await Promise.all(caption.Subcaptions.map(c => {
-			return saveCaption(db, c, caption.id);
-		}));
-	}
-}
-
-router.post('/caption', checkAdmin, (req, res, next) => {
-	req.body.caption = JSON.parse(req.body.caption);
-	next();
-}, validator.body(Joi.object({
-	caption: Joi.array().items(Joi.object({
-		id: Joi.number()
-			.required(),
-		Name: Joi.string()
-			.required(),
-		MaxScore: Joi.number()
-			.required(),
-		Multiplier: Joi.number()
-			.required(),
-		IsOptional: Joi.boolean()
-			.required(),
-		ParentId: Joi.number()
-			.allow(null),
-		Subcaptions: Joi.array()
-			.items(Joi.object())
-	}).unknown(true))
-}).unknown(true)), async (req, res) => {
-	const data = req.body.caption;
-
-	await Promise.all(data.map(c => {
-		return saveCaption(req.db.Caption, c, null);
-	}));
-
-	return res.redirect('?success=true');
 });
 
 router.get('/season', checkAdmin, validator.query(Joi.object({
