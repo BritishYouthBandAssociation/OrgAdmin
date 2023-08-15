@@ -149,9 +149,7 @@ router.post('/:id/password', validator.params(idParamSchema), matchingID('id', [
 });
 
 router.get('/:id', validator.params(idParamSchema), matchingID('id', ['user', 'id']), async (req, res, next) => {
-	const user = await req.db.User.findByPk(req.params.id, {
-		include: [req.db.Caption]
-	});
+	const user = await req.db.User.findByPk(req.params.id);
 
 	if (!user){
 		return next();
@@ -203,75 +201,6 @@ router.post('/:id', validator.params(idParamSchema), matchingID('id', ['user', '
 	await user.update(details);
 
 	return res.redirect('?saved=true');
-});
-
-//this needs putting somewhere!
-async function loadCaption(db, parent){
-	parent.Subcaptions = await db.findAll({
-		where: {
-			ParentID: parent.id
-		}
-	});
-
-	await Promise.all(parent.Subcaptions.map(s => {
-		return loadCaption(db, s);
-	}));
-
-	return parent;
-}
-
-router.get('/:id/captions', validator.params(idParamSchema), matchingID('id', ['user', 'id']), validator.query(Joi.object({
-	saved: Joi.boolean()
-})), async (req, res, next) => {
-	const user = await req.db.User.findByPk(req.params.id, {
-		include: [req.db.Caption]
-	});
-
-	if (!user){
-		return next();
-	}
-
-	//load top level
-	const captions = await req.db.Caption.findAll({
-		where: {
-			ParentID: null
-		}
-	});
-
-	//load the rest
-	await Promise.all(captions.map(c => {
-		return loadCaption(req.db.Caption, c);
-	}));
-
-	return res.render('user/captions.hbs', {
-		title: `${user.FullName}'s Captions`,
-		user: user,
-		captions: captions,
-		saved: req.query.saved ?? false
-	});
-});
-
-router.post('/:id/captions', validator.params(idParamSchema), matchingID('id', ['user', 'id']), validator.body(Joi.object({
-	caption: Joi.array()
-		.items(Joi.number())
-})), async (req, res, next) => {
-	const user = await req.db.User.findByPk(req.params.id);
-
-	if (!user){
-		return next();
-	}
-
-	const data = await req.db.Caption.findAll({
-		where: {
-			id: {
-				[Op.in]: req.body.caption ?? []
-			}
-		}
-	});
-
-	await user.setCaptions(data);
-
-	res.redirect('?saved=true');
 });
 
 module.exports = {

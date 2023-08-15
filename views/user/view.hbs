@@ -35,28 +35,6 @@
 			</form>
 		</div>
 	</div>
-
-	<div class="col mb-3">
-		<div class="card card-body">
-			<h3 class="text-center">Captions</h3>
-			<p class="fst-italic text-center">Captions the user is able to judge</p>
-			{{#eq user.Captions.length 0}}
-				<div class="alert alert-warning text-center">This user cannot judge any captions</div>
-				{{else}}
-					<div class="card mb-3">
-						<div class="list-group list-group-flush">
-							{{#each user.Captions}}
-								<div class="list-group-item">{{Name}}</div>
-							{{/each}}
-						</div>
-					</div>
-			{{/eq}}
-
-			{{#if session.user.IsAdmin}}
-			<a href="captions" class="btn btn-default">Edit Captions</a>
-			{{/if}}
-		</div>
-	</div>
 </div>
 
 <script>
