@@ -265,7 +265,7 @@ router.get('/import', checkAdmin, async (req, res) => {
 		}
 	})];
 
-	if (req.query.season){
+	if (req.query.season) {
 		promises.push(req.db.Season.findOne({
 			where: {
 				id: req.query.season
@@ -301,16 +301,21 @@ router.get('/import', checkAdmin, async (req, res) => {
 		url += `&product=${products[0].ExternalId}`;
 	}
 
-	const data = await fetch(url, {
-		headers: {
-			Authorization: 'Basic ' + Buffer.from(`${config.Key}:${config.Secret}`).toString('base64')
-		}
-	}).then(res => res.json());
+	let data = null;
+	try {
+		data = await fetch(url, {
+			headers: {
+				Authorization: 'Basic ' + Buffer.from(`${config.Key}:${config.Secret}`).toString('base64')
+			}
+		}).then(res => res.json());
+	} catch {
+		return res.status(500).send('');
+	}
 
 	const processor = new WPOrderProcessor(products, season, req.db);
 	let memberships = [];
 
-	for (let o = 0; o < data.length; o++){
+	for (let o = 0; o < data.length; o++) {
 		const res = await processor.process(data[o]);
 		memberships = memberships.concat(res);
 	}
