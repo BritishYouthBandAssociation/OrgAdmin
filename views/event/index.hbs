@@ -1,46 +1,89 @@
 <h2>Events</h2>
 
-<div class='p-3 my-4 bg-default text-light rounded-3 text-center'>
-	<div class='container-fluid'>
-		<p class='mt-3 mb-3'>Displaying all <b>{{events.length}}</b> Events on record</p>
+<div id="app">
+	<div class='p-3 my-4 bg-default text-light rounded-3 text-center'>
+		<div class='container-fluid'>
+			<p class='mt-3 mb-3'>Displaying all <b>${events.length}</b> Events on record</p>
 
-		<div class='row row-cols-1 row-cols-lg-2 align-items-center p-3'>
-			{{#if session.user.IsAdmin}}
-			<div class="col order-1 order-lg-2 mb-3 mt-lg-3">
-				<a class='btn btn-light me-sm-3 mb-3 mb-sm-0' href='new'>+ Add Event</a>
+			<div class='row row-cols-1 row-cols-lg-2 align-items-center p-3'>
+				<div class="col order-1 order-lg-2 mb-3 mt-lg-3">
+					<a class='btn btn-light me-sm-3 mb-3 mb-sm-0' href='new'>+ Add Event</a>
+				</div>
+
+				<div class='col order-2 order-lg-1'>
+					<div class="form-group text-start">
+						<label class="form-label" for="year">Season</label>
+						<select id="year" class="form-control" v-model="currentSeason" @change="loadEvents(currentSeason)">
+							<option v-for="season in seasons" :value="season.id">${season.name}</option>
+						</select>
+					</div>
+				</div>
 			</div>
-			{{/if}}
+		</div>
+	</div>
 
-		
-			<div class='col order-2 order-lg-1'>
-				<div class="form-group text-start">
-					<label class="form-label" for="year">Season</label>
-					<select id="year" class="form-control" onchange="location.href=`?season=${this.options[selectedIndex].value}`">
-						{{#each seasons}}
-						<option value="{{this.id}}" {{#eq this.id ../season}} selected{{/eq}}>{{this.Identifier}}</option>
-						{{/each}}
-					</select>
+	<div class='row text-center'>
+		<div class='col-12 col-md-6 col-lg-4 mb-3' v-if="loading">
+			<div class="card h-100" aria-hidden="true">
+				<div class="card-body">
+					<p class="card-text placeholder-glow">
+						<span class="placeholder w-100"></span>
+						<span class="placeholder w-50 mx-auto"></span>
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<div class='col-12 col-md-6 col-lg-4 mb-3' v-for="event in events">
+			<div class='card card-action'>
+				<div class='card-body'>
+					<p class='h4'><a :href='event.id + "/"' class='stretched-link text-reset text-decoration-none'>${event.name}</a></p>
+					<p>${event.date}</p>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
 
-<div class='row text-center'>
-	{{#each events}}
-	<div class='col-12 col-md-6 col-lg-4 mb-3'>
-		<div class='card card-action' data-type='{{EventType.id}}'>
-			<div class='card-body'>
-				<p class='h4'><a href='{{id}}/' class='stretched-link text-reset text-decoration-none'>{{Name}}</a></p>
-				<p>{{datetimeDelta Start End format='long'}}</p>
-				<div><span class='badge {{#if MembersOnly}}bg-danger{{else}}bg-success{{/if}}'>{{#if MembersOnly}}Members Only{{else}}Open to all{{/if}}</span></div>
-			</div>
-			<div class='card-footer label-container'>
-				{{#with EventType}}
-				<span class='badge bg-default' data-type='{{id}}'>{{Name}}</span>
-				{{/with}}
-			</div>
-		</div>
-	</div>
-	{{/each}}
-</div>
+<script src="/js/vue.js"></script>
+<script>
+	const app = new Vue({
+		delimiters: ['${', '}'],
+		el: '#app',
+		data: {
+			events: [],
+			seasons: [],
+			loading: true,
+			currentSeason: null
+		},
+		methods: {
+			loadEvents(season) {
+				this.loading = true;
+				this.events = [];
+				
+				fetch(`https://dev.payload.byba.online/api/events`, {
+					credentials: 'include'
+				}).then(res => res.json())
+					.then(json => {
+						this.events = json.docs;
+						this.loading = false;
+					});
+			}
+		},
+		mounted: function () {
+			fetch("https://dev.payload.byba.online/api/seasons/current", {
+				credentials: 'include'
+			})
+				.then(res => res.json())
+				.then(json => {
+					this.currentSeason = json.id;
+					this.loadEvents(json.id);
+				});
+
+			fetch("https://dev.payload.byba.online/api/seasons", {
+				credentials: 'include'
+			}).then(res => res.json())
+			.then(json => this.seasons = json.docs);
+		}
+	});
+</script>

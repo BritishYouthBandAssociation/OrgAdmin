@@ -221,37 +221,9 @@ async function generateSchedule(req, next, eventID, config, divisionOrder) {
 	}
 }
 
-router.get('/', async (req, res, next) => {
-	const [season, seasons] = await Promise.all([
-		req.db.Season.getSeasonOrDefault(req.query.season),
-		req.db.Season.getSeasons()
-	]);
-
-	if (!season) {
-		return res.redirect(`/config/season?needsSeason=true&next=${req.originalUrl}`);
-	}
-
-	const [events, eventTypes] = await Promise.all([
-		req.db.Event.findAll({
-			include: [
-				req.db.EventType
-			],
-			where: {
-				SeasonId: season.id
-			},
-			order: [
-				['Start']
-			]
-		}),
-		req.db.EventType.getActive()
-	]);
-
+router.get('/', (req, res, next) => {
 	return res.render('event/index.hbs', {
-		title: 'Events',
-		seasons: seasons,
-		season: season.id,
-		events: events,
-		filters: eventTypes
+		title: 'Events'
 	});
 });
 
