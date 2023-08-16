@@ -62,68 +62,22 @@ router.get('/home', async (req, res) => {
 	const messages = [];
 	const adminStats = [];
 
-	const [captions, judgeEvents, events, season, scores] = await Promise.all([req.db.Caption.findAll({
-		include: [{
-			model: req.db.User,
+	const [events, season] = await Promise.all([
+		req.db.Event.findAll({
 			where: {
-				id: req.session.user.id
-			}
-		}]
-	}),
-	req.db.EventCaption.findAll({
-		include: [req.db.Caption,
-			{
-				model: req.db.User,
-				where: {
-					id: req.session.user.id
+				Start: {
+					[Op.gte]: new Date()
 				}
-			}, {
-				model: req.db.Event,
-				where: {
-					Start: {
-						[Op.gt]: new Date()
-					}
-				},
-				include: [req.db.Address],
-				order: [['Start']]
-			}],
-		limit: 5
-	}),
-	req.db.Event.findAll({
-		where: {
-			Start: {
-				[Op.gte]: new Date()
+			},
+			include: [req.db.Address, {
+				model: req.db.EventRegistration,
+				include: [req.db.Organisation]
 			}
-		},
-		include: [req.db.Address, {
-			model: req.db.EventRegistration,
-			include: [req.db.Organisation]
-		}
-		],
-		order: [
-			['Start']
-		]
-	}), req.db.Season.getCurrent(), req.db.EventCaption.findAll({
-		include: [req.db.Caption,
-			{
-				model: req.db.User,
-				where: {
-					id: req.session.user.id
-				}
-			}, {
-				model: req.db.Event,
-				include: [req.db.Address, {
-					model: req.db.EventRegistration,
-					where: {
-						TotalScore: {
-							[Op.ne]: null
-						}
-					}
-				}],
-				order: [['Start', 'DESC']]
-			}],
-		limit: 5
-	})]);
+			],
+			order: [
+				['Start']
+			]
+		}), req.db.Season.getCurrent()]);
 
 	if (req.session.band) {
 		const membership = await req.db.OrganisationMembership.findOne({
@@ -246,17 +200,14 @@ router.get('/home', async (req, res) => {
 		}
 	}
 
-	const hasFunctionality = req.session.user.IsAdmin || req.session.band != null || captions.length > 0;
+	const hasFunctionality = req.session.user.IsAdmin || req.session.band != null;
 
 	return res.render('index', {
 		title: 'Home',
 		hasFunctionality,
-		captions,
-		judgeEvents,
 		events,
 		messages,
 		adminStats,
-		scores
 	});
 });
 

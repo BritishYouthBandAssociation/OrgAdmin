@@ -10,54 +10,14 @@
 <div class="alert alert-danger text-center">The scores have already been released for this event - you are not able to make any changes to the scores</div>
 {{/unless}}
 
-<select class="form-control" id="bands">
-	<option value="">-- Please Select --</option>
-	{{#each event.EventRegistrations}}
-	<option value="{{id}}" {{#eq id ../currentRegistration.id}}selected{{/eq}}>{{Organisation.Name}} {{#if TotalScore}}- {{TotalScore}}{{/if}}</option>
-	{{/each}}
-</select>
-
-{{#if currentRegistration}}
-<hr />
-
 {{#if canEdit}}
 <form method="post">
 {{/if}}
-	<div class="row row-cols-1 row-cols-lg-2 row-cols-xl-3">
-		{{#each event.EventCaptions}}
-		<div class="col mb-3">
-			<div class="card card-body">
-				<p class="fs-4">{{Caption.Name}}</p>
-				{{#if User}}
-				<p class="fst-italic">Judged by {{User.FullName}}</p>
-				{{/if}}
-
-				<div class="row row-cols-2">
-					{{#each Caption.Subcaptions}}
-					<div class="col">
-						<div class="card">
-							<div class="card-header">{{Name}}</div>
-							<div class="card-body">
-								<div class="input-group">
-									<input type="number" name="score[]" class="form-control" step="0.01" min="0" max="{{MaxScore}}" value="{{EventRegistrationScore.RawScore}}"{{#unless ../../canEdit}} disabled{{/unless}}/>
-									<span class="input-group-text"> / {{MaxScore}}</span>
-								</div>
-							</div>
-						</div>
-						<input type="hidden" name="caption[]" value="{{id}}" />
-					</div>
-					{{/each}}
-				</div>
-			</div>
-		</div>
-		{{/each}}
-	</div>
 
 {{#if canEdit}}
 	<button class="btn btn-lg btn-success">Save</button>
 	<input type="hidden" name="registration" value="{{currentRegistration.id}}" />
 </form>
-{{/if}}
 {{/if}}
 
 <script>
