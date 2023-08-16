@@ -61,7 +61,7 @@
 			return;
 		}
 
-		await fetch("/_api/users/set-user", {
+		response = await fetch("/_api/users/set-user", {
 			method: 'POST',
 			headers: {
 				"Content-Type": "application/json"
