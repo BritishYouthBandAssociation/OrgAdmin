@@ -326,7 +326,6 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 			include: [
 				req.db.Address,
 				req.db.EventType,
-				req.db.EventCaption,
 				req.db.EventSchedule
 			]
 		}),
@@ -354,8 +353,6 @@ router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
 		title: event.Name,
 		event,
 		types,
-		totalCaptions: event.EventCaptions?.length ?? 0,
-		judgesAssigned: event.EventCaptions?.filter(ec => ec.JudgeId != null).length ?? 0,
 		organisationsRegistered: entries,
 		saved: req.query.saved ?? false,
 		hasSchedule: event.EventSchedules.length > 0,
@@ -459,139 +456,6 @@ router.post('/:id/registration', validator.params(idParamSchema), validator.body
 	});
 
 	return res.redirect('./?saved=true');
-});
-
-function filterCaptions(arr, caption) {
-	if (caption.Subcaptions.length > 0 && caption.Subcaptions[0].Subcaptions.length === 0) {
-		//we have found our weird mid-level!
-		arr.push(caption);
-		return arr;
-	}
-
-	caption.Subcaptions.forEach(c => {
-		arr = filterCaptions(arr, c);
-	});
-
-	return arr;
-}
-
-router.get('/:id/judges', validator.params(idParamSchema), validator.query(Joi.object({
-	add: Joi.number(),
-	success: Joi.boolean()
-})), async (req, res, next) => {
-	const event = await req.db.Event.findByPk(req.params.id, {
-		include: [{
-			model: req.db.EventCaption,
-			include: [req.db.Caption, req.db.User]
-		}]
-	});
-
-	if (!event) {
-		return next();
-	}
-
-	if (req.query.add && !event.EventCaptions.some(c => c.CaptionId === req.query.add)) {
-		req.db.EventCaption.create({
-			EventId: req.params.id,
-			CaptionId: req.query.add
-		});
-
-		return res.redirect('?success=true');
-	}
-
-	const captionData = await req.db.Caption.loadTree();
-	const noCaptions = captionData.length === 0;
-
-	let captions = [];
-	captionData.forEach(c => filterCaptions(captions, c));
-	captions = captions.filter(c => !event.EventCaptions.some(cap => cap.CaptionId === c.id));
-
-	res.render('event/judges.hbs', {
-		title: `Judges for ${event.Name}`,
-		event: event,
-		captions: captions,
-		success: req.query.success ?? false,
-		noCaptions
-	});
-});
-
-router.post('/:id/judges', validator.params(idParamSchema), validator.body(Joi.object({
-	caption: Joi.array()
-		.items(Joi.number()),
-	// eslint-disable-next-line camelcase
-	judge_search: Joi.array()
-		.items(Joi.string().allow('')),
-	judge: Joi.array()
-		.items(Joi.string().uuid().allow(''))
-})), async (req, res, next) => {
-	const event = await req.db.Event.findByPk(req.params.id);
-
-	if (!event) {
-		return next();
-	}
-
-	await Promise.all(req.body.judge.map((j, index) => {
-		if (j.trim().length === 0) {
-			j = null;
-		}
-
-		return req.db.EventCaption.update({
-			JudgeId: j
-		}, {
-			where: {
-				id: req.body.caption[index]
-			}
-		});
-	}));
-
-	res.redirect('?success=true');
-});
-
-router.post('/:id/judges/remove', validator.params(idParamSchema), validator.body(Joi.object({
-	caption: Joi.number()
-		.required()
-})), async (req, res, next) => {
-	const [event, caption] = await Promise.all([
-		req.db.Event.findByPk(req.params.id),
-		req.db.Caption.findByPk(req.body.caption)
-	]);
-
-	if (!event || !caption) {
-		return next();
-	}
-
-	await req.db.EventCaption.destroy({
-		where: {
-			EventId: event.id,
-			CaptionId: caption.id
-		}
-	});
-
-	res.redirect('./?success=true');
-});
-
-router.post('/:id/judges/reset', validator.params(idParamSchema), async (req, res, next) => {
-	const event = await req.db.Event.findByPk(req.params.id);
-	if (!event) {
-		return next();
-	}
-
-	const captions = await req.db.Caption.loadForJudges();
-
-	await req.db.EventCaption.destroy({
-		where: {
-			EventId: req.params.id
-		}
-	});
-
-	await Promise.all(captions.map(c => {
-		return req.db.EventCaption.create({
-			EventId: req.params.id,
-			CaptionId: c.id
-		});
-	}));
-
-	res.redirect('./?success=true');
 });
 
 router.get('/:id/organisations', validator.params(idParamSchema), validator.query(Joi.object({
@@ -923,7 +787,7 @@ router.post('/:id/schedule/automatic', checkAdmin, validator.body(Joi.object({
 	return res.redirect('manual?saved=true');
 });
 
-router.get('/:id/scores/:current?', async (req, res, next) => {
+router.get('/:id/scores', async (req, res, next) => {
 	const event = await req.db.Event.findByPk(req.params.id, {
 		include: [{
 			model: req.db.EventRegistration,
@@ -931,10 +795,6 @@ router.get('/:id/scores/:current?', async (req, res, next) => {
 				IsWithdrawn: false
 			},
 			include: [req.db.Organisation]
-		},
-		{
-			model: req.db.EventCaption,
-			include: [req.db.Caption, req.db.User]
 		}],
 		order: [
 			[req.db.EventRegistration, 'TotalScore']
@@ -945,10 +805,6 @@ router.get('/:id/scores/:current?', async (req, res, next) => {
 		return next();
 	}
 
-	await Promise.all(event.EventCaptions.map(ec => {
-		return req.db.Caption.loadCaption(ec.Caption, req.params.current);
-	}));
-
 	const currentRegistration = event.EventRegistrations.find(x => x.id == req.params.current);
 
 	return res.render('event/add-scores', {
@@ -958,59 +814,6 @@ router.get('/:id/scores/:current?', async (req, res, next) => {
 		currentRegistration,
 		canEdit: !event.ScoresReleased
 	});
-});
-
-router.post('/:id/scores/:current', async (req, res, next) => {
-	if (req.body.registration != req.params.current) {
-		return next();
-	}
-
-	const [event, registration] = await Promise.all([req.db.Event.findByPk(req.params.id), req.db.EventRegistration.findByPk(req.body.registration)]);
-
-	if (!event || !registration || event.ScoresReleased) {
-		return next();
-	}
-
-	//clear off scores, ready to go again!
-	await req.db.EventRegistrationScore.destroy({
-		where: {
-			EventRegistrationId: req.body.registration
-		}
-	});
-
-	let totalScore = 0;
-	let grandTotal = 0;
-	await Promise.all(req.body.score.map((score, index) => {
-		return (async function() {
-			if (isNaN(score) || score.trim().length == 0) {
-				return;
-			}
-
-			const caption = await req.db.Caption.findByPk(req.body.caption[index]);
-			const adjustedScore = score * caption.Multiplier;
-			const adjustedTotal = caption.MaxScore * caption.Multiplier;
-
-			totalScore += adjustedScore;
-			if (!caption.IsOptional) {
-				grandTotal += adjustedScore;
-			}
-
-			await req.db.EventRegistrationScore.create({
-				EventRegistrationId: req.body.registration,
-				CaptionId: caption.id,
-				RawScore: score,
-				RawMax: caption.MaxScore,
-				AdjustedScore: adjustedScore,
-				AdjustedMax: adjustedTotal,
-				AdjustmentMultiplier: caption.Multiplier
-			});
-		})();
-	}));
-
-	registration.TotalScore = grandTotal / 10.0;
-	await registration.save();
-
-	return res.redirect('?saved=true');
 });
 
 module.exports = {

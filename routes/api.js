@@ -104,29 +104,6 @@ router.delete('/membership/:id/labels/:label', validator.params(Joi.object({
 	});
 });
 
-router.get('/caption/:id/judges/search', validator.query(Joi.object({
-	q: Joi.string()
-		.required()
-})), validator.params(Joi.object({
-	id: Joi.number()
-		.required()
-})), async (req, res, next) => {
-	const caption = await req.db.Caption.findByPk(req.params.id);
-
-	if (!caption) {
-		return next();
-	}
-
-	const judges = await req.db.User.searchByName(req.query.q, [{
-		model: req.db.Caption,
-		where: {
-			id: caption.id
-		}
-	}]);
-
-	res.json(judges);
-});
-
 router.get('/event/:id', validator.params(Joi.object({
 	id: Joi.string().guid().required()
 })), async (req, res, next) => {
