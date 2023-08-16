@@ -40,7 +40,26 @@
 
 				<div class="card card-body mb-3">
 					<h3>Address</h3>
-					{{> address prefix="" required=false data=event.Address readOnly=session.user.IsNotAdmin }}
+					<div class="form-group mb-3">
+						<label class="form-label" for="lineOne">Address Line 1</label>
+						<input type="text" class="form-control" id="lineOne" name="lineOne" maxlength="100" placeholder="Address Line 1" required v-model="event.address.line1 ?? ''"/>
+					</div>
+
+					<div class="form-group mb-3">
+						<label class="form-label" for="lineTwo">Address Line 2</label>
+						<input type="text" class="form-control" id="lineTwo" name="lineTwo" maxlength="100" placeholder="Address Line 2" v-model="event.address.line2 ?? ''" />
+					</div>
+
+					<div class="form-group mb-3">
+						<label class="form-label" for="city">Town/City</label>
+						<input type="text" class="form-control" id="city" name="city" maxlength="100" placeholder="Town/City" required v-model="event.address.townCity ?? ''" />
+					</div>
+
+					<div class="form-group mb-3">
+						<label class="form-label" for="postcode">Postcode</label>
+						<input type="text" class="form-control" id="postcode" name="postcode" maxlength="10" placeholder="Postcode" required v-model="event.address.postcode ?? ''" />
+					</div>
+
 				</div>
 
 				{{#if session.user.IsAdmin}}
@@ -85,7 +104,7 @@
 				fetch(`https://dev.payload.byba.online/api/events/{{id}}`, {
 					method: "PATCH",
 					credentials: "include",
-					headers:{
+					headers: {
 						"Content-Type": "application/json"
 					},
 					body: JSON.stringify(this.event)
