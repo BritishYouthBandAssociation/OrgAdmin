@@ -54,7 +54,7 @@
 
 		let json = await response.json();
 
-		if(response.status / 100 != 2){
+		if(response.status !== 200){
 			email.disabled = false;
 			password.disabled = false;
 			showErrors(json.errors);
@@ -73,7 +73,7 @@
 			})
 		});
 
-		if(response.status / 100 != 2){
+		if(response.status !== 200){
 			showErrors([{message: "A catastrophic error occurred. Please contact support at communications@byba.online"}]);
 			return;
 		}
