@@ -2,12 +2,9 @@
 <div class="card card-body">
 	<p>Enter your credentials into the form below to log in</p>
 
-	<form method="post">
-		{{#if error}}
-		<div class="alert alert-danger">
-			{{error}}
+	<form id="login" method="post">
+		<div id="error" class="alert alert-danger d-none">
 		</div>
-		{{/if}}
 
 		<div class="form-floating mb-3">
 			<input type="email" name="email" id="email" maxlength="255" placeholder="Email address" class="form-control" value="{{email}}" required />
@@ -25,3 +22,62 @@
 	</form>
 
 </div>
+
+<script>
+	const error = document.getElementById("error");
+	const form = document.getElementById("login");
+	const email = document.getElementById("email");
+	const password = document.getElementById("password");
+
+	function showErrors(errors){
+		error.innerHTML = errors.map(e => e.message).join("<br />");
+		error.classList.remove("d-none");
+	}
+
+	form.addEventListener("submit", async (e) => {
+		e.preventDefault();
+		error.classList.add("d-none");
+		email.disabled = true;
+		password.disabled = true;
+		
+		let response = await fetch("https://dev.payload.byba.online/api/users/login", {
+			method: 'POST',
+			headers: {
+				"Content-Type": "application/json"
+			},
+			credentials: 'include',
+			body: JSON.stringify({
+				email: email.value,
+				password: password.value
+			})
+		});
+
+		let json = await response.json();
+
+		if(response.status !== 200){
+			email.disabled = false;
+			password.disabled = false;
+			showErrors(json.errors);
+			return;
+		}
+
+		response = await fetch("/_api/users/set-user", {
+			method: 'POST',
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({
+				email: email.value,
+				password: password.value,
+				payload: json
+			})
+		});
+
+		if(response.status !== 200){
+			showErrors([{message: "A catastrophic error occurred. Please contact support at communications@byba.online"}]);
+			return;
+		}
+
+		window.location.href = "/home";
+	});
+</script>

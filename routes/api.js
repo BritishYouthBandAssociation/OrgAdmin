@@ -180,6 +180,27 @@ router.post('/labels/new', validator.body(Joi.object({
 	});
 });
 
+router.post('/users/set-user', async (req, res) => {
+	let match = await req.db.User.findOne({
+		where: {
+			PayloadId: req.body.payload.user.id
+		}
+	});
+
+	if (!match){
+		match = await req.db.User.findByEmail(req.body.email);
+		if (!await match?.validPassword(req.body.password)){
+			return res.status(401).json({error: 'Could not map payload user to local user'});
+		}
+
+		match.PayloadId = req.body.payload.user.id;
+		await match.save();
+	}
+
+	req.session.user = match;
+	req.session.save(() => res.sendStatus(200));
+});
+
 module.exports = {
 	root: '/_api/',
 	router: router
