@@ -3,7 +3,27 @@
 
 	<div class='alert alert-success text-center' v-if="saved">Changes saved successfully!</div>
 
+	<div class="alert alert-danger text-center" v-if="errors.length > 0">
+		<p>Please fix the following errors:</p>
+		<ul>
+			<li v-for="error in errors">${error}</li>
+		</ul>
+	</div>
+
 	<div v-if="event != null">
+
+		<div class="row row-cols-5 mb-3 d-none d-lg-flex">
+			<div class="col" v-for="(status, i) in statuses">
+				<div class="card card-body text-center h4 header h-100" :class="{'text-bg-success' : i < selectedStatusIndex, 'text-bg-primary' : i == selectedStatusIndex}" @click="setStatus(status)">${status}</div>
+			</div>
+		</div>
+
+		<div class='form-group mb-3 d-lg-none'>
+			<label class='form-label' for='status'>Status</label>
+			<select id="status" name="status" class="form-control" v-model="event.status">
+				<option v-for="(status, i) in statuses" :value="status.toLowerCase()">${status}</option>
+			</select>
+		</div>
 
 		<div class='card card-body mb-3'>
 			<h3 class='text-center'>Event Details</h3>
@@ -23,41 +43,34 @@
 				<div class='row row-cols-1 row-cols-lg-2'>
 					<div class='col form-group mb-3'>
 						<label class='form-label' for='start'>Start</label>
-						<input type='time' class='form-control' id='start' name='start' v-model="event.startTime" required />
+						<input type='time' class='form-control' id='start' name='start' v-model="event.startTime" />
 					</div>
 					<div class='col form-group mb-3'>
 						<label class='form-label' for='end'>End Time</label>
-						<input type='time' class='form-control' id='end' name='end' v-model="event.endTime" required />
+						<input type='time' class='form-control' id='end' name='end' v-model="event.endTime" />
 					</div>
-				</div>
-
-				<div class='form-group mb-3'>
-					<label class='form-label' for='status'>Status</label>
-					<select id="status" name="status" class="form-control" v-model="event.status">
-						<option v-for="status in statuses" :value="status.toLowerCase()">${status}</option>
-					</select>
 				</div>
 
 				<div class="card card-body mb-3">
 					<h3>Address</h3>
 					<div class="form-group mb-3">
 						<label class="form-label" for="lineOne">Address Line 1</label>
-						<input type="text" class="form-control" id="lineOne" name="lineOne" maxlength="100" placeholder="Address Line 1" required v-model="event.address.line1 ?? ''"/>
+						<input type="text" class="form-control" id="lineOne" name="lineOne" maxlength="100" placeholder="Address Line 1" v-model="event.address.line1" />
 					</div>
 
 					<div class="form-group mb-3">
 						<label class="form-label" for="lineTwo">Address Line 2</label>
-						<input type="text" class="form-control" id="lineTwo" name="lineTwo" maxlength="100" placeholder="Address Line 2" v-model="event.address.line2 ?? ''" />
+						<input type="text" class="form-control" id="lineTwo" name="lineTwo" maxlength="100" placeholder="Address Line 2" v-model="event.address.line2" />
 					</div>
 
 					<div class="form-group mb-3">
 						<label class="form-label" for="city">Town/City</label>
-						<input type="text" class="form-control" id="city" name="city" maxlength="100" placeholder="Town/City" required v-model="event.address.townCity ?? ''" />
+						<input type="text" class="form-control" id="city" name="city" maxlength="100" placeholder="Town/City" v-model="event.address.townCity" />
 					</div>
 
 					<div class="form-group mb-3">
 						<label class="form-label" for="postcode">Postcode</label>
-						<input type="text" class="form-control" id="postcode" name="postcode" maxlength="10" placeholder="Postcode" required v-model="event.address.postcode ?? ''" />
+						<input type="text" class="form-control" id="postcode" name="postcode" maxlength="10" placeholder="Postcode" v-model="event.address.postcode" />
 					</div>
 
 				</div>
@@ -80,7 +93,9 @@
 		data: {
 			event: null,
 			saved: false,
-			statuses: ["Draft", "Internal", "Announced", "Finalised", "Complete"]
+			statuses: ["Draft", "Internal", "Announced", "Finalised", "Complete"],
+			selectedStatusIndex: -1,
+			errors: []
 		},
 		mounted: function () {
 			fetch(`https://dev.payload.byba.online/api/events/{{id}}`, {
@@ -89,8 +104,7 @@
 				.then(json => {
 					this.event = json;
 					this.event.date = this.getDate(this.event.date);
-
-					console.log(this.event);
+					this.selectedStatusIndex = this.statuses.findIndex(s => s.toLowerCase() === this.event.status);
 
 					document.title = document.title.replace("Loading...", json.name);
 				});
@@ -100,7 +114,20 @@
 				const date = new Date(rawDate);
 				return [date.getFullYear(), (date.getMonth() + 1).toString().padStart(2, "0"), date.getDate().toString().padStart(2, "0")].join("-");
 			},
+			setStatus: function (status) {
+				this.event.status = status.toLowerCase();
+				this.selectedStatusIndex = this.statuses.findIndex(s => s.toLowerCase() === this.event.status);
+			},
 			save: function () {
+				this.saved = false;
+				if (!this.validate()) {
+					window.scrollTo({
+						top: 0,
+						behavior: 'smooth'
+					});
+					return false;
+				}
+
 				fetch(`https://dev.payload.byba.online/api/events/{{id}}`, {
 					method: "PATCH",
 					credentials: "include",
@@ -108,7 +135,61 @@
 						"Content-Type": "application/json"
 					},
 					body: JSON.stringify(this.event)
+				}).then(res => {
+					if (res.status == 200) {
+						this.saved = true;
+						return;
+					}
+
+					return res.json()
+				}).then(json => {
+					if (!json) {
+						return;
+					}
+
+					this.errors = json.errors.flatMap(e => {
+						if (e.data) {
+							return e.data.map(d => `${d.field} is invalid: ${d.message}`);
+						}
+						return e.message;
+					});
+					window.scrollTo({
+						top: 0,
+						behavior: 'smooth'
+					});
 				})
+			},
+			validate: function () {
+				this.errors = [];
+
+				if (this.event.status == "draft") {
+					return true;
+				}
+
+				if (this.event.name.trim() === "") {
+					this.errors.push("You must enter a name for this event");
+				} else if (isNaN(new Date(this.event.date))) {
+					this.errors.push("You must enter a valid date for this event");
+				} else if (this.event.status === "internal") {
+					return true;
+				}
+
+				if (this.event.address?.line1?.trim() === "") {
+					this.errors.push("You must enter the first line of the address for this event");
+				} else if (this.event.address?.townCity?.trim() === "") {
+					this.errors.push("You must enter the town for this event");
+				} else if (this.event.address?.postcode?.trim() === "") {
+					this.errors.push("You must enter the postcode for this event");
+				} else if (this.event.status === "announced" && this.errors.length === 0) {
+					return true;
+				}
+
+				//TODO - we don't have schedule or score functionality yet
+				if (["finalised", "complete"].includes(this.event.status)) {
+					this.errors.push(`"${this.event.status}" status is not currently supported`);
+				}
+
+				return false;
 			}
 		}
 	});
