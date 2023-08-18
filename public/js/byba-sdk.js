@@ -7,6 +7,12 @@ let byba = {};
 
 	let user = JSON.parse(localStorage.getItem('user'));
 
+	//temp
+	function fixDate(d){
+		const date = new Date(d);
+		return [date.getDay().toString().padStart(2, '0'), (date.getMonth() + 1).toString().padStart(2, '0'), date.getFullYear()].join('/');
+	}
+
 	async function makeAPIRequest(url, options = {}){
 		options.credentials = 'include';
 		options.headers ??= {};
@@ -15,14 +21,31 @@ let byba = {};
 		const response = await fetch(`${BASE_API}${url}`, options);
 		const json = await response.json();
 
-		return {
+		const result = {
 			status: response.status,
-			json
+			json,
+			success: Math.floor(response.status / 100) == 2
 		};
+
+		if (json.errors){
+			result.errors = json.errors.flatMap(e => {
+				if (e.name === 'ValidationError' && e.data){
+					return e.data.map(d => `${d.field} is invalid: ${d.message}`);
+				}
+
+				return e.message;
+			});
+		}
+
+		return result;
 	}
 
 	//Read
-	async function get(url){
+	async function get(url, queryParams = null){
+		if (queryParams != null){
+			url += `?${new URLSearchParams(queryParams)}`;
+		}
+
 		return await makeAPIRequest(url);
 	}
 
@@ -59,26 +82,35 @@ let byba = {};
 		},
 
 		events: {
-			list(){
-				return get('/events');
+			async list(sort = false){
+				const query = sort ? {sort: 'date'} : null;
+				return await get('/events', query);
 			},
 
-			get(id){
-				return get(`/events/${id}`);
+			async get(id){
+				return await get(`/events/${id}`);
 			},
 
-			update(id, data){
-				return patch(`/events/${id}`, data);
+			async update(id, data){
+				const _origDate = data.date;
+				data.date = fixDate(data.date);
+				const response = await patch(`/events/${id}`, data);
+				data.date = _origDate;
+				return response;
+			},
+
+			async create(name, date, startTime, endTime){
+				return await post('/events/', {name, date: fixDate(date), startTime, endTime});
 			}
 		},
 
 		seasons: {
-			getCurrent(){
-				return get('/seasons/current');
+			async getCurrent(){
+				return await get('/seasons/current');
 			},
 
-			list(){
-				return get('/seasons');
+			async list(){
+				return await get('/seasons');
 			}
 		}
 	};

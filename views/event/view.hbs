@@ -150,7 +150,7 @@
 			validate: function () {
 				this.errors = [];
 
-				if(!canEdit){
+				if(!this.canEdit){
 					this.errors.push("You do not have permission to edit this event");
 					return false;
 				}

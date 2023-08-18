@@ -6,7 +6,7 @@
 			<p class='mt-3 mb-3'>Displaying all <b>${events.length}</b> Events on record</p>
 
 			<div class='row row-cols-1 row-cols-lg-2 align-items-center p-3'>
-				<div class="col order-1 order-lg-2 mb-3 mt-lg-3">
+				<div class="col order-1 order-lg-2 mb-3 mt-lg-3" v-if="isAdmin">
 					<a class='btn btn-light me-sm-3 mb-3 mb-sm-0' href='new'>+ Add Event</a>
 				</div>
 
@@ -55,14 +55,15 @@
 			events: [],
 			seasons: [],
 			loading: true,
-			currentSeason: null
+			currentSeason: null,
+			isAdmin: byba.amAdmin()
 		},
 		methods: {
 			loadEvents(season) {
 				this.loading = true;
 				this.events = [];
 				
-				byba.events.list().then(response => {
+				byba.events.list(true).then(response => {
 						this.events = response.json.docs;
 						this.loading = false;
 					});

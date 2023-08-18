@@ -1,46 +1,73 @@
 <h2>Add Event</h2>
+<div id="app">
+	<div class="alert alert-danger text-center" v-if="errors.length > 0">
+		<p>Please fix the following errors:</p>
+		<ul>
+			<li v-for="error in errors">${error}</li>
+		</ul>
+	</div>
 
-{{#eq types.length 0}}
-	<div class="alert alert-warning text-center">There are no event types currently configured. {{#if session.user.IsAdmin}}You must <a href="/config/event-type/">create one</a> before creating an event{{else}}Please contact your system administrator{{/if}}.</div>
-{{/eq}}
-
-{{#if error}}
-	<div class="alert alert-danger text-center">An error occurred. Please check your entries and try again.</div>
-{{/if}}
-
-<form method='post'>
-	<div class='mb-3'>
-		<div class='card card-body'>
-			<h3>Event Details</h3>
-			<div class='row row-cols-1 row-cols-lg-2 form'>
-				<div class='col form-group mb-3'>
-					<label class='form-label' for='name'>Name</label>
-					<input type='text' class='form-control' id='name' name='name' placeholder='Name' maxlength="255" required />
+	<form method='post' @submit.prevent="save">
+		<div class='mb-3'>
+			<div class='card card-body'>
+				<h3>Event Details</h3>
+				<div class='row row-cols-1 row-cols-lg-2 form'>
+					<div class='col form-group mb-3'>
+						<label class='form-label' for='name'>Name</label>
+						<input type='text' class='form-control' id='name' name='name' placeholder='Name' maxlength="255" v-model="event.name" required />
+					</div>
+					<div class='col form-group text-start mb-3'>
+						<label class='form-label' for='date'>Date</label>
+						<input type="date" class="form-control" v-model="event.date" required>
+					</div>
 				</div>
-				<div class='col form-group text-start mb-3'>
-					<label class='form-label' for='type'>Event Type</label>
-					<select id='type' class='form-control' name='type' required>
-						<option value="">-- Please Select --</option>
-						{{#each types}}
-							<option value='{{this.id}}'>{{this.Name}}</option>
-						{{/each}}
-					</select>
-				</div>
-			</div>
-			<div class='row row-cols-1 row-cols-lg-2 mb-3'>
-				<div class='col form-group mb-3'>
-					<label class='form-label' for='start'>Start</label>
-					<input type='datetime-local' class='form-control' id='start' name='start' required />
-				</div>
-				<div class='col form-group'>
-					<label class='form-label' for='end'>End Time</label>
-					<input type='datetime-local' class='form-control' id='end' name='end' required />
+				<div class='row row-cols-1 row-cols-lg-2 mb-3'>
+					<div class='col form-group mb-3'>
+						<label class='form-label' for='start'>Start Time</label>
+						<input type='time' class='form-control' id='start' name='start' required v-model="event.start" />
+					</div>
+					<div class='col form-group'>
+						<label class='form-label' for='end'>End Time</label>
+						<input type='time' class='form-control' id='end' name='end' required v-model="event.end" />
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
 
-	<input type="hidden" name="season" value="{{season.id}}" />
+		<button class='btn btn-default'>Add Event</button>
+	</form>
+</div>
 
-	<button class='btn btn-default'>Add Event</button>
-</form>
+<script src="/js/vue.js"></script>
+<script src="/js/byba-sdk.js"></script>
+<script>
+	if (!byba.amAdmin()) {
+		window.location.href = "/event";
+	}
+
+	const app = new Vue({
+		delimiters: ['${', '}'],
+		el: '#app',
+		data: {
+			errors: [],
+			event: {
+				name: "",
+				date: null,
+				start: "12:00",
+				end: "17:00"
+			}
+		},
+		methods: {
+			save() {
+				byba.events.create(this.event.name, this.event.date, this.event.start, this.event.end).then(response => {
+					if (!response.success) {
+						this.errors = response.errors;
+						return;
+					}
+
+					window.location.href = response.json.doc.id;
+				});
+			}
+		}
+	});
+</script>
