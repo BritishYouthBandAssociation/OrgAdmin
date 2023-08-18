@@ -31,7 +31,7 @@
 	const password = document.getElementById("password");
 
 	function showErrors(errors){
-		error.innerHTML = errors.map(e => e.message).join("<br />");
+		error.innerHTML = errors.join("<br />");
 		error.classList.remove("d-none");
 	}
 
@@ -46,7 +46,7 @@
 		if(response.status !== 200){
 			email.disabled = false;
 			password.disabled = false;
-			showErrors(response.json.errors);
+			showErrors(response.errors);
 			return;
 		}
 
