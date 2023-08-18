@@ -46,6 +46,7 @@
 </div>
 
 <script src="/js/vue.js"></script>
+<script src="/js/byba-sdk.js"></script>
 <script>
 	const app = new Vue({
 		delimiters: ['${', '}'],
@@ -61,29 +62,19 @@
 				this.loading = true;
 				this.events = [];
 				
-				fetch(`https://dev.payload.byba.online/api/events`, {
-					credentials: 'include'
-				}).then(res => res.json())
-					.then(json => {
-						this.events = json.docs;
+				byba.events.list().then(response => {
+						this.events = response.json.docs;
 						this.loading = false;
 					});
 			}
 		},
 		mounted: function () {
-			fetch("https://dev.payload.byba.online/api/seasons/current", {
-				credentials: 'include'
-			})
-				.then(res => res.json())
-				.then(json => {
-					this.currentSeason = json.id;
-					this.loadEvents(json.id);
+			byba.seasons.getCurrent().then(response => {
+					this.currentSeason = response.json.id;
+					this.loadEvents(response.json.id);
 				});
 
-			fetch("https://dev.payload.byba.online/api/seasons", {
-				credentials: 'include'
-			}).then(res => res.json())
-			.then(json => this.seasons = json.docs);
+			byba.seasons.list().then(response => this.seasons = response.json.docs);
 		}
 	});
 </script>

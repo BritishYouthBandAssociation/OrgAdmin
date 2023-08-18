@@ -289,47 +289,10 @@ router.post('/new', validator.body(Joi.object({
 	return res.redirect(`${event.id}/`);
 });
 
-router.get('/:id', validator.params(idParamSchema), validator.query(Joi.object({
-	saved: Joi.boolean(),
-	error: Joi.string()
-})), async (req, res, next) => {
-	const [event, types, entries] = await Promise.all([
-		req.db.Event.findByPk(req.params.id, {
-			include: [
-				req.db.Address,
-				req.db.EventType,
-				req.db.EventSchedule
-			]
-		}),
-		req.db.EventType.getActive(),
-		req.db.EventRegistration.count({
-			where: {
-				EventId: req.params.id,
-				IsWithdrawn: false
-			}
-		})
-	]);
-
-	if (!event) {
-		return next();
-	}
-
-	const missingScore = await req.db.EventRegistration.findOne({
-		where: {
-			EventId: event.id,
-			TotalScore: null
-		}
-	});
-
+router.get('/:id', (req, res) => {
 	return res.render('event/view.hbs', {
-		title: event.Name,
-		event,
-		types,
-		organisationsRegistered: entries,
-		saved: req.query.saved ?? false,
-		hasSchedule: event.EventSchedules.length > 0,
-		hasScores: !missingScore,
-		error: req.query.error
+		title: 'Loading...',
+		id: req.params.id
 	});
 });
 

@@ -14,13 +14,13 @@
 
 		<div class="row row-cols-5 mb-3 d-none d-lg-flex">
 			<div class="col" v-for="(status, i) in statuses">
-				<div class="card card-body text-center h4 header h-100" :class="{'text-bg-success' : i < selectedStatusIndex, 'text-bg-primary' : i == selectedStatusIndex}" @click="setStatus(status)">${status}</div>
+				<div class="card card-body text-center h4 header h-100" :class="{'text-bg-success' : i < selectedStatusIndex, 'text-bg-primary' : i == selectedStatusIndex, 'disabled': !canEdit}" @click="setStatus(status)">${status}</div>
 			</div>
 		</div>
 
 		<div class='form-group mb-3 d-lg-none'>
 			<label class='form-label' for='status'>Status</label>
-			<select id="status" name="status" class="form-control" v-model="event.status">
+			<select id="status" name="status" class="form-control" v-model="event.status" :disabled="!canEdit">
 				<option v-for="(status, i) in statuses" :value="status.toLowerCase()">${status}</option>
 			</select>
 		</div>
@@ -31,23 +31,23 @@
 				<div class="row row-cols-1 row-cols-lg-2">
 					<div class='col form-group mb-3'>
 						<label class='form-label' for='name'>Name</label>
-						<input type='text' class='form-control' id='name' name='name' placeholder='Name' v-model='event.name' maxlength="255" required />
+						<input type='text' class='form-control' id='name' name='name' placeholder='Name' v-model='event.name' maxlength="255" required :disabled="!canEdit"/>
 					</div>
 
 					<div class='col form-group mb-3'>
 						<label class='form-label' for='date'>Date</label>
-						<input type='date' class='form-control' id='date' name='date' placeholder='Date' v-model='event.date' required />
+						<input type='date' class='form-control' id='date' name='date' placeholder='Date' v-model='event.date' required :disabled="!canEdit"/>
 					</div>
 				</div>
 
 				<div class='row row-cols-1 row-cols-lg-2'>
 					<div class='col form-group mb-3'>
 						<label class='form-label' for='start'>Start</label>
-						<input type='time' class='form-control' id='start' name='start' v-model="event.startTime" />
+						<input type='time' class='form-control' id='start' name='start' v-model="event.startTime" :disabled="!canEdit"/>
 					</div>
 					<div class='col form-group mb-3'>
 						<label class='form-label' for='end'>End Time</label>
-						<input type='time' class='form-control' id='end' name='end' v-model="event.endTime" />
+						<input type='time' class='form-control' id='end' name='end' v-model="event.endTime" :disabled="!canEdit"/>
 					</div>
 				</div>
 
@@ -55,37 +55,36 @@
 					<h3>Address</h3>
 					<div class="form-group mb-3">
 						<label class="form-label" for="lineOne">Address Line 1</label>
-						<input type="text" class="form-control" id="lineOne" name="lineOne" maxlength="100" placeholder="Address Line 1" v-model="event.address.line1" />
+						<input type="text" class="form-control" id="lineOne" name="lineOne" maxlength="100" placeholder="Address Line 1" v-model="event.address.line1" :disabled="!canEdit"/>
 					</div>
 
 					<div class="form-group mb-3">
 						<label class="form-label" for="lineTwo">Address Line 2</label>
-						<input type="text" class="form-control" id="lineTwo" name="lineTwo" maxlength="100" placeholder="Address Line 2" v-model="event.address.line2" />
+						<input type="text" class="form-control" id="lineTwo" name="lineTwo" maxlength="100" placeholder="Address Line 2" v-model="event.address.line2" :disabled="!canEdit"/>
 					</div>
 
 					<div class="form-group mb-3">
 						<label class="form-label" for="city">Town/City</label>
-						<input type="text" class="form-control" id="city" name="city" maxlength="100" placeholder="Town/City" v-model="event.address.townCity" />
+						<input type="text" class="form-control" id="city" name="city" maxlength="100" placeholder="Town/City" v-model="event.address.townCity" :disabled="!canEdit"/>
 					</div>
 
 					<div class="form-group mb-3">
 						<label class="form-label" for="postcode">Postcode</label>
-						<input type="text" class="form-control" id="postcode" name="postcode" maxlength="10" placeholder="Postcode" v-model="event.address.postcode" />
+						<input type="text" class="form-control" id="postcode" name="postcode" maxlength="10" placeholder="Postcode" v-model="event.address.postcode" :disabled="!canEdit"/>
 					</div>
 
 				</div>
 
-				{{#if session.user.IsAdmin}}
-				<div class='text-center'>
+				<div class='text-center' v-if="canEdit">
 					<button class='btn btn-default'>Save</button>
 				</div>
 			</form>
-			{{/if}}
 		</div>
 	</div>
 </div>
 
 <script src="/js/vue.js"></script>
+<script src="/js/byba-sdk.js"></script>
 <script>
 	const app = new Vue({
 		delimiters: ['${', '}'],
@@ -95,13 +94,12 @@
 			saved: false,
 			statuses: ["Draft", "Internal", "Announced", "Finalised", "Complete"],
 			selectedStatusIndex: -1,
-			errors: []
+			errors: [],
+			canEdit: byba.amAdmin() || byba.creator(this.event)
 		},
 		mounted: function () {
-			fetch(`https://dev.payload.byba.online/api/events/{{id}}`, {
-				credentials: "include"
-			}).then(res => res.json())
-				.then(json => {
+			byba.events.get('{{id}}')
+				.then(({json}) => {
 					this.event = json;
 					this.event.date = this.getDate(this.event.date);
 					this.selectedStatusIndex = this.statuses.findIndex(s => s.toLowerCase() === this.event.status);
@@ -115,6 +113,10 @@
 				return [date.getFullYear(), (date.getMonth() + 1).toString().padStart(2, "0"), date.getDate().toString().padStart(2, "0")].join("-");
 			},
 			setStatus: function (status) {
+				if(!this.canEdit){
+					return;
+				}
+
 				this.event.status = status.toLowerCase();
 				this.selectedStatusIndex = this.statuses.findIndex(s => s.toLowerCase() === this.event.status);
 			},
@@ -128,26 +130,12 @@
 					return false;
 				}
 
-				fetch(`https://dev.payload.byba.online/api/events/{{id}}`, {
-					method: "PATCH",
-					credentials: "include",
-					headers: {
-						"Content-Type": "application/json"
-					},
-					body: JSON.stringify(this.event)
-				}).then(res => {
-					if (res.status == 200) {
-						this.saved = true;
+				byba.events.update("{{id}}", this.event).then(response => {
+					if (response.status === 200) {
 						return;
 					}
 
-					return res.json()
-				}).then(json => {
-					if (!json) {
-						return;
-					}
-
-					this.errors = json.errors.flatMap(e => {
+					this.errors = response.json.errors.flatMap(e => {
 						if (e.data) {
 							return e.data.map(d => `${d.field} is invalid: ${d.message}`);
 						}
@@ -161,6 +149,11 @@
 			},
 			validate: function () {
 				this.errors = [];
+
+				if(!canEdit){
+					this.errors.push("You do not have permission to edit this event");
+					return false;
+				}
 
 				if (this.event.status == "draft") {
 					return true;
