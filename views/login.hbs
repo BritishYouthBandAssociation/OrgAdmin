@@ -46,7 +46,7 @@
 		if(response.status !== 200){
 			email.disabled = false;
 			password.disabled = false;
-			showErrors(json.errors);
+			showErrors(response.json.errors);
 			return;
 		}
 
