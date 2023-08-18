@@ -78,8 +78,12 @@ let byba = {};
 	byba = {
 		async login(email, password) {
 			const response = await post('/users/login', { email, password });
-			user = response.json.user;
-			localStorage.setItem('user', JSON.stringify(user));
+
+			if (response.success){
+				user = response.json.user;
+				localStorage.setItem('user', JSON.stringify(user));
+			}
+
 			return response;
 		},
 
