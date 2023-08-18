@@ -135,12 +135,7 @@
 						return;
 					}
 
-					this.errors = response.json.errors.flatMap(e => {
-						if (e.data) {
-							return e.data.map(d => `${d.field} is invalid: ${d.message}`);
-						}
-						return e.message;
-					});
+					this.errors = response.errors;
 					window.scrollTo({
 						top: 0,
 						behavior: 'smooth'

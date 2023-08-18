@@ -2,47 +2,57 @@
 
 let byba = {};
 
-(function(){
+(function() {
 	const BASE_API = 'https://dev.payload.byba.online/api';
 
 	let user = JSON.parse(localStorage.getItem('user'));
 
 	//temp
-	function fixDate(d){
+	function fixDate(d) {
 		const date = new Date(d);
 		return [date.getDay().toString().padStart(2, '0'), (date.getMonth() + 1).toString().padStart(2, '0'), date.getFullYear()].join('/');
 	}
 
-	async function makeAPIRequest(url, options = {}){
+	async function makeAPIRequest(url, options = {}) {
 		options.credentials = 'include';
 		options.headers ??= {};
 		options.headers['Content-Type'] = 'application/json';
 
-		const response = await fetch(`${BASE_API}${url}`, options);
-		const json = await response.json();
+		try {
+			const response = await fetch(`${BASE_API}${url}`, options);
+			const json = await response.json();
 
-		const result = {
-			status: response.status,
-			json,
-			success: Math.floor(response.status / 100) == 2
-		};
+			const result = {
+				status: response.status,
+				json,
+				success: Math.floor(response.status / 100) == 2
+			};
 
-		if (json.errors){
-			result.errors = json.errors.flatMap(e => {
-				if (e.name === 'ValidationError' && e.data){
-					return e.data.map(d => `${d.field} is invalid: ${d.message}`);
-				}
+			if (json.errors) {
+				result.errors = json.errors.flatMap(e => {
+					if (e.name === 'ValidationError' && e.data) {
+						return e.data.map(d => `${d.field} is invalid: ${d.message}`);
+					}
 
-				return e.message;
-			});
+					return e.message;
+				});
+			}
+
+			return result;
+		} catch (ex){
+			//usually only network interruptions?
+			return {
+				status: 500,
+				exception: ex,
+				success: false,
+				errors: ['An unexpected error occurred. Please try again!']
+			};
 		}
-
-		return result;
 	}
 
 	//Read
-	async function get(url, queryParams = null){
-		if (queryParams != null){
+	async function get(url, queryParams = null) {
+		if (queryParams != null) {
 			url += `?${new URLSearchParams(queryParams)}`;
 		}
 
@@ -50,7 +60,7 @@ let byba = {};
 	}
 
 	//Create
-	async function post(url, body){
+	async function post(url, body) {
 		return await makeAPIRequest(url, {
 			method: 'POST',
 			body: JSON.stringify(body),
@@ -58,7 +68,7 @@ let byba = {};
 	}
 
 	//Update
-	async function patch(url, body){
+	async function patch(url, body) {
 		return await makeAPIRequest(url, {
 			method: 'PATCH',
 			body: JSON.stringify(body)
@@ -66,32 +76,32 @@ let byba = {};
 	}
 
 	byba = {
-		async login(email, password){
-			const response = await post('/users/login', {email, password});
+		async login(email, password) {
+			const response = await post('/users/login', { email, password });
 			user = response.json.user;
 			localStorage.setItem('user', JSON.stringify(user));
 			return response;
 		},
 
-		amAdmin(){
+		amAdmin() {
 			return user?.role === 'admin';
 		},
 
-		creator(resource = null){
+		creator(resource = null) {
 			return resource?.createdBy === user.id;
 		},
 
 		events: {
-			async list(sort = false){
-				const query = sort ? {sort: 'date'} : null;
+			async list(sort = false) {
+				const query = sort ? { sort: 'date' } : null;
 				return await get('/events', query);
 			},
 
-			async get(id){
+			async get(id) {
 				return await get(`/events/${id}`);
 			},
 
-			async update(id, data){
+			async update(id, data) {
 				const _origDate = data.date;
 				data.date = fixDate(data.date);
 				const response = await patch(`/events/${id}`, data);
@@ -99,17 +109,17 @@ let byba = {};
 				return response;
 			},
 
-			async create(name, date, startTime, endTime){
-				return await post('/events/', {name, date: fixDate(date), startTime, endTime});
+			async create(name, date, startTime, endTime) {
+				return await post('/events/', { name, date: fixDate(date), startTime, endTime });
 			}
 		},
 
 		seasons: {
-			async getCurrent(){
+			async getCurrent() {
 				return await get('/seasons/current');
 			},
 
-			async list(){
+			async list() {
 				return await get('/seasons');
 			}
 		}
