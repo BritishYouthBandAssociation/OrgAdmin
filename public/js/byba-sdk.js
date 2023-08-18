@@ -1,10 +1,10 @@
 'use strict';
 
+/* global BASE_API */
+
 let byba = {};
 
 (function() {
-	const BASE_API = 'https://dev.payload.byba.online/api';
-
 	let user = JSON.parse(localStorage.getItem('user'));
 
 	//temp
@@ -25,7 +25,7 @@ let byba = {};
 			const result = {
 				status: response.status,
 				json,
-				success: Math.floor(response.status / 100) == 2
+				success: Math.floor(response.status / 100) === 2
 			};
 
 			if (json.errors) {

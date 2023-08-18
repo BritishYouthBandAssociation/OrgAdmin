@@ -3,5 +3,6 @@
 	"noAuthRequired": ["/", "/organisation/new", "/organisation/registration/"],
 	"logging": true,
 	"uploadServer": "",
-	"uploadSecret": ""
+	"uploadSecret": "",
+	"apiBase": "https://payload.byba.online/api"
 }
