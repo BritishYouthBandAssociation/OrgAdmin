@@ -1,175 +1,175 @@
 <!DOCTYPE html>
 <html lang='en'>
 
-<head>
-	{{> head title=title }}
-</head>
+	<head>
+		{{> head title=title }}
+		<script>
+			const BASE_API = "{{getConfigValue 'config/server' 'apiBase' ''}}";
+		</script>
+	</head>
 
-<body>
-	<main>
-		<nav class="navbar d-lg-none navbar-dark bg-default">
-			<div class="container-fluid">
-				<a class="navbar-brand" href="#">{{getConfigValue 'config/site' 'title' 'Org' }}</a>
-				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">
-					<span class="navbar-toggler-icon"></span>
-				</button>
-			</div>
-		</nav>
+	<body>
+		<main>
+			<nav class="navbar d-lg-none navbar-dark bg-default">
+				<div class="container-fluid">
+					<a class="navbar-brand" href="#">{{getConfigValue 'config/site' 'title' 'Org' }}</a>
+					<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">
+						<span class="navbar-toggler-icon"></span>
+					</button>
+				</div>
+			</nav>
 
-		<nav class="collapse d-lg-flex flex-column flex-shrink-0 p-3 text-white bg-default sidebar" id="sidebar">
-			<a href="/" class="text-white text-decoration-none d-none d-lg-block">
-				<img src="/assets/logo.png" class="mx-auto d-block" height="142" width="150" />
-				<h1 class="fs-4 text-center mt-2">{{getConfigValue 'config/site' 'title' 'Org' }}</h1>
-			</a>
-			{{#if session.user.IsAdmin}}
-			<span class="badge bg-danger fs-5">Admin Access</span>
-			{{/if}}
-			{{#gt session.user.bands.length 0}}
-			<p class="mb-0 text-center">Logged in on behalf of <b id="band">{{session.band.Name}}</b></p>
-			{{#gt session.user.bands.length 1}}
-			<p class="mb-0 text-center"><a href="#" class="text-light" data-bs-toggle="modal" data-bs-target="#changeBandModal">Change Band</a></p>
-			{{/gt}}
-			{{else}}
-			{{#unless session.user.IsAdmin}}
-			<p class="mb-0 text-center">Your account is not currently connected to a band</p>
-			{{/unless}}
-			{{/gt}}
-			<hr>
-			<ul class="nav nav-pills flex-column mb-auto">
+			<nav class="collapse d-lg-flex flex-column flex-shrink-0 p-3 text-white bg-default sidebar" id="sidebar">
+				<a href="/" class="text-white text-decoration-none d-none d-lg-block">
+					<img src="/assets/logo.png" class="mx-auto d-block" height="142" width="150" />
+					<h1 class="fs-4 text-center mt-2">{{getConfigValue 'config/site' 'title' 'Org' }}</h1>
+				</a>
 				{{#if session.user.IsAdmin}}
-				<li class="nav-item">
-					<a href="/home" class="nav-link {{#startsWith page " /home"}}active{{else}}text-white{{/startsWith}}" aria-current="page">
-						Home
-					</a>
-				</li>
-				<li class="nav-item">
-					<a href="/email/" class="nav-link {{#startsWith page " /email"}}active{{else}}text-white{{/startsWith}}">
-						Bulk Emailer
-					</a>
-				</li>
-				<li>
-					<a href="/user/" class="nav-link {{#startsWith page " /user/"}}active{{else}}text-white{{/startsWith}}">
-						Users
-					</a>
-				</li>
-				<li>
-					<a href="/organisation/" class="nav-link {{#startsWith page " /organisation/"}}active{{else}}text-white{{/startsWith}}">
-						Organisations
-					</a>
-				</li>
-				<li>
-					<a href="/membership/" class="nav-link {{#startsWith page " /membership/"}}active{{else}}text-white{{/startsWith}}">
-						Membership
-					</a>
-				</li>
-				<li>
-					<a href="/event/" class="nav-link {{#startsWith page " /event/"}}active{{else}}text-white{{/startsWith}}">
-						Events
-					</a>
-				</li>
-				<li {{#startsWith page "/config/" }}class="bg-white border" {{/startsWith}}>
-					<a href="/config/" class="nav-link {{#startsWith page " /config/"}}active{{else}}text-white{{/startsWith}}">
-						Configuration
-					</a>
-					{{#startsWith page "/config"}}
-					<ul class="nav nav-pills flex-column">
-						<li class="nav-item ps-4 {{#eq page " /config/season/"}}bg-default{{/eq}}">
-							<a href="/config/season/" class="nav-link {{#eq page " /config/season/"}}text-white{{else}}text-dark{{/eq}}">&gt; Seasons</a>
-						</li>
-						<li class="nav-item ps-4 {{#eq page " /config/membership-type/"}}bg-default{{/eq}}">
-							<a href="/config/membership-type/" class="nav-link {{#eq page " /config/membership-type/"}}text-white{{else}}text-dark{{/eq}}">&gt; Membership Types</a>
-						</li>
-						<li class="nav-item ps-4 {{#eq page " /config/event-type/"}}bg-default{{/eq}}">
-							<a href="/config/event-type/" class="nav-link {{#eq page " /config/event-type/"}}text-white{{else}}text-dark{{/eq}}">&gt; Event Types</a>
-						</li>
-						<li class="nav-item ps-4 {{#eq page " /config/payment-type/"}}bg-default{{/eq}}">
-							<a href="/config/payment-type/" class="nav-link {{#eq page " /config/payment-type/"}}text-white{{else}}text-dark{{/eq}}">&gt; Payment Types</a>
-						</li>
-						<li class="nav-item ps-4 {{#eq page " /config/division/"}}bg-default{{/eq}}">
-							<a href="/config/division/" class="nav-link {{#eq page " /config/division/"}}text-white{{else}}text-dark{{/eq}}">&gt; Divisions</a>
-						</li>
-					</ul>
-					{{/startsWith}}
-				</li>
+				<span class="badge bg-danger fs-5">Admin Access</span>
+				{{/if}}
+				{{#gt session.user.bands.length 0}}
+				<p class="mb-0 text-center">Logged in on behalf of <b id="band">{{session.band.Name}}</b></p>
+				{{#gt session.user.bands.length 1}}
+				<p class="mb-0 text-center"><a href="#" class="text-light" data-bs-toggle="modal" data-bs-target="#changeBandModal">Change Band</a></p>
+				{{/gt}}
 				{{else}}
-				<li class="nav-item">
-					<a href="/home" class="nav-link {{#startsWith page " /home"}}active{{else}}text-white{{/startsWith}}" aria-current="page">
-						Home
-					</a>
-				</li>
-				<li class="nav-item">
-					<a href="/user/{{session.user.id}}/" class="nav-link {{#startsWith page " /user"}}active{{else}}text-white{{/startsWith}}">
-						My Details
-					</a>
-				</li>
-				{{#if session.band}}
-				<li class="nav-item">
-					<a href="/organisation/{{session.band.id}}/" class="nav-link {{#startsWith page " /organisation"}}active{{else}}text-white{{/startsWith}}">
-						{{session.band.Name}} Details
-					</a>
-				</li>
-				<li>
-					<a href="/event/" class="nav-link {{#startsWith page " /event/"}}active{{else}}text-white{{/startsWith}}">
-						Events
-					</a>
-				</li>
-				{{/if}}
-				{{/if}}
-			</ul>
-			<hr>
-			<ul class="nav nav-pills flex-column">
-				<li class="nav-item">
-					<a href="/logout" class="nav-link text-white">
-						Sign Out
-					</a>
-				</li>
-			</ul>
-			<hr />
-			<small class="ms-3 d-block">Bandmaster v{{getConfigValue 'config/site' 'version' '1.0.0'}}</small>
-			<small class="ms-3 d-block">Developed by the <a href="https://byba.online" target="_blank" class="text-light">British Youth Band Association</a></small>
-		</nav>
+				{{#unless session.user.IsAdmin}}
+				<p class="mb-0 text-center">Your account is not currently connected to a band</p>
+				{{/unless}}
+				{{/gt}}
+				<hr>
+				<ul class="nav nav-pills flex-column mb-auto">
+					{{#if session.user.IsAdmin}}
+					<li class="nav-item">
+						<a href="/home" class="nav-link {{#startsWith page " /home"}}active{{else}}text-white{{/startsWith}}" aria-current="page">
+							Home
+						</a>
+					</li>
+					<li class="nav-item">
+						<a href="/email/" class="nav-link {{#startsWith page " /email"}}active{{else}}text-white{{/startsWith}}">
+							Bulk Emailer
+						</a>
+					</li>
+					<li>
+						<a href="/user/" class="nav-link {{#startsWith page " /user/"}}active{{else}}text-white{{/startsWith}}">
+							Users
+						</a>
+					</li>
+					<li>
+						<a href="/organisation/" class="nav-link {{#startsWith page " /organisation/"}}active{{else}}text-white{{/startsWith}}">
+							Organisations
+						</a>
+					</li>
+					<li>
+						<a href="/membership/" class="nav-link {{#startsWith page " /membership/"}}active{{else}}text-white{{/startsWith}}">
+							Membership
+						</a>
+					</li>
+					<li>
+						<a href="/event/" class="nav-link {{#startsWith page " /event/"}}active{{else}}text-white{{/startsWith}}">
+							Events
+						</a>
+					</li>
+					<li {{#startsWith page "/config/" }}class="bg-white border" {{/startsWith}}>
+						<a href="/config/" class="nav-link {{#startsWith page " /config/"}}active{{else}}text-white{{/startsWith}}">
+							Configuration
+						</a>
+						{{#startsWith page "/config"}}
+						<ul class="nav nav-pills flex-column">
+							<li class="nav-item ps-4 {{#eq page " /config/season/"}}bg-default{{/eq}}">
+								<a href="/config/season/" class="nav-link {{#eq page " /config/season/"}}text-white{{else}}text-dark{{/eq}}">&gt; Seasons</a>
+							</li>
+							<li class="nav-item ps-4 {{#eq page " /config/membership-type/"}}bg-default{{/eq}}">
+								<a href="/config/membership-type/" class="nav-link {{#eq page " /config/membership-type/"}}text-white{{else}}text-dark{{/eq}}">&gt; Membership Types</a>
+							</li>
+							<li class="nav-item ps-4 {{#eq page " /config/event-type/"}}bg-default{{/eq}}">
+								<a href="/config/event-type/" class="nav-link {{#eq page " /config/event-type/"}}text-white{{else}}text-dark{{/eq}}">&gt; Event Types</a>
+							</li>
+							<li class="nav-item ps-4 {{#eq page " /config/payment-type/"}}bg-default{{/eq}}">
+								<a href="/config/payment-type/" class="nav-link {{#eq page " /config/payment-type/"}}text-white{{else}}text-dark{{/eq}}">&gt; Payment Types</a>
+							</li>
+							<li class="nav-item ps-4 {{#eq page " /config/division/"}}bg-default{{/eq}}">
+								<a href="/config/division/" class="nav-link {{#eq page " /config/division/"}}text-white{{else}}text-dark{{/eq}}">&gt; Divisions</a>
+							</li>
+						</ul>
+						{{/startsWith}}
+					</li>
+					{{else}}
+					<li class="nav-item">
+						<a href="/home" class="nav-link {{#startsWith page " /home"}}active{{else}}text-white{{/startsWith}}" aria-current="page">
+							Home
+						</a>
+					</li>
+					<li class="nav-item">
+						<a href="/user/{{session.user.id}}/" class="nav-link {{#startsWith page " /user"}}active{{else}}text-white{{/startsWith}}">
+							My Details
+						</a>
+					</li>
+					{{#if session.band}}
+					<li class="nav-item">
+						<a href="/organisation/{{session.band.id}}/" class="nav-link {{#startsWith page " /organisation"}}active{{else}}text-white{{/startsWith}}">
+							{{session.band.Name}} Details
+						</a>
+					</li>
+					<li>
+						<a href="/event/" class="nav-link {{#startsWith page " /event/"}}active{{else}}text-white{{/startsWith}}">
+							Events
+						</a>
+					</li>
+					{{/if}}
+					{{/if}}
+				</ul>
+				<hr>
+				<ul class="nav nav-pills flex-column">
+					<li class="nav-item">
+						<a href="/logout" class="nav-link text-white">
+							Sign Out
+						</a>
+					</li>
+				</ul>
+				<hr />
+				<small class="ms-3 d-block">Bandmaster v{{getConfigValue 'config/site' 'version' '1.0.0'}}</small>
+				<small class="ms-3 d-block">Developed by the <a href="https://byba.online" target="_blank" class="text-light">British Youth Band Association</a></small>
+			</nav>
 
-		<div class="container p-3">
-			{{{ body }}}
-		</div>
+			<div class="container p-3">
+				{{{ body }}}
+			</div>
 
-	</main>
+		</main>
 
-	{{#gt session.user.bands.length 1}}
-	<!-- change band modal -->
-	<form method="post" action="/change-band">
-		<div class="modal fade" id="changeBandModal" tabindex="-1" aria-hidden="true">
-			<div class="modal-dialog">
-				<div class="modal-content">
-					<div class="modal-header">
-						<h5 class="modal-title">Change Band</h5>
-						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-					</div>
-					<div class="modal-body">
-						<label for="changeBand">Please choose the band you wish to access the system on behalf of - this
-							will reload the current page, so please ensure you have saved any changes beforehand.</p>
-							<select class="form-control" id="changeBand" name="changeBand" required>
-								<option value="">-- Please Select --</option>
-								{{#each session.user.bands}}
-								<option value="{{id}}">{{Name}}</option>
-								{{/each}}
-							</select>
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-						<button class="btn btn-default">Change Band</button>
+		{{#gt session.user.bands.length 1}}
+		<!-- change band modal -->
+		<form method="post" action="/change-band">
+			<div class="modal fade" id="changeBandModal" tabindex="-1" aria-hidden="true">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title">Change Band</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+							<label for="changeBand">Please choose the band you wish to access the system on behalf of - this
+								will reload the current page, so please ensure you have saved any changes beforehand.</p>
+								<select class="form-control" id="changeBand" name="changeBand" required>
+									<option value="">-- Please Select --</option>
+									{{#each session.user.bands}}
+									<option value="{{id}}">{{Name}}</option>
+									{{/each}}
+								</select>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+							<button class="btn btn-default">Change Band</button>
+						</div>
 					</div>
 				</div>
 			</div>
-		</div>
-	</form>
-	{{/gt}}
+		</form>
+		{{/gt}}
 
-	<script src="/js/bootstrap.min.js"></script>
-	<script src="/js/site.js"></script>
-	<script>
-		const BASE_API = "{{getConfigValue 'config/server' 'apiBase' ''}}";
-	</script>
-</body>
+		<script src="/js/bootstrap.min.js"></script>
+		<script src="/js/site.js"></script>
+	</body>
 
 </html>
