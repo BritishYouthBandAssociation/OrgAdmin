@@ -96,8 +96,8 @@ let byba = {};
 		},
 
 		events: {
-			async list(sort = false) {
-				const query = sort ? { sort: 'date' } : null;
+			async list(sort = true) {
+				const query = sort ? { sort: 'start' } : null;
 				return await get('/events', query);
 			},
 

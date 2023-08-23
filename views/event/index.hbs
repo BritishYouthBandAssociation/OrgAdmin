@@ -38,7 +38,7 @@
 			<div class='card card-action'>
 				<div class='card-body'>
 					<p class='h4'><a :href='event.id + "/"' class='stretched-link text-reset text-decoration-none'>${event.name}</a></p>
-					<p>${event.date}</p>
+					<p>${formatDate(event.start)}</p>
 				</div>
 			</div>
 		</div>
@@ -62,18 +62,23 @@
 			loadEvents(season) {
 				this.loading = true;
 				this.events = [];
-				
-				byba.events.list(true).then(response => {
-						this.events = response.json.docs;
-						this.loading = false;
-					});
+
+				byba.events.list().then(response => {
+					this.events = response.json.docs;
+					this.loading = false;
+				});
+			},
+
+			formatDate(dateStr){
+				const date = new Date(dateStr);
+				return date.toLocaleDateString(navigator.language);
 			}
 		},
 		mounted: function () {
 			byba.seasons.getCurrent().then(response => {
-					this.currentSeason = response.json.id;
-					this.loadEvents(response.json.id);
-				});
+				this.currentSeason = response.json.id;
+				this.loadEvents(response.json.id);
+			});
 
 			byba.seasons.list().then(response => this.seasons = response.json.docs);
 		}
