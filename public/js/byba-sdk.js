@@ -7,10 +7,24 @@ let byba = {};
 (function() {
 	let user = JSON.parse(localStorage.getItem('user'));
 
-	//temp
-	function fixDate(d) {
-		const date = new Date(d);
-		return [date.getDay().toString().padStart(2, '0'), (date.getMonth() + 1).toString().padStart(2, '0'), date.getFullYear()].join('/');
+	function getTimeFromDate(date){
+		return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+	}
+
+	function formatEvent(event){
+		const startDate = new Date(event.start);
+		const endDate = new Date(event.end);
+		const eventDate = new Date(startDate.toDateString());
+
+		delete event.start;
+		delete event.end;
+
+		return {
+			...event,
+			date: eventDate,
+			startTime: getTimeFromDate(startDate),
+			endTime: getTimeFromDate(endDate)
+		};
 	}
 
 	async function makeAPIRequest(url, options = {}) {
@@ -98,23 +112,35 @@ let byba = {};
 		events: {
 			async list(sort = true) {
 				const query = sort ? { sort: 'start' } : null;
-				return await get('/events', query);
+				const response = await get('/events', query);
+				response.json.docs = response.json.docs.map(d => formatEvent(d));
+				return response;
 			},
 
 			async get(id) {
-				return await get(`/events/${id}`);
+				const response = await get(`/events/${id}`);
+				response.json = formatEvent(response.json);
+				return response;
 			},
 
 			async update(id, data) {
-				const _origDate = data.date;
-				data.date = fixDate(data.date);
-				const response = await patch(`/events/${id}`, data);
-				data.date = _origDate;
+				const start = new Date(`${data.date}T${data.startTime}`);
+				const end = new Date(`${data.date}T${data.endTime}`);
+
+				const payload = {...data, start, end};
+
+				delete payload.date;
+				delete payload.startTime;
+				delete payload.endTime;
+
+				const response = await patch(`/events/${id}`, payload);
 				return response;
 			},
 
 			async create(name, date, startTime, endTime) {
-				return await post('/events/', { name, date: fixDate(date), startTime, endTime });
+				const start = new Date(`${date}T${startTime}`);
+				const end = new Date(`${date}T${endTime}`);
+				return await post('/events/', { name, start, end });
 			}
 		},
 

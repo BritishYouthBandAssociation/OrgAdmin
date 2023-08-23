@@ -38,7 +38,7 @@
 			<div class='card card-action'>
 				<div class='card-body'>
 					<p class='h4'><a :href='event.id + "/"' class='stretched-link text-reset text-decoration-none'>${event.name}</a></p>
-					<p>${formatDate(event.start)}</p>
+					<p>${event.date.toLocaleDateString(locale)}</p>
 				</div>
 			</div>
 		</div>
@@ -56,7 +56,8 @@
 			seasons: [],
 			loading: true,
 			currentSeason: null,
-			isAdmin: byba.amAdmin()
+			isAdmin: byba.amAdmin(),
+			locale: navigator.language
 		},
 		methods: {
 			loadEvents(season) {
@@ -67,11 +68,6 @@
 					this.events = response.json.docs;
 					this.loading = false;
 				});
-			},
-
-			formatDate(dateStr){
-				const date = new Date(dateStr);
-				return date.toLocaleDateString(navigator.language);
 			}
 		},
 		mounted: function () {
