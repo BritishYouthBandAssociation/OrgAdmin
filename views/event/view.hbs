@@ -99,7 +99,11 @@
 		},
 		mounted: function () {
 			byba.events.get('{{id}}')
-				.then(({json}) => {
+				.then(({json, success}) => {
+					if(!success){
+						window.location = "/";
+					}
+
 					this.event = json;
 					this.event.date = this.getDate(this.event.date);
 					this.selectedStatusIndex = this.statuses.findIndex(s => s.toLowerCase() === this.event.status);

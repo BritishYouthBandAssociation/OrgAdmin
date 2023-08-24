@@ -117,13 +117,17 @@ let byba = {};
 				}
 
 				const response = await get('/events', query);
-				response.json.docs = response.json.docs.map(d => formatEvent(d));
+				if (response.success){
+					response.json.docs = response.json.docs.map(d => formatEvent(d));
+				}
 				return response;
 			},
 
 			async get(id) {
 				const response = await get(`/events/${id}`);
-				response.json = formatEvent(response.json);
+				if (response.success){
+					response.json = formatEvent(response.json);
+				}
 				return response;
 			},
 
@@ -137,8 +141,7 @@ let byba = {};
 				delete payload.startTime;
 				delete payload.endTime;
 
-				const response = await patch(`/events/${id}`, payload);
-				return response;
+				return await patch(`/events/${id}`, payload);
 			},
 
 			async create(name, date, startTime, endTime) {
