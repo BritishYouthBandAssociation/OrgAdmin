@@ -21,7 +21,7 @@
 						<input type="date" class="form-control" v-model="event.date" required>
 					</div>
 				</div>
-				<div class='row row-cols-1 row-cols-lg-2 mb-3'>
+				<div class='row row-cols-1 row-cols-lg-2'>
 					<div class='col form-group mb-3'>
 						<label class='form-label' for='start'>Start Time</label>
 						<input type='time' class='form-control' id='start' name='start' required v-model="event.start" />
@@ -31,20 +31,24 @@
 						<input type='time' class='form-control' id='end' name='end' required v-model="event.end" />
 					</div>
 				</div>
+
+				<div class="form-group mb-3" v-if="amAdmin">
+					<label class="form-label" for="season">Season</label>
+					<select class="form-control" id="season" name="season" required v-model="event.season">
+						<option value="">-- Please Select --</option>
+						<option v-for="season in seasons" :value="season.id">${season.name}</option>
+					</select>
+				</div>
 			</div>
 		</div>
 
-		<button class='btn btn-default'>Add Event</button>
+		<button class='btn btn-default' :disabled="errors.length > 0">Add Event</button>
 	</form>
 </div>
 
 <script src="/js/vue.js"></script>
 <script src="/js/byba-sdk.js"></script>
 <script>
-	if (!byba.amAdmin()) {
-		window.location.href = "/event";
-	}
-
 	const app = new Vue({
 		delimiters: ['${', '}'],
 		el: '#app',
@@ -54,18 +58,40 @@
 				name: "",
 				date: null,
 				start: "12:00",
-				end: "17:00"
-			}
+				end: "17:00",
+				season: null
+			},
+			seasons: []
 		},
 		methods: {
 			save() {
-				byba.events.create(this.event.name, this.event.date, this.event.start, this.event.end).then(response => {
+				byba.events.create(this.event.name, this.event.date, this.event.start, this.event.end, this.event.season).then(response => {
 					if (!response.success) {
 						this.errors = response.errors;
 						return;
 					}
 
 					window.location.href = response.json.doc.id;
+				});
+			}
+		},
+		mounted() {
+			if (byba.amAdmin()) {
+				byba.seasons.list().then(res => {
+					if (!res.success) {
+						this.errors.push("Failed to load seasons. Please try again");
+						return;
+					}
+
+					this.seasons = res.json.docs;
+				});
+
+				byba.seasons.getCurrent().then(res => {
+					if (!res.success) {
+						return;
+					}
+
+					this.event.season = res.json.id;
 				});
 			}
 		}
