@@ -22,6 +22,8 @@
 		</div>
 	</div>
 
+	<div class="alert alert-danger text-center" v-if="error">Failed to load events. Please try again later</div>
+
 	<div class='row text-center'>
 		<div class='col-12 col-md-6 col-lg-4 mb-3' v-if="loading">
 			<div class="card h-100" aria-hidden="true">
@@ -57,7 +59,8 @@
 			loading: true,
 			currentSeason: null,
 			isAdmin: byba.amAdmin(),
-			locale: navigator.language
+			locale: navigator.language,
+			error: false
 		},
 		methods: {
 			loadEvents(season) {
@@ -65,8 +68,13 @@
 				this.events = [];
 
 				byba.events.list().then(response => {
-					this.events = response.json.docs;
 					this.loading = false;
+					if(!response.success){
+						this.error = true;
+						return;
+					}
+
+					this.events = response.json.docs;
 				});
 			}
 		},

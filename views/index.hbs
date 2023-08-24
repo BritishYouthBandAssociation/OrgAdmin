@@ -14,18 +14,15 @@
 <div class="p-5 mb-4 bg-warning rounded-3 text-center">
 	<div class="container-fluid py-5">
 		<h2>Limited Access</h2>
-		<svg xmlns="http://www.w3.org/2000/svg" height="10rem" fill="currentColor" class="bi bi-person-x-fill"
-			viewBox="0 0 16 16">
-			<path fill-rule="evenodd"
-				d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm6.146-2.854a.5.5 0 0 1 .708 0L14 6.293l1.146-1.147a.5.5 0 0 1 .708.708L14.707 7l1.147 1.146a.5.5 0 0 1-.708.708L14 7.707l-1.146 1.147a.5.5 0 0 1-.708-.708L13.293 7l-1.147-1.146a.5.5 0 0 1 0-.708z" />
+		<svg xmlns="http://www.w3.org/2000/svg" height="10rem" fill="currentColor" class="bi bi-person-x-fill" viewBox="0 0 16 16">
+			<path fill-rule="evenodd" d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm6.146-2.854a.5.5 0 0 1 .708 0L14 6.293l1.146-1.147a.5.5 0 0 1 .708.708L14.707 7l1.147 1.146a.5.5 0 0 1-.708.708L14 7.707l-1.146 1.147a.5.5 0 0 1-.708-.708L13.293 7l-1.147-1.146a.5.5 0 0 1 0-.708z" />
 		</svg>
 		<p>Your account is not linked to a band. This severely reduces the functions you are able to perform on this
 			site.</p>
 		<p>If you believe this is incorrect, please speak to your bandmaster in the first instance as they should be
 			able to grant you access.</p>
 		<p>If you are still unable to access the site, please contact {{getConfigValue "config/site" "adminName"
-			"AdminTeam" }} at <a href='mailto:{{getConfigValue "config/site" "adminEmail" "#" }}'
-				class="text-dark">{{getConfigValue "config/site" "adminEmail" "" }}</a></p>
+			"AdminTeam" }} at <a href='mailto:{{getConfigValue "config/site" "adminEmail" "#" }}' class="text-dark">{{getConfigValue "config/site" "adminEmail" "" }}</a></p>
 	</div>
 </div>
 {{/unless}}
@@ -37,9 +34,7 @@
 	<div class="col mb-3">
 		<div class="card text-center {{isNull class 'bg-dark text-light'}} h-100">
 			<div class="card-body">
-				<span class="fs-1">{{#if link}}<a
-						class="stretched-link text-decoration-none {{isNull class 'text-light'}}"
-						href="{{link}}">{{/if}}{{value}}{{#if link}}</a>{{/if}}</span>
+				<span class="fs-1">{{#if link}}<a class="stretched-link text-decoration-none {{isNull class 'text-light'}}" href="{{link}}">{{/if}}{{value}}{{#if link}}</a>{{/if}}</span>
 			</div>
 			<div class="card-footer">
 				{{title}} {{#if subtitle}}<span class="badge bg-default">{{subtitle}}</span>{{/if}}
@@ -51,39 +46,38 @@
 {{/if}}
 
 <div id="app">
-<div v-if="events.length > 0">
-<h2>Upcoming Events</h2>
-<div class="row flex-row flex-nowrap w-100 overflow-auto">
-	<div class="col-12 col-lg-4 mb-3" v-for="event in events">
-		<div class="card card-body h-100">
-			<h3><a :href="'/event/' + event.id + '/'" class="text-dark">${event.name} &gt;</a></h3>
-			<p><i>${event.date.toLocaleDateString(locale)}, ${event.startTime}</i></p>
-			<p v-if="event.address && Object.keys(event.address).length > 0"><i>${event.address?.line1}, ${event.address?.townCity}</i></p>
+	<div v-if="events.length > 0">
+		<h2>Upcoming Events</h2>
+		<div class="row flex-row flex-nowrap w-100 overflow-auto">
+			<div class="col-12 col-lg-4 mb-3" v-for="event in events">
+				<div class="card card-body h-100">
+					<h3><a :href="'/event/' + event.id + '/'" class="text-dark stretched-link">${event.name} &gt;</a></h3>
+					<p><i>${event.date.toLocaleDateString(locale)}, ${event.startTime}</i></p>
+					<p v-if="event.address && Object.keys(event.address).length > 0"><i>${event.address?.line1}, ${event.address?.townCity}</i></p>
+				</div>
+			</div>
 		</div>
 	</div>
-</div>
-</div>
 </div>
 
 <script src="/js/byba-sdk.js"></script>
 <script src="/js/vue.js"></script>
 <script>
-const app = new Vue({
-	delimiters: ['${', '}'],
-	el: '#app',
-	data: {
-		events: [],
-		locale: navigator.language
-	},
-	mounted(){
-		byba.events.list({after: new Date()}).then(({json, success}) => {
-			if(!success){
-				console.error(json);
-				return;
-			};
+	const app = new Vue({
+		delimiters: ['${', '}'],
+		el: '#app',
+		data: {
+			events: [],
+			locale: navigator.language
+		},
+		mounted() {
+			byba.events.list({ after: new Date() }).then(({ json, success }) => {
+				if (!success) {
+					return;
+				};
 
-			this.events = json.docs;
-		});
-	}
-});
+				this.events = json.docs;
+			});
+		}
+	});
 </script>
