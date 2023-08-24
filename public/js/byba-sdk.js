@@ -138,17 +138,23 @@ let byba = {};
 				return response;
 			},
 
-			async update(id, data) {
-				const start = new Date(`${data.date}T${data.startTime}`);
-				const end = new Date(`${data.date}T${data.endTime}`);
+			async update(id, name, date, startTime, endTime, status, address, season = null) {
+				const start = new Date(`${date}T${startTime}`);
+				const end = new Date(`${date}T${endTime}`);
 
-				const payload = {...data, start, end};
+				const data = {
+					name,
+					start,
+					end,
+					status,
+					address
+				};
 
-				delete payload.date;
-				delete payload.startTime;
-				delete payload.endTime;
+				if (season){
+					data.season = season;
+				}
 
-				return await patch(`/events/${id}`, payload);
+				return await patch(`/events/${id}`, data);
 			},
 
 			async create(name, date, startTime, endTime) {

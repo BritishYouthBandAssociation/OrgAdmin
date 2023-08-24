@@ -62,6 +62,17 @@
 						</div>
 					</div>
 
+					<div class="card mb-3 text-bg-warning" v-if="amAdmin">
+						<div class="card-header">Admin only</div>
+						<div class="card-body">
+							<label class="form-label" for="season">Season</label>
+							<select class="form-control" id="season" name="season" v-model="event.season.id" required>
+								<option value="">-- Please Select --</option>
+								<option v-for="season in seasons" :value="season.id">${season.name}</option>
+							</select>
+						</div>
+					</div>
+
 					<div class="card card-body mb-3">
 						<h3>Address</h3>
 						<div class="form-group mb-3">
@@ -108,7 +119,9 @@
 			selectedStatusIndex: -1,
 			errors: [],
 			canEdit: byba.amAdmin() || byba.creator(this.event),
-			loadError: false
+			loadError: false,
+			seasons: [],
+			amAdmin: byba.amAdmin()
 		},
 		mounted: function () {
 			byba.events.get('{{id}}')
@@ -124,6 +137,12 @@
 
 					document.title = document.title.replace("Loading...", json.name);
 				});
+
+			if(byba.amAdmin()){
+				byba.seasons.list().then(result => {
+					this.seasons = result.json.docs;
+				});
+			}
 		},
 		methods: {
 			getDate: function (rawDate) {
@@ -147,8 +166,9 @@
 					return false;
 				}
 
-				byba.events.update("{{id}}", this.event).then(response => {
+				byba.events.update("{{id}}", this.event.name, this.event.date, this.event.startTime, this.event.endTime, this.event.status, this.event.address, byba.amAdmin() ? this.event.season.id : null).then(response => {
 					if (response.status === 200) {
+						this.saved = true;
 						return;
 					}
 
