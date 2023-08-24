@@ -71,12 +71,14 @@
 			locale: navigator.language
 		},
 		mounted() {
-			byba.events.list({ after: new Date() }).then(({ json, success }) => {
-				if (!success) {
-					return;
-				};
+			byba.seasons.getCurrent().then(({ json }) => {
+				byba.events.list(json.id, { after: new Date() }).then(({ json, success }) => {
+					if (!success) {
+						return;
+					};
 
-				this.events = json.docs;
+					this.events = json.docs;
+				});
 			});
 		}
 	});

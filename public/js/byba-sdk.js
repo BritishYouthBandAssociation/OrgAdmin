@@ -110,8 +110,15 @@ let byba = {};
 		},
 
 		events: {
-			async list({sort = true, after = null} = {}) {
-				const query = sort ? { sort: 'start' } : null;
+			async list(season, {sort = true, after = null} = {}) {
+				const query = {
+					'where[season][equals]': season
+				};
+
+				if (sort){
+					query.sort = 'start';
+				}
+
 				if (after){
 					query['where[start][greater_than]'] = after;
 				}

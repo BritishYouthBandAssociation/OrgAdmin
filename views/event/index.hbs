@@ -67,7 +67,7 @@
 				this.loading = true;
 				this.events = [];
 
-				byba.events.list().then(response => {
+				byba.events.list(season).then(response => {
 					this.loading = false;
 					if(!response.success){
 						this.error = true;
