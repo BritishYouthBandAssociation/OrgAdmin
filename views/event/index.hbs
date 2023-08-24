@@ -81,11 +81,23 @@
 		},
 		mounted: function () {
 			byba.seasons.getCurrent().then(response => {
+				if(!response.success){
+					this.error = true;
+					return;
+				}
+
 				this.currentSeason = response.json.id;
 				this.loadEvents(response.json.id);
 			});
 
-			byba.seasons.list().then(response => this.seasons = response.json.docs);
+			byba.seasons.list().then(response => {
+				if(!response.success){
+					this.error = true;
+					return;
+				}
+
+				this.seasons = response.json.docs
+			});
 		}
 	});
 </script>
