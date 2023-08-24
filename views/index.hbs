@@ -50,33 +50,40 @@
 </div>
 {{/if}}
 
-{{#gt events.length 0}}
+<div id="app">
+<div v-if="events.length > 0">
 <h2>Upcoming Events</h2>
 <div class="row flex-row flex-nowrap w-100 overflow-auto">
-	{{#each events}}
-	<div class="col-12 col-lg-4 mb-3">
+	<div class="col-12 col-lg-4 mb-3" v-for="event in events">
 		<div class="card card-body h-100">
-			<h3><a href="/event/{{id}}/" class="text-dark">{{Name}} &gt;</a></h3>
-			<p><i>{{date Start}}, {{time Start}}</i></p>
-			{{#with Address}}
-			<p><i>{{Line1}}, {{City}}</i></p>
-			{{/with}}
-
-			{{#if ../session.band}}
-				{{#if hasEntered}}
-					<div class="alert alert-success text-center">{{../session.band.Name}} Entered</div>
-				{{else}}
-					{{#if canEnter}}
-						<a href="/event/{{id}}/organisations/" class="btn btn-default">Enter Show</a>
-					{{else}}
-						<p><svg xmlns="http://www.w3.org/2000/svg" width="2rem" fill="currentColor" class="bi bi-lock-fill" viewBox="0 0 16 16">
-							<path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
-						</svg> This event is only available to members</p>
-					{{/if}}
-				{{/if}}
-			{{/if}}
+			<h3><a :href="'/event/' + event.id + '/'" class="text-dark">${event.name} &gt;</a></h3>
+			<p><i>${event.date.toLocaleDateString(locale)}, ${event.startTime}</i></p>
+			<p v-if="event.address && Object.keys(event.address).length > 0"><i>${event.address?.line1}, ${event.address?.townCity}</i></p>
 		</div>
 	</div>
-	{{/each}}
 </div>
-{{/gt}}
+</div>
+</div>
+
+<script src="/js/byba-sdk.js"></script>
+<script src="/js/vue.js"></script>
+<script>
+const app = new Vue({
+	delimiters: ['${', '}'],
+	el: '#app',
+	data: {
+		events: [],
+		locale: navigator.language
+	},
+	mounted(){
+		byba.events.list({after: new Date()}).then(({json, success}) => {
+			if(!success){
+				console.error(json);
+				return;
+			};
+
+			this.events = json.docs;
+		});
+	}
+});
+</script>

@@ -110,8 +110,12 @@ let byba = {};
 		},
 
 		events: {
-			async list(sort = true) {
+			async list({sort = true, after = null} = {}) {
 				const query = sort ? { sort: 'start' } : null;
+				if (after){
+					query['where[start][greater_than]'] = after;
+				}
+
 				const response = await get('/events', query);
 				response.json.docs = response.json.docs.map(d => formatEvent(d));
 				return response;
