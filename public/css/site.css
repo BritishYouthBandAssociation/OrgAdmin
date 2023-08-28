@@ -79,7 +79,7 @@ body {
 	animation: fade-up ease-in-out 3s;
 }
 
-.accordion-button[disabled] {
+.accordion-button[disabled], .disabled {
 	opacity: 60%;
 }
 

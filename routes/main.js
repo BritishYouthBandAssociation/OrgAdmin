@@ -62,22 +62,7 @@ router.get('/home', async (req, res) => {
 	const messages = [];
 	const adminStats = [];
 
-	const [events, season] = await Promise.all([
-		req.db.Event.findAll({
-			where: {
-				Start: {
-					[Op.gte]: new Date()
-				}
-			},
-			include: [req.db.Address, {
-				model: req.db.EventRegistration,
-				include: [req.db.Organisation]
-			}
-			],
-			order: [
-				['Start']
-			]
-		}), req.db.Season.getCurrent()]);
+	const season = await req.db.Season.getCurrent();
 
 	if (req.session.band) {
 		const membership = await req.db.OrganisationMembership.findOne({
@@ -97,17 +82,6 @@ router.get('/home', async (req, res) => {
 				text: `${req.session.band.Name} is not currently in membership!`,
 				level: 'warning'
 			});
-		}
-
-		for (let i = events.length - 1; i >= 0; i--) {
-			const e = events[i];
-
-			e.canEnter = membership ? true : !e.MembersOnly;
-			e.hasEntered = e.EventRegistrations.filter(er => er.Organisation.id === req.session.band.id).length > 0;
-
-			if (!(e.canEnter || e.hasEntered)) {
-				events.splice(i, 1);
-			}
 		}
 	}
 
@@ -205,7 +179,6 @@ router.get('/home', async (req, res) => {
 	return res.render('index', {
 		title: 'Home',
 		hasFunctionality,
-		events,
 		messages,
 		adminStats,
 	});

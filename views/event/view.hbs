@@ -1,178 +1,221 @@
-<h2>{{event.Name}}</h2>
+<div id="app">
+	<div v-if="loadError" class="p-5 mb-4 text-bg-danger rounded-3 text-center">
+		<div class="container-fluid py-5">
+			<h2>An Error Occurred</h2>
+			<svg xmlns="http://www.w3.org/2000/svg" width="10rem" height="10rem" fill="currentColor" class="bi bi-robot my-3" viewBox="0 0 16 16">
+				<path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5ZM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062Zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a24.767 24.767 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25.286 25.286 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135Z" />
+				<path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2V1.866ZM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5Z" />
+			</svg>
+			<p>An error occurred whilst trying to load this event. Please try again later, <a href="/event/" class="text-dark">return to the events list</a> or <a href="/" class="text-dark">go home</a></p>
+		</div>
+	</div>
+	<div v-if="!loadError">
+		<h2>${event?.name}</h2>
 
-{{#if saved}}
-<div class='alert alert-success text-center'>Changes saved successfully!</div>
-{{/if}}
+		<div class='alert alert-success text-center' v-if="saved">Changes saved successfully!</div>
 
-<div class="row row-cols-1 row-cols-lg-2">
-	<div class="col mb-3">
-		<div class="card text-center bg-dark text-white h-100">
-			<div class="card-body">
-				<a class="stretched-link fs-1 text-white text-decoration-none" href="#">CompetitionSuite &gt;</a>
-			</div>
+		<div class="alert alert-danger text-center" v-if="errors.length > 0">
+			<p>Please fix the following errors:</p>
+			<ul>
+				<li v-for="error in errors">${error}</li>
+			</ul>
 		</div>
-	</div>
-	<div class="col mb-3">
-		<div class="card text-center bg-dark text-white h-100">
-			<div class="card-body">
-				<a class="stretched-link fs-1 text-white text-decoration-none"
-					href="organisations/">{{organisationsRegistered}}</a>
+
+		<div v-if="event != null">
+
+			<div class="row row-cols-5 mb-3 d-none d-lg-flex">
+				<div class="col" v-for="(status, i) in statuses">
+					<div class="card card-body text-center h4 header h-100 pointer" :class="{'text-bg-success' : i < selectedStatusIndex, 'text-bg-primary' : i == selectedStatusIndex, 'disabled': !canEdit}" @click="setStatus(status)">${status}</div>
+				</div>
 			</div>
-			<div class="card-footer">
-				Organisations Registered &gt;
+
+			<div class='form-group mb-3 d-lg-none'>
+				<label class='form-label' for='status'>Status</label>
+				<select id="status" name="status" class="form-control" v-model="event.status" :disabled="!canEdit">
+					<option v-for="(status, i) in statuses" :value="status.toLowerCase()">${status}</option>
+				</select>
 			</div>
-		</div>
-	</div>
-	<div class="col mb-3">
-		<div class="card text-center {{#if hasSchedule}}bg-success{{else}}bg-danger{{/if}} h-100">
-			<div class="card-body">
-				<a class="stretched-link fs-2 text-white text-decoration-none" href="schedule/">Schedule &gt;</a>
-			</div>
-		</div>
-	</div>
-	<div class="col mb-3">
-		<div class="card text-center {{#if hasScores}}bg-success{{else}}bg-danger{{/if}} h-100">
-			<div class="card-body">
-				<a class="stretched-link fs-2 text-white text-decoration-none" href="scores/">Scores &gt;</a>
+
+			<div class='card card-body mb-3'>
+				<h3 class='text-center'>Event Details</h3>
+				<form method='post' @submit.prevent="save">
+					<div class="row row-cols-1 row-cols-lg-2">
+						<div class='col form-group mb-3'>
+							<label class='form-label' for='name'>Name</label>
+							<input type='text' class='form-control' id='name' name='name' placeholder='Name' v-model='event.name' maxlength="255" required :disabled="!canEdit" />
+						</div>
+
+						<div class='col form-group mb-3'>
+							<label class='form-label' for='date'>Date</label>
+							<input type='date' class='form-control' id='date' name='date' placeholder='Date' v-model='event.date' required :disabled="!canEdit" />
+						</div>
+					</div>
+
+					<div class='row row-cols-1 row-cols-lg-2'>
+						<div class='col form-group mb-3'>
+							<label class='form-label' for='start'>Start Time</label>
+							<input type='time' class='form-control' id='start' name='start' v-model="event.startTime" :disabled="!canEdit" />
+						</div>
+						<div class='col form-group mb-3'>
+							<label class='form-label' for='end'>End Time</label>
+							<input type='time' class='form-control' id='end' name='end' v-model="event.endTime" :disabled="!canEdit" />
+						</div>
+					</div>
+
+					<div class="card mb-3 text-bg-warning" v-if="amAdmin">
+						<div class="card-header">Admin only</div>
+						<div class="card-body">
+							<label class="form-label" for="season">Season</label>
+							<select class="form-control" id="season" name="season" v-model="event.season.id" required>
+								<option value="">-- Please Select --</option>
+								<option v-for="season in seasons" :value="season.id">${season.name}</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="card card-body mb-3">
+						<h3>Address</h3>
+						<div class="form-group mb-3">
+							<label class="form-label" for="lineOne">Address Line 1</label>
+							<input type="text" class="form-control" id="lineOne" name="lineOne" maxlength="100" placeholder="Address Line 1" v-model="event.address.line1" :disabled="!canEdit" />
+						</div>
+
+						<div class="form-group mb-3">
+							<label class="form-label" for="lineTwo">Address Line 2</label>
+							<input type="text" class="form-control" id="lineTwo" name="lineTwo" maxlength="100" placeholder="Address Line 2" v-model="event.address.line2" :disabled="!canEdit" />
+						</div>
+
+						<div class="form-group mb-3">
+							<label class="form-label" for="city">Town/City</label>
+							<input type="text" class="form-control" id="city" name="city" maxlength="100" placeholder="Town/City" v-model="event.address.townCity" :disabled="!canEdit" />
+						</div>
+
+						<div class="form-group mb-3">
+							<label class="form-label" for="postcode">Postcode</label>
+							<input type="text" class="form-control" id="postcode" name="postcode" maxlength="10" placeholder="Postcode" v-model="event.address.postcode" :disabled="!canEdit" />
+						</div>
+
+					</div>
+
+					<div class='text-center' v-if="canEdit">
+						<button class='btn btn-default'>Save</button>
+					</div>
+				</form>
 			</div>
 		</div>
 	</div>
 </div>
 
-<div class="row">
-	<div class="col-12 col-lg-8">
+<script src="/js/vue.js"></script>
+<script src="/js/byba-sdk.js"></script>
+<script>
+	const app = new Vue({
+		delimiters: ['${', '}'],
+		el: '#app',
+		data: {
+			event: null,
+			saved: false,
+			statuses: ["Draft", "Internal", "Announced", "Finalised", "Complete"],
+			selectedStatusIndex: -1,
+			errors: [],
+			canEdit: byba.amAdmin() || byba.creator(this.event),
+			loadError: false,
+			seasons: [],
+			amAdmin: byba.amAdmin()
+		},
+		mounted: function () {
+			byba.events.get('{{id}}')
+				.then(({ json, success }) => {
+					if (!success) {
+						this.loadError = true;
+						return;
+					}
 
-		<div class='card card-body mb-3'>
-			<h3 class='text-center'>Event Details</h3>
+					this.event = json;
+					this.event.date = this.getDate(this.event.date);
+					this.selectedStatusIndex = this.statuses.findIndex(s => s.toLowerCase() === this.event.status);
 
-			{{#if session.user.IsAdmin}}
-			<form method='post'>
-				{{/if}}
-				<div class='row row-cols-1 row-cols-lg-2 form'>
-					<div class='col form-group mb-3'>
-						<label class='form-label' for='name'>Name</label>
-						<input type='text' class='form-control' id='name' name='name' placeholder='Name'
-							value='{{event.Name}}' {{#unless session.user.IsAdmin}}readonly{{/unless}} maxlength="255" required />
-					</div>
-					<div class='col form-group text-start mb-3'>
-						<label class='form-label' for='type'>Event Type</label>
-						<select id='type' class='form-control' name='type' {{#unless
-							session.user.IsAdmin}}readonly{{/unless}} required>
-							{{#each types}}
-							<option value='{{this.id}}' {{#eq ../event.EventType.id this.id}} selected {{/eq}}>
-								{{this.Name}}</option>
-							{{/each}}
-						</select>
-					</div>
-				</div>
-				<div class='form-group mb-3'>
-					<label class='form-label' for='slug'>Slug</label>
-					<input type='text' class='form-control' id='slug' name='slug' placeholder='Slug' maxlength="255"
-						value='{{event.Slug}}' {{#unless session.user.IsAdmin}}readonly{{/unless}} required />
-				</div>
-				<div class='row row-cols-1 row-cols-lg-2 form mb-3'>
-					<div class='col form-group mb-3'>
-						<label class='form-label' for='start'>Start</label>
-						<input type='datetime-local' class='form-control' id='start' name='start'
-							value='{{datetimeFieldValue event.Start}}' {{#unless
-							session.user.IsAdmin}}readonly{{/unless}} required />
-					</div>
-					<div class='col form-group mb-3'>
-						<label class='form-label' for='end'>End Time</label>
-						<input type='datetime-local' class='form-control' id='end' name='end'
-							value='{{datetimeFieldValue event.End}}' {{#unless session.user.IsAdmin}}readonly{{/unless}}
-							required />
-					</div>
-				</div>
+					document.title = document.title.replace("Loading...", json.name);
+				});
 
-				<div class="row row-cols-1 row-cols-md-2 text-center">
-					<div class="col mb-3">
-						<p>Members Only?</p>
-						<div class="btn-group" role="group" aria-label="Members Only?">
-							<input type="radio" value="1" class="btn-check" name="membersOnly" id="membersOnly-y"
-								autocomplete="off" {{#if event.MembersOnly}}checked{{/if}}>
-							<label class="btn btn-outline-success" for="membersOnly-y">Yes</label>
+			if(byba.amAdmin()){
+				byba.seasons.list().then(result => {
+					this.seasons = result.json.docs;
+				});
+			}
+		},
+		methods: {
+			getDate: function (rawDate) {
+				return getDate(rawDate);
+			},
+			setStatus: function (status) {
+				if (!this.canEdit) {
+					return;
+				}
 
-							<input type="radio" value="0" class="btn-check" name="membersOnly" id="membersOnly-n"
-								autocomplete="off" {{#unless event.MembersOnly}}checked{{/unless}}>
-							<label class="btn btn-outline-danger" for="membersOnly-n">No</label>
-						</div>
-					</div>
+				this.event.status = status.toLowerCase();
+				this.selectedStatusIndex = this.statuses.findIndex(s => s.toLowerCase() === this.event.status);
+			},
+			save: function () {
+				this.saved = false;
+				if (!this.validate()) {
+					window.scrollTo({
+						top: 0,
+						behavior: 'smooth'
+					});
+					return false;
+				}
 
-					<div class="col mb-3">
-						<p>Scores released?</p>
-						<div class="btn-group" role="group" aria-label="Scores released?">
-							<input type="radio" value="1" class="btn-check" name="scoresReleased" id="scoresReleased-y"
-								autocomplete="off" {{#if event.ScoresReleased}}checked{{/if}}>
-							<label class="btn btn-outline-success" for="scoresReleased-y">Yes</label>
+				byba.events.update("{{id}}", this.event.name, this.event.date, this.event.startTime, this.event.endTime, this.event.status, this.event.address, byba.amAdmin() ? this.event.season.id : null).then(response => {
+					if (response.status === 200) {
+						this.saved = true;
+						return;
+					}
 
-							<input type="radio" value="0" class="btn-check" name="scoresReleased" id="scoresReleased-n"
-								autocomplete="off" {{#unless event.ScoresReleased}}checked{{/unless}}>
-							<label class="btn btn-outline-danger" for="scoresReleased-n">No</label>
-						</div>
-					</div>
-				</div>
+					this.errors = response.errors;
+					window.scrollTo({
+						top: 0,
+						behavior: 'smooth'
+					});
+				})
+			},
+			validate: function () {
+				this.errors = [];
 
-				<div class="card card-body mb-3">
-					<h3>Address</h3>
-					{{> address prefix="" required=false data=event.Address readOnly=session.user.IsNotAdmin }}
-				</div>
+				if (!this.canEdit) {
+					this.errors.push("You do not have permission to edit this event");
+					return false;
+				}
 
-				<div class='form-group mb-3'>
-					<label class='form-label' for='description'>Description</label>
-					<textarea type='text' class='form-control' id='description' name='description'
-						placeholder='Description' rows=5 {{#unless
-						session.user.IsAdmin}}readonly{{/unless}}>{{event.Description}}</textarea>
-				</div>
+				if (this.event.status === "draft") {
+					return true;
+				}
 
-				{{#if session.user.IsAdmin}}
-				<div class='text-center'>
-					<button class='btn btn-default'>Save</button>
-				</div>
-			</form>
-			{{/if}}
-		</div>
-	</div>
+				if (this.event.name.trim() === "") {
+					this.errors.push("You must enter a name for this event");
+				} else if (isNaN(new Date(this.event.date))) {
+					this.errors.push("You must enter a valid date for this event");
+				} else if (this.event.status === "internal") {
+					return true;
+				}
 
-	<div class="col-12 col-lg-4">
+				if (this.event.address?.line1?.trim() === "") {
+					this.errors.push("You must enter the first line of the address for this event");
+				} else if (this.event.address?.townCity?.trim() === "") {
+					this.errors.push("You must enter the town for this event");
+				} else if (this.event.address?.postcode?.trim() === "") {
+					this.errors.push("You must enter the postcode for this event");
+				} else if (this.event.status === "announced" && this.errors.length === 0) {
+					return true;
+				}
 
+				//TODO - we don't have schedule or score functionality yet
+				if (["finalised", "complete"].includes(this.event.status)) {
+					this.errors.push(`"${this.event.status}" status is not currently supported`);
+				}
 
-		<div class='card card-body mb-3'>
-			<h3 class='text-center'>Registration Details</h3>
-
-			{{#if session.user.IsAdmin}}
-			<form method='post' action='/event/{{event.id}}/registration'>
-				{{/if}}
-				<div class='form-group mb-3'>
-					<label class='form-label' for='registrationCutoff'>Event Registration Cutoff Date</label>
-					<input type='date' class='form-control' id='registrationCutoff' name='registrationCutoff'
-						placeholder='Registration Cutoff' value='{{event.EntryCutoffDate}}' {{#unless
-						session.user.IsAdmin}}readonly{{/unless}} />
-				</div>
-				<div class='form-group mb-3'>
-					<label class='form-label' for='freeWithdrawalCutoff'>Free Event Withdrawal Cutoff Date</label>
-					<input type='date' class='form-control' id='freeWithdrawalCutoff' name='freeWithdrawalCutoff'
-						placeholder='Free Withdrawal Cutoff' value='{{event.FreeWithdrawalCutoffDate}}' {{#unless
-						session.user.IsAdmin}}readonly{{/unless}} />
-				</div>
-
-				<p>Allow Late Entries?</p>
-				<div class="btn-group" role="group" aria-label="Allow Late Entries?">
-					<input type="radio" value="1" class="btn-check" name="lateEntry" id="lateEntry-y"
-						autocomplete="off" {{#if event.AllowLateEntry}}checked{{/if}}>
-					<label class="btn btn-outline-success" for="lateEntry-y">Yes</label>
-
-					<input type="radio" value="0" class="btn-check" name="lateEntry" id="lateEntry-n"
-						autocomplete="off" {{#unless event.AllowLateEntry}}checked{{/unless}}>
-					<label class="btn btn-outline-danger" for="lateEntry-n">No</label>
-				</div>
-
-				{{#if session.user.IsAdmin}}
-				<div class='text-center'>
-					<input type='submit' class='btn btn-default' value='Save' />
-				</div>
-			</form>
-			{{/if}}
-		</div>
-	</div>
-</div>
+				return false;
+			}
+		}
+	});
+</script>

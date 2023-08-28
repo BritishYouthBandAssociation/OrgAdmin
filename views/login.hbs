@@ -23,6 +23,7 @@
 
 </div>
 
+<script src="/js/byba-sdk.js"></script>
 <script>
 	const error = document.getElementById("error");
 	const form = document.getElementById("login");
@@ -30,7 +31,7 @@
 	const password = document.getElementById("password");
 
 	function showErrors(errors){
-		error.innerHTML = errors.map(e => e.message).join("<br />");
+		error.innerHTML = errors.join("<br />");
 		error.classList.remove("d-none");
 	}
 
@@ -40,24 +41,12 @@
 		email.disabled = true;
 		password.disabled = true;
 		
-		let response = await fetch("https://dev.payload.byba.online/api/users/login", {
-			method: 'POST',
-			headers: {
-				"Content-Type": "application/json"
-			},
-			credentials: 'include',
-			body: JSON.stringify({
-				email: email.value,
-				password: password.value
-			})
-		});
-
-		let json = await response.json();
+		let response = await byba.login(email.value, password.value);
 
 		if(response.status !== 200){
 			email.disabled = false;
 			password.disabled = false;
-			showErrors(json.errors);
+			showErrors(response.errors);
 			return;
 		}
 
@@ -69,7 +58,7 @@
 			body: JSON.stringify({
 				email: email.value,
 				password: password.value,
-				payload: json
+				payload: response.json
 			})
 		});
 
