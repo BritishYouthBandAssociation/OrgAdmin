@@ -37,7 +37,7 @@
 		"express-session": "^1.17.3",
 		"joi": "^17.9.2",
 		"morgan": "^1.10.0",
-		"sequelize": "^6.32.1"
+		"sequelize": "^6.33.0"
 	},
 	"lint-staged": {
 		"*.js": "eslint --cache --fix"
