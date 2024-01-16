@@ -9,17 +9,19 @@ const { Op } = require('sequelize');
 
 const validator = require('@byba/express-validator');
 
-router.get('/', (req, res, next) => {
+const loginCfg = {
+	title: 'Please Log In',
+	layout: 'no-nav.hbs',
+	background: '/assets/field-markings.jpg',
+	darkenBG: true
+};
+
+router.get('/', (req, res) => {
 	if (req.session.user) {
 		return res.redirect(req.query.next ?? 'home');
 	}
 
-	return res.render('login', {
-		title: 'Please Log In',
-		layout: 'no-nav.hbs',
-		background: '/assets/field-markings.jpg',
-		darkenBG: true
-	});
+	return res.render('login', loginCfg);
 });
 
 router.post('/', validator.body(Joi.object({
@@ -30,7 +32,7 @@ router.post('/', validator.body(Joi.object({
 		.required()
 })), validator.query(Joi.object({
 	next: Joi.string()
-})), async (req, res, next) => {
+})), async (req, res) => {
 	const user = await req.db.User.findByEmail(req.body.email);
 
 	// either returns if the password is valid, or undefined if no user was found
@@ -38,10 +40,9 @@ router.post('/', validator.body(Joi.object({
 
 	if (!validLogin) {
 		return res.render('login', {
-			title: 'Please Log In',
+			...loginCfg,
 			error: 'Username or password incorrect. Please try again',
-			email: req.body.email,
-			layout: 'no-nav.hbs'
+			email: req.body.email
 		});
 	}
 
